@@ -258,8 +258,8 @@ Chaque point de retour précise : ce qui est livré, ce qu'Adrien doit tester, e
 - [x] Éditer le texte d'un bloc (clic sur le titre)
 - [x] Case à cocher sur chaque bloc (coché = barré + vert)
 - [x] Navigation entre semaines (flèches) + bouton Aujourd'hui
-- [ ] Drag and drop entre cases (étape 4b)
-- [ ] Resize horizontal (étendre sur plusieurs jours) (étape 4b)
+- [x] Drag and drop entre cases (poignée sur chaque bloc, déplace jour + catégorie, dnd-kit tactile)
+- [x] Multi-jours : durée réglable (stepper jours) qui étend le bloc ; affichage "Xj". (Le resize par glissement du bord pourra venir en polish si besoin.)
 - [x] Couleur optionnelle par bloc (6 couleurs)
 - [x] Toggle vue mensuelle (affichage simplifié, titres seulement)
 
