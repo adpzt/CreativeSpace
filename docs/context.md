@@ -234,6 +234,15 @@ Les détails (fiche client, et à terme fiche projet) s'ouvrent en **overlay** :
 5. En attente solde
 6. Clôturé
 
+**Retours Adrien sur la v1 des projets (juin 2026, à intégrer) :**
+- Choisir la **catégorie** du projet : Freelance / Entreprise / Perso (même logique que le calendrier).
+- Assigner une **couleur** au projet -> visible en pastille à côté du texte dans le calendrier si le bloc correspond au projet.
+- Dissocier **lecture et modification** : cliquer un projet ouvre un **récap en grand** (lecture), un **icône crayon** permet de modifier. (Pattern à appliquer partout : clic = récap, crayon = édition.)
+- Livrables : remplacer les flèches haut/bas par du **drag & drop** (pointillés ok ici), durée en jours **modifiable** en ligne, bouton de validation **coché vert** (au lieu du +), et un **+ discret** pour ajouter (pas une ligne entière).
+- Chaque livrable a une **page d'info / notes** (icône info ou pages) : on peut y noter des éléments ; proposé aussi à la création du livrable ; cette page s'ouvre aussi en cliquant le livrable depuis le calendrier.
+- Depuis le **+ du calendrier** (selon la ligne freelance/entreprise/perso), pouvoir choisir un **livrable de projet existant** non encore placé / non validé / projet non clôturé.
+- Remplacer "Notes internes" par **"Notes"**.
+
 **Fiche projet :**
 - Nom du projet + client associé (lié à la fiche client)
 - Numéro de devis et numéro de facture (champs texte, saisis manuellement par Adrien selon le client et la chronologie : date du devis/facture = ordre chronologique des clients). Ces numéros sont réutilisés dans la page Finance pour relier une entrée d'argent (tag freelance) au devis/facture correspondant.
@@ -274,6 +283,17 @@ Les détails (fiche client, et à terme fiche projet) s'ouvrent en **overlay** :
 ### WORK / Calendrier
 
 **C'est le composant le plus important de toute l'app. Il doit être irréprochable.**
+
+**Retours Adrien sur la v1 du calendrier (juin 2026, à intégrer) :**
+- Trop petit : ajouter un mode **plein écran** (agrandir / réduire fluide, sortie facile) et/ou agrandir par défaut. Contenu des cases trop petit, peu lisible : cases plus hautes et plus larges, texte plus grand.
+- Retirer les **pointillés** de drag (gain de place) : le bloc entier est déplaçable, Adrien sait qu'il peut.
+- Bug : on ne peut déposer un bloc que sur Lundi/Freelance -> à corriger (était dû à deux grilles en double).
+- Édition d'un bloc : passer par un **overlay** au-dessus de la page (apparaît/disparaît au clic autour), plus de mini-panneau illisible.
+- Mettre **en avant** les lignes Freelance / Entreprise / Perso (texte blanc dans un encadré de leur couleur). Couleurs : **Freelance = bleu, Entreprise = vert, Perso = orange** (pas d'autre palette).
+- Remplacer le texte "Ajouter" partout par juste un **+**.
+- Vue Mois : mettre le **numéro du jour en haut à droite** de chaque case.
+- L'ajout d'une tâche doit être **instantané** (pas de délai d'environ 0,5s) -> insertion optimiste.
+- Une fois un projet associé à un bloc, afficher une **pastille de la couleur du projet** à côté du texte.
 
 **Nature du calendrier (validé avec Adrien) :** ce n'est pas un agenda avec des horaires. C'est une to-do hebdomadaire pour s'organiser : "tel jour je dois faire ça". Tout ce qui a besoin d'un horaire précis (calls pro, événements, activités entre amis) reste sur le calendrier natif du téléphone, volontairement séparé. Ici les blocs occupent un ou plusieurs jours entiers (granularité = la journée, jamais l'heure). Plusieurs blocs peuvent coexister dans une même case jour x catégorie, empilés verticalement.
 

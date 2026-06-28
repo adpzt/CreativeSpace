@@ -150,7 +150,7 @@ export default function ProjectOverlayBody({
 
       {/* Notes internes */}
       <AutoSaveField
-        label="Notes internes"
+        label="Notes"
         multiline
         initialValue={project.notes ?? ""}
         placeholder="Direction créative, choix, points d'attention..."

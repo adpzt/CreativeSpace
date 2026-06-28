@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   startOfWeek,
   endOfWeek,
@@ -10,8 +10,6 @@ import {
   addMonths,
   addDays,
   eachDayOfInterval,
-  differenceInCalendarDays,
-  parseISO,
   format,
   isSameMonth,
   isToday,
@@ -31,9 +29,19 @@ import {
   type DragEndEvent,
 } from "@dnd-kit/core";
 import { CSS } from "@dnd-kit/utilities";
-import { ChevronLeft, ChevronRight, Plus } from "lucide-react";
-import BlockChip from "./BlockChip";
-import { CALENDAR_CATEGORIES } from "@/lib/work";
+import {
+  ChevronLeft,
+  ChevronRight,
+  Plus,
+  Check,
+  Trash2,
+  Maximize2,
+  Minimize2,
+} from "lucide-react";
+import Overlay from "@/components/ui/Overlay";
+import AutoSaveField from "@/components/ui/AutoSaveField";
+import { Button } from "@/components/ui/Button";
+import { CALENDAR_CATEGORIES, CATEGORY_COLOR } from "@/lib/work";
 import {
   addCalendarBlock,
   updateCalendarBlock,
@@ -42,8 +50,6 @@ import {
 import type { CalendarBlock, CalendarCategory } from "@/lib/types";
 
 const iso = (d: Date) => format(d, "yyyy-MM-dd");
-const spanOf = (b: CalendarBlock) =>
-  differenceInCalendarDays(parseISO(b.date_end), parseISO(b.date_start)) + 1;
 
 export default function CalendarSection({
   initial,
@@ -53,7 +59,18 @@ export default function CalendarSection({
   const [blocks, setBlocks] = useState<CalendarBlock[]>(initial);
   const [refDate, setRefDate] = useState<Date>(new Date());
   const [view, setView] = useState<"week" | "month">("week");
+  const [fullscreen, setFullscreen] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [activeId, setActiveId] = useState<string | null>(null);
+
+  // Verrou du scroll de la page en plein écran
+  useEffect(() => {
+    if (!fullscreen) return;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [fullscreen]);
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
@@ -68,21 +85,38 @@ export default function CalendarSection({
     end: addDays(weekStart, 6),
   });
 
-  // Un bloc s'affiche dans la case de son jour de DÉBUT (sa durée est indiquée)
   const cellBlocks = (dayIso: string, cat: CalendarCategory) =>
     blocks.filter((b) => b.category === cat && b.date_start === dayIso);
   const dayBlocks = (dayIso: string) =>
     blocks.filter((b) => dayIso >= b.date_start && dayIso <= b.date_end);
 
-  // ----- Mutations -----
+  // ----- Mutations (insertion optimiste = instantané) -----
   async function create(dayIso: string, cat: CalendarCategory, title: string) {
-    const b = await addCalendarBlock({
+    const tempId = `temp-${Math.random().toString(36).slice(2)}`;
+    const temp: CalendarBlock = {
+      id: tempId,
       title,
       date_start: dayIso,
       date_end: dayIso,
       category: cat,
-    });
-    setBlocks((prev) => [...prev, b]);
+      color: null,
+      completed: false,
+      project_id: null,
+      deliverable_id: null,
+      created_at: new Date().toISOString(),
+    };
+    setBlocks((p) => [...p, temp]);
+    try {
+      const b = await addCalendarBlock({
+        title,
+        date_start: dayIso,
+        date_end: dayIso,
+        category: cat,
+      });
+      setBlocks((p) => p.map((x) => (x.id === tempId ? b : x)));
+    } catch {
+      setBlocks((p) => p.filter((x) => x.id !== tempId));
+    }
   }
   async function toggle(b: CalendarBlock) {
     const completed = !b.completed;
@@ -93,31 +127,24 @@ export default function CalendarSection({
     setBlocks((p) => p.map((x) => (x.id === id ? { ...x, title } : x)));
     await updateCalendarBlock(id, { title });
   }
-  async function color(id: string, color: string | null) {
-    setBlocks((p) => p.map((x) => (x.id === id ? { ...x, color } : x)));
-    await updateCalendarBlock(id, { color });
-  }
   async function remove(id: string) {
     setBlocks((p) => p.filter((x) => x.id !== id));
+    setEditingId(null);
     await deleteCalendarBlock(id);
   }
-  // Change la durée (en jours) -> ajuste la date de fin
-  async function setDuration(b: CalendarBlock, daysCount: number) {
-    const date_end = iso(addDays(parseISO(b.date_start), daysCount - 1));
-    setBlocks((p) => p.map((x) => (x.id === b.id ? { ...x, date_end } : x)));
-    await updateCalendarBlock(b.id, { date_end });
-  }
-  // Déplace un bloc vers un autre jour / catégorie (durée conservée)
   async function move(b: CalendarBlock, dayIso: string, cat: CalendarCategory) {
-    const duration = spanOf(b);
-    const date_start = dayIso;
-    const date_end = iso(addDays(parseISO(dayIso), duration - 1));
     setBlocks((p) =>
       p.map((x) =>
-        x.id === b.id ? { ...x, date_start, date_end, category: cat } : x
+        x.id === b.id
+          ? { ...x, date_start: dayIso, date_end: dayIso, category: cat }
+          : x
       )
     );
-    await updateCalendarBlock(b.id, { date_start, date_end, category: cat });
+    await updateCalendarBlock(b.id, {
+      date_start: dayIso,
+      date_end: dayIso,
+      category: cat,
+    });
   }
 
   function onDragStart(e: DragStartEvent) {
@@ -138,57 +165,51 @@ export default function CalendarSection({
   }
 
   const activeBlock = blocks.find((b) => b.id === activeId) ?? null;
+  const editingBlock = blocks.find((b) => b.id === editingId) ?? null;
 
   const label =
     view === "week"
       ? `Semaine du ${format(weekStart, "d MMMM", { locale: fr })}`
       : format(refDate, "MMMM yyyy", { locale: fr });
 
-  const handlers = {
-    onToggle: toggle,
-    onSaveTitle: saveTitle,
-    onColor: color,
-    onDuration: setDuration,
-    onDelete: remove,
-    onCreate: create,
-  };
+  const cellMinH = fullscreen ? "min-h-[140px]" : "min-h-[112px]";
+  const minWidth = fullscreen ? 1100 : 920;
 
-  return (
-    <section>
-      {/* Barre de navigation */}
-      <div className="mb-4 flex items-center justify-between gap-2">
-        <div className="flex items-center gap-1">
-          <button
-            onClick={() =>
-              setRefDate((d) =>
-                view === "week" ? addWeeks(d, -1) : addMonths(d, -1)
-              )
-            }
-            aria-label="Précédent"
-            className="rounded-lg p-2 text-muted hover:bg-gray-100 hover:text-ink"
-          >
-            <ChevronLeft className="h-4 w-4" />
-          </button>
-          <button
-            onClick={() =>
-              setRefDate((d) =>
-                view === "week" ? addWeeks(d, 1) : addMonths(d, 1)
-              )
-            }
-            aria-label="Suivant"
-            className="rounded-lg p-2 text-muted hover:bg-gray-100 hover:text-ink"
-          >
-            <ChevronRight className="h-4 w-4" />
-          </button>
-          <span className="ml-1 text-sm font-medium capitalize">{label}</span>
-          <button
-            onClick={() => setRefDate(new Date())}
-            className="ml-2 rounded-lg px-2 py-1 text-xs text-muted hover:bg-gray-100 hover:text-ink"
-          >
-            Aujourd'hui
-          </button>
-        </div>
+  const navBar = (
+    <div className="mb-4 flex items-center justify-between gap-2">
+      <div className="flex items-center gap-1">
+        <button
+          onClick={() =>
+            setRefDate((d) =>
+              view === "week" ? addWeeks(d, -1) : addMonths(d, -1)
+            )
+          }
+          aria-label="Précédent"
+          className="rounded-lg p-2 text-muted hover:bg-gray-100 hover:text-ink"
+        >
+          <ChevronLeft className="h-4 w-4" />
+        </button>
+        <button
+          onClick={() =>
+            setRefDate((d) =>
+              view === "week" ? addWeeks(d, 1) : addMonths(d, 1)
+            )
+          }
+          aria-label="Suivant"
+          className="rounded-lg p-2 text-muted hover:bg-gray-100 hover:text-ink"
+        >
+          <ChevronRight className="h-4 w-4" />
+        </button>
+        <span className="ml-1 text-sm font-medium capitalize">{label}</span>
+        <button
+          onClick={() => setRefDate(new Date())}
+          className="ml-2 rounded-lg px-2 py-1 text-xs text-muted hover:bg-gray-100 hover:text-ink"
+        >
+          Aujourd'hui
+        </button>
+      </div>
 
+      <div className="flex items-center gap-2">
         <div className="flex rounded-lg bg-gray-100 p-0.5 text-xs font-medium">
           <button
             onClick={() => setView("week")}
@@ -207,104 +228,100 @@ export default function CalendarSection({
             Mois
           </button>
         </div>
+        <button
+          onClick={() => setFullscreen((f) => !f)}
+          aria-label={fullscreen ? "Réduire" : "Agrandir"}
+          className="rounded-lg p-2 text-muted hover:bg-gray-100 hover:text-ink"
+        >
+          {fullscreen ? (
+            <Minimize2 className="h-4 w-4" />
+          ) : (
+            <Maximize2 className="h-4 w-4" />
+          )}
+        </button>
+      </div>
+    </div>
+  );
+
+  const weekGrid = (
+    <DndContext
+      sensors={sensors}
+      collisionDetection={closestCenter}
+      onDragStart={onDragStart}
+      onDragEnd={onDragEnd}
+    >
+      <div className="overflow-x-auto">
+        <div
+          className="grid border-l border-t border-gray-100"
+          style={{
+            gridTemplateColumns: "100px repeat(7, minmax(0, 1fr))",
+            minWidth,
+          }}
+        >
+          {/* En-tête : coin + jours */}
+          <div className="border-b border-r border-gray-100 bg-gray-50" />
+          {days.map((d) => (
+            <div
+              key={iso(d)}
+              className="border-b border-r border-gray-100 bg-gray-50 px-2 py-2 text-center"
+            >
+              <p className="text-[11px] uppercase text-muted">
+                {format(d, "EEE", { locale: fr })}
+              </p>
+              <p
+                className={`text-sm font-semibold ${
+                  isToday(d) ? "text-active" : ""
+                }`}
+              >
+                {format(d, "d")}
+              </p>
+            </div>
+          ))}
+
+          {/* Lignes des catégories */}
+          {CALENDAR_CATEGORIES.map((cat) => (
+            <div key={cat.key} className="contents">
+              <div
+                className="flex items-center justify-center border-b border-r border-gray-100 px-2 py-2 text-center text-xs font-semibold text-white"
+                style={{ backgroundColor: cat.color }}
+              >
+                {cat.label}
+              </div>
+              {days.map((d) => (
+                <Cell
+                  key={cat.key + iso(d)}
+                  dayIso={iso(d)}
+                  cat={cat.key}
+                  blocks={cellBlocks(iso(d), cat.key)}
+                  className={`${cellMinH} border-b border-r border-gray-100 p-1.5`}
+                  onCreate={create}
+                  onToggle={toggle}
+                  onOpen={(id) => setEditingId(id)}
+                />
+              ))}
+            </div>
+          ))}
+        </div>
       </div>
 
-      {view === "week" ? (
-        <DndContext
-          sensors={sensors}
-          collisionDetection={closestCenter}
-          onDragStart={onDragStart}
-          onDragEnd={onDragEnd}
-        >
-          {/* DESKTOP : grille 7 jours x 3 catégories */}
+      <DragOverlay>
+        {activeBlock ? (
           <div
-            className="hidden border-l border-t border-gray-100 md:grid"
-            style={{ gridTemplateColumns: "84px repeat(7, minmax(0, 1fr))" }}
+            className="rounded-lg border border-gray-200 bg-white px-2 py-1 text-xs shadow-md"
+            style={{ borderLeft: `3px solid ${CATEGORY_COLOR[activeBlock.category]}` }}
           >
-            <div className="border-b border-r border-gray-100 bg-gray-50" />
-            {days.map((d) => (
-              <div
-                key={iso(d)}
-                className="border-b border-r border-gray-100 bg-gray-50 px-2 py-2 text-center"
-              >
-                <p className="text-[11px] uppercase text-muted">
-                  {format(d, "EEE", { locale: fr })}
-                </p>
-                <p
-                  className={`text-sm font-medium ${
-                    isToday(d) ? "text-active" : ""
-                  }`}
-                >
-                  {format(d, "d")}
-                </p>
-              </div>
-            ))}
-
-            {CALENDAR_CATEGORIES.map((cat) => (
-              <CategoryRow key={cat.key} label={cat.label}>
-                {days.map((d) => (
-                  <Cell
-                    key={cat.key + iso(d)}
-                    dayIso={iso(d)}
-                    cat={cat.key}
-                    blocks={cellBlocks(iso(d), cat.key)}
-                    className="min-h-[96px] border-b border-r border-gray-100 p-1.5"
-                    {...handlers}
-                  />
-                ))}
-              </CategoryRow>
-            ))}
+            {activeBlock.title}
           </div>
+        ) : null}
+      </DragOverlay>
+    </DndContext>
+  );
 
-          {/* MOBILE : liste verticale des 7 jours */}
-          <div className="space-y-3 md:hidden">
-            {days.map((d) => (
-              <div
-                key={iso(d)}
-                className="overflow-hidden rounded-2xl border border-gray-100"
-              >
-                <div
-                  className={`flex items-baseline gap-2 border-b border-gray-100 px-3 py-2 ${
-                    isToday(d) ? "bg-blue-50" : "bg-gray-50"
-                  }`}
-                >
-                  <span className="text-sm font-medium capitalize">
-                    {format(d, "EEEE d", { locale: fr })}
-                  </span>
-                  {isToday(d) && (
-                    <span className="text-[11px] font-medium text-active">
-                      Aujourd'hui
-                    </span>
-                  )}
-                </div>
-                <div className="divide-y divide-gray-100">
-                  {CALENDAR_CATEGORIES.map((cat) => (
-                    <div key={cat.key} className="px-3 py-2">
-                      <p className="mb-1 text-[11px] font-medium uppercase tracking-wide text-muted">
-                        {cat.label}
-                      </p>
-                      <Cell
-                        dayIso={iso(d)}
-                        cat={cat.key}
-                        blocks={cellBlocks(iso(d), cat.key)}
-                        className="min-h-[8px]"
-                        {...handlers}
-                      />
-                    </div>
-                  ))}
-                </div>
-              </div>
-            ))}
-          </div>
-
-          <DragOverlay>
-            {activeBlock ? (
-              <div className="rounded-lg border border-gray-200 bg-white px-2 py-1 text-xs shadow-md">
-                {activeBlock.title}
-              </div>
-            ) : null}
-          </DragOverlay>
-        </DndContext>
+  const content = (
+    <>
+      {navBar}
+      {view === "week" ? (
+        weekGrid
       ) : (
         <MonthView
           refDate={refDate}
@@ -315,37 +332,53 @@ export default function CalendarSection({
           }}
         />
       )}
-    </section>
+    </>
   );
-}
 
-// ---------- Composants internes ----------
-
-function CategoryRow({
-  label,
-  children,
-}: {
-  label: string;
-  children: React.ReactNode;
-}) {
   return (
     <>
-      <div className="flex items-start border-b border-r border-gray-100 bg-gray-50 px-2 py-2 text-xs font-medium text-muted">
-        {label}
-      </div>
-      {children}
+      {fullscreen ? (
+        <div className="fixed inset-0 z-50 overflow-auto bg-white p-4 sm:p-6">
+          {content}
+        </div>
+      ) : (
+        content
+      )}
+
+      {/* Overlay d'édition d'un bloc */}
+      {editingBlock && (
+        <Overlay onClose={() => setEditingId(null)}>
+          <div className="space-y-4 pr-8">
+            <AutoSaveField
+              label="Tâche"
+              initialValue={editingBlock.title}
+              save={(v) => saveTitle(editingBlock.id, v)}
+            />
+            <button
+              onClick={() => toggle(editingBlock)}
+              className={`inline-flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-medium ${
+                editingBlock.completed
+                  ? "bg-green-50 text-success"
+                  : "bg-gray-100 text-ink hover:bg-gray-200"
+              }`}
+            >
+              <Check className="h-4 w-4" />
+              {editingBlock.completed ? "Terminé" : "Marquer comme terminé"}
+            </button>
+            <div className="border-t border-gray-100 pt-4">
+              <Button variant="danger" onClick={() => remove(editingBlock.id)}>
+                <Trash2 className="h-4 w-4" />
+                Supprimer
+              </Button>
+            </div>
+          </div>
+        </Overlay>
+      )}
     </>
   );
 }
 
-type CellHandlers = {
-  onToggle: (b: CalendarBlock) => void;
-  onSaveTitle: (id: string, title: string) => void;
-  onColor: (id: string, color: string | null) => void;
-  onDuration: (b: CalendarBlock, days: number) => void;
-  onDelete: (id: string) => void;
-  onCreate: (dayIso: string, cat: CalendarCategory, title: string) => void;
-};
+// ---------- Composants internes ----------
 
 // Une case droppable (jour + catégorie) avec ses blocs et l'ajout
 function Cell({
@@ -353,18 +386,18 @@ function Cell({
   cat,
   blocks,
   className,
-  onToggle,
-  onSaveTitle,
-  onColor,
-  onDuration,
-  onDelete,
   onCreate,
+  onToggle,
+  onOpen,
 }: {
   dayIso: string;
   cat: CalendarCategory;
   blocks: CalendarBlock[];
   className?: string;
-} & CellHandlers) {
+  onCreate: (dayIso: string, cat: CalendarCategory, title: string) => void;
+  onToggle: (b: CalendarBlock) => void;
+  onOpen: (id: string) => void;
+}) {
   const { setNodeRef, isOver } = useDroppable({ id: `${dayIso}|${cat}` });
   return (
     <div
@@ -373,14 +406,11 @@ function Cell({
     >
       <div className="space-y-1">
         {blocks.map((b) => (
-          <DraggableBlock
+          <DraggableChip
             key={b.id}
             block={b}
             onToggle={() => onToggle(b)}
-            onSaveTitle={(t) => onSaveTitle(b.id, t)}
-            onColor={(c) => onColor(b.id, c)}
-            onDuration={(days) => onDuration(b, days)}
-            onDelete={() => onDelete(b.id)}
+            onOpen={() => onOpen(b.id)}
           />
         ))}
         <AddBlock onCreate={(t) => onCreate(dayIso, cat, t)} />
@@ -389,45 +419,65 @@ function Cell({
   );
 }
 
-// Un bloc déplaçable
-function DraggableBlock({
+// Bloc déplaçable (toute la surface) ; clic sur le texte = ouvre l'overlay
+function DraggableChip({
   block,
   onToggle,
-  onSaveTitle,
-  onColor,
-  onDuration,
-  onDelete,
+  onOpen,
 }: {
   block: CalendarBlock;
   onToggle: () => void;
-  onSaveTitle: (title: string) => void;
-  onColor: (color: string | null) => void;
-  onDuration: (days: number) => void;
-  onDelete: () => void;
+  onOpen: () => void;
 }) {
   const { attributes, listeners, setNodeRef, transform, isDragging } =
     useDraggable({ id: block.id });
   const style = {
     transform: CSS.Translate.toString(transform),
     opacity: isDragging ? 0.4 : 1,
+    borderLeft: `3px solid ${CATEGORY_COLOR[block.category]}`,
   };
   return (
-    <div ref={setNodeRef} style={style}>
-      <BlockChip
-        block={block}
-        spanDays={spanOf(block)}
-        dragHandle={{ attributes, listeners }}
-        onToggle={onToggle}
-        onSaveTitle={onSaveTitle}
-        onColor={onColor}
-        onDuration={onDuration}
-        onDelete={onDelete}
-      />
+    <div
+      ref={setNodeRef}
+      {...attributes}
+      {...listeners}
+      style={style}
+      className={`flex cursor-grab touch-none items-center gap-1.5 rounded-lg py-1.5 pl-1.5 pr-2 text-xs ${
+        block.completed ? "bg-green-50" : "bg-gray-50"
+      }`}
+    >
+      <button
+        onPointerDown={(e) => e.stopPropagation()}
+        onClick={(e) => {
+          e.stopPropagation();
+          onToggle();
+        }}
+        aria-label="Cocher"
+        className={`flex h-4 w-4 shrink-0 items-center justify-center rounded border transition-colors ${
+          block.completed
+            ? "border-success bg-success text-white"
+            : "border-gray-300 bg-white hover:border-ink"
+        }`}
+      >
+        {block.completed && <Check className="h-3 w-3" />}
+      </button>
+      <button
+        onPointerDown={(e) => e.stopPropagation()}
+        onClick={(e) => {
+          e.stopPropagation();
+          onOpen();
+        }}
+        className={`flex-1 truncate text-left ${
+          block.completed ? "text-muted line-through" : ""
+        }`}
+      >
+        {block.title}
+      </button>
     </div>
   );
 }
 
-// Bouton + champ d'ajout d'un bloc dans une case
+// Ajout d'un bloc : juste un "+", qui ouvre un champ
 function AddBlock({ onCreate }: { onCreate: (title: string) => void }) {
   const [adding, setAdding] = useState(false);
   const [value, setValue] = useState("");
@@ -443,10 +493,10 @@ function AddBlock({ onCreate }: { onCreate: (title: string) => void }) {
     return (
       <button
         onClick={() => setAdding(true)}
-        className="flex w-full items-center gap-1 rounded-lg px-1.5 py-1 text-[11px] text-muted transition-colors hover:bg-gray-100 hover:text-ink"
+        aria-label="Ajouter une tâche"
+        className="flex h-6 w-6 items-center justify-center rounded-lg text-muted transition-colors hover:bg-gray-100 hover:text-ink"
       >
-        <Plus className="h-3 w-3" />
-        Ajouter
+        <Plus className="h-4 w-4" />
       </button>
     );
   }
@@ -469,7 +519,7 @@ function AddBlock({ onCreate }: { onCreate: (title: string) => void }) {
   );
 }
 
-// Vue mensuelle allégée : juste les titres des blocs par jour
+// Vue mensuelle allégée : numéro du jour en haut a droite + titres des blocs
 function MonthView({
   refDate,
   dayBlocks,
@@ -485,65 +535,70 @@ function MonthView({
   const weekDayLabels = ["Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim"];
 
   return (
-    <div className="border-l border-t border-gray-100">
-      <div className="grid grid-cols-7">
-        {weekDayLabels.map((l) => (
-          <div
-            key={l}
-            className="border-b border-r border-gray-100 bg-gray-50 py-1.5 text-center text-[11px] uppercase text-muted"
-          >
-            {l}
-          </div>
-        ))}
-        {days.map((d) => {
-          const dIso = format(d, "yyyy-MM-dd");
-          const list = dayBlocks(dIso);
-          const inMonth = isSameMonth(d, refDate);
-          return (
-            <button
-              key={dIso}
-              onClick={() => onPickDay(d)}
-              className={`min-h-[84px] border-b border-r border-gray-100 p-1.5 text-left align-top transition-colors hover:bg-gray-50 ${
-                inMonth ? "" : "bg-gray-50/50"
-              }`}
+    <div className="overflow-x-auto">
+      <div className="min-w-[700px] border-l border-t border-gray-100">
+        <div className="grid grid-cols-7">
+          {weekDayLabels.map((l) => (
+            <div
+              key={l}
+              className="border-b border-r border-gray-100 bg-gray-50 py-1.5 text-center text-[11px] uppercase text-muted"
             >
-              <span
-                className={`text-xs font-medium ${
-                  isToday(d)
-                    ? "text-active"
-                    : inMonth
-                    ? ""
-                    : "text-gray-300"
+              {l}
+            </div>
+          ))}
+          {days.map((d) => {
+            const dIso = format(d, "yyyy-MM-dd");
+            const list = dayBlocks(dIso);
+            const inMonth = isSameMonth(d, refDate);
+            return (
+              <button
+                key={dIso}
+                onClick={() => onPickDay(d)}
+                className={`flex min-h-[96px] flex-col border-b border-r border-gray-100 p-1.5 text-left transition-colors hover:bg-gray-50 ${
+                  inMonth ? "" : "bg-gray-50/50"
                 }`}
               >
-                {format(d, "d")}
-              </span>
-              <div className="mt-1 space-y-0.5">
-                {list.slice(0, 3).map((b) => (
-                  <div
-                    key={b.id}
-                    className="flex items-center gap-1 truncate text-[10px] text-gray-600"
-                  >
-                    <span
-                      className="h-1.5 w-1.5 shrink-0 rounded-full"
-                      style={{ backgroundColor: b.color ?? "#CBD5E1" }}
-                    />
-                    <span
-                      className={`truncate ${
-                        b.completed ? "text-muted line-through" : ""
-                      }`}
+                {/* Numéro en haut a droite */}
+                <span
+                  className={`self-end text-xs font-semibold ${
+                    isToday(d)
+                      ? "text-active"
+                      : inMonth
+                      ? ""
+                      : "text-gray-300"
+                  }`}
+                >
+                  {format(d, "d")}
+                </span>
+                <div className="mt-1 space-y-0.5">
+                  {list.slice(0, 4).map((b) => (
+                    <div
+                      key={b.id}
+                      className="flex items-center gap-1 truncate text-[10px] text-gray-600"
                     >
-                      {b.title}
-                    </span>
-                  </div>
-                ))}
-                {list.length > 3 && (
-                  <p className="text-[10px] text-muted">+{list.length - 3}</p>
-                )}
-              </div>
-            </button>
-          );
-        })}
+                      <span
+                        className="h-1.5 w-1.5 shrink-0 rounded-full"
+                        style={{
+                          backgroundColor: CATEGORY_COLOR[b.category],
+                        }}
+                      />
+                      <span
+                        className={`truncate ${
+                          b.completed ? "text-muted line-through" : ""
+                        }`}
+                      >
+                        {b.title}
+                      </span>
+                    </div>
+                  ))}
+                  {list.length > 4 && (
+                    <p className="text-[10px] text-muted">+{list.length - 4}</p>
+                  )}
+                </div>
+              </button>
+            );
+          })}
+        </div>
       </div>
     </div>
   );
