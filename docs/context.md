@@ -213,6 +213,17 @@ Composants :
 
 ---
 
+### WORK — Structure de la page (validé avec Adrien, juin 2026)
+
+Work n'est PAS découpé en 3 onglets séparés. C'est **une seule grande page qui scrolle**, dans cet ordre vertical :
+1. **Projets** (en grand, en haut) : c'est le coeur de l'espace Work, le plus important.
+2. **Calendrier** (juste en dessous) : le semainier / to-do de la semaine.
+3. **Clients** (en bas, secondaire) : un simple **résumé / historique** des clients, pas une page entière intitulée "Clients".
+
+Les détails (fiche client, et à terme fiche projet) s'ouvrent en **overlay** : un panneau centré qui apparaît par-dessus la page, avec le fond légèrement assombri (pas de flou lourd facon "site web"). Pas de navigation vers une page séparée pour un simple détail.
+
+---
+
 ### WORK / Projets
 
 **Vue tableau — 6 statuts :**
@@ -245,12 +256,18 @@ Composants :
 
 ### WORK / Clients
 
-Fiche client :
+**Important (validé avec Adrien) :** les clients sont une section SECONDAIRE de la page Work, affichée en bas comme un résumé / historique. Ce n'est pas une page entière. Chaque client s'ouvre en **overlay** (panneau centré, fond assombri).
+
+**Comportement de l'overlay client :**
+- À l'ouverture, on est en **mode lecture** : un résumé propre (prénom / nom en titre, entreprise, tags thème, email, téléphone, notes, notes communication).
+- Un petit bouton **crayon** bascule en mode édition (champs à sauvegarde auto). On ne tombe jamais directement sur un formulaire d'édition.
+- Bouton de suppression du client (avec confirmation).
+
+**Champs d'un client :**
 - Nom, entreprise, email, téléphone
-- Historique des projets liés (avec statut et montant)
+- **Tags thème** (type de travail pour ce client) : Motion, Graphisme, Direction artistique, Site internet, Social media, Print, Autre. Multi-sélection. (Remplace l'ancienne idée "historique des projets liés", jugée inutile par Adrien.)
 - Notes perso (ce qu'il a dit, ses habitudes, ses red flags éventuels)
 - Notes communication (échanges importants sur sa façon de travailler, à relire avant un appel)
-- Bouton "Nouveau projet" lié à ce client
 
 ---
 

@@ -6,6 +6,7 @@ export type Client = {
   company: string | null;
   email: string | null;
   phone: string | null;
+  tags: string[];
   notes: string | null;
   comm_notes: string | null;
   created_at: string;

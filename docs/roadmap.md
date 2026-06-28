@@ -223,11 +223,15 @@ Chaque point de retour précise : ce qui est livré, ce qu'Adrien doit tester, e
 
 ## PHASE 2 — Work (coeur de l'app)
 
-### Étape 2.1 — Clients
-- [ ] Liste des clients (nom, entreprise, nb projets)
-- [ ] Créer un client (formulaire simple)
-- [ ] Fiche client (infos + notes + notes communication)
-- [ ] Modifier / supprimer un client
+**Structure (validé avec Adrien) :** Work = UNE seule page qui scrolle. Ordre : Projets (en grand, en haut) → Calendrier → Clients (résumé secondaire en bas). Les détails s'ouvrent en overlay (fond assombri), pas en page séparée.
+
+### Étape 2.1 — Clients (section secondaire + overlay)
+- [x] Liste / résumé des clients en bas de la page Work
+- [x] Créer un client
+- [x] Overlay client : mode lecture par défaut + bouton crayon pour éditer
+- [x] Champs : nom, entreprise, email, téléphone, notes perso, notes communication
+- [x] Tags thème (Motion, Graphisme, DA, Site internet, Social media, Print, Autre) au lieu de "projets liés"
+- [x] Sauvegarde auto + suppression (avec confirmation)
 
 >>> POINT DE RETOUR 2 - Clients
 - Livré : liste des clients + fiche client + création / édition / suppression.

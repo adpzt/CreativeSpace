@@ -32,6 +32,7 @@ create table if not exists clients (
   company     text,
   email       text,
   phone       text,
+  tags        text[] not null default '{}',
   notes       text,
   comm_notes  text,
   created_at  timestamptz not null default now()

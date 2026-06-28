@@ -1,5 +1,16 @@
 import type { ProjectStatus } from "@/lib/types";
 
+// Tags "thème" d'un client : le type de travail qu'il commande.
+export const CLIENT_TAGS = [
+  "Motion",
+  "Graphisme",
+  "Direction artistique",
+  "Site internet",
+  "Social media",
+  "Print",
+  "Autre",
+] as const;
+
 // Libellés et couleurs des 6 statuts de projet.
 // Les couleurs restent fonctionnelles (voir context.md section 7).
 export const PROJECT_STATUS: Record<
