@@ -19,7 +19,6 @@ import {
 import { CSS } from "@dnd-kit/utilities";
 import { Check, Trash2, GripVertical, Plus, FileText } from "lucide-react";
 import ProgressBar from "@/components/ui/ProgressBar";
-import AutoSaveField from "@/components/ui/AutoSaveField";
 import { projectProgress } from "@/lib/work";
 import type { Deliverable } from "@/lib/types";
 
@@ -28,14 +27,14 @@ type Props = {
   onToggle: (id: string) => void;
   onRename: (id: string, name: string) => void;
   onDuration: (id: string, days: number) => void;
-  onNote: (id: string, notes: string) => void;
+  onOpenNote: (id: string) => void;
   onAdd: (name: string, days: number, notes: string) => void;
   onDelete: (id: string) => void;
   onReorder: (items: Deliverable[]) => void;
 };
 
 export default function DeliverablesEditor(props: Props) {
-  const { items, onAdd, onReorder } = props;
+  const { items, onAdd } = props;
   const [adding, setAdding] = useState(false);
   const [name, setName] = useState("");
   const [days, setDays] = useState("1");
@@ -51,7 +50,7 @@ export default function DeliverablesEditor(props: Props) {
     if (!over || active.id === over.id) return;
     const oldIndex = items.findIndex((i) => i.id === active.id);
     const newIndex = items.findIndex((i) => i.id === over.id);
-    onReorder(arrayMove(items, oldIndex, newIndex));
+    props.onReorder(arrayMove(items, oldIndex, newIndex));
   }
 
   function validateAdd() {
@@ -87,7 +86,6 @@ export default function DeliverablesEditor(props: Props) {
         </SortableContext>
       </DndContext>
 
-      {/* Ajout d'un livrable : + discret, validation par coche verte */}
       {adding ? (
         <div className="mt-2 rounded-xl border border-gray-200 p-2">
           <div className="flex items-center gap-2">
@@ -141,7 +139,7 @@ function SortableDeliverable({
   onToggle,
   onRename,
   onDuration,
-  onNote,
+  onOpenNote,
   onDelete,
 }: { item: Deliverable } & Omit<Props, "items" | "onAdd" | "onReorder">) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
@@ -153,89 +151,79 @@ function SortableDeliverable({
   };
   const [name, setName] = useState(item.name);
   const [days, setDays] = useState(String(item.duration_days));
-  const [openNote, setOpenNote] = useState(false);
 
   return (
     <li
       ref={setNodeRef}
       style={style}
-      className="rounded-xl border border-gray-100 bg-white"
+      className="flex items-center gap-1.5 rounded-xl border border-gray-100 bg-white px-2 py-1.5"
     >
-      <div className="flex items-center gap-1.5 px-2 py-1.5">
-        <span
-          {...attributes}
-          {...listeners}
-          className="shrink-0 cursor-grab touch-none text-gray-300 hover:text-muted"
-          aria-label="Réordonner"
-        >
-          <GripVertical className="h-4 w-4" />
-        </span>
+      <span
+        {...attributes}
+        {...listeners}
+        className="shrink-0 cursor-grab touch-none text-gray-300 hover:text-muted"
+        aria-label="Réordonner"
+      >
+        <GripVertical className="h-4 w-4" />
+      </span>
 
-        <button
-          onClick={() => onToggle(item.id)}
-          aria-label="Cocher"
-          className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-md border transition-colors ${
-            item.completed
-              ? "border-success bg-success text-white"
-              : "border-gray-300 hover:border-ink"
-          }`}
-        >
-          {item.completed && <Check className="h-3.5 w-3.5" />}
-        </button>
+      <button
+        onClick={() => onToggle(item.id)}
+        aria-label="Cocher"
+        className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-md border transition-colors ${
+          item.completed
+            ? "border-success bg-success text-white"
+            : "border-gray-300 hover:border-ink"
+        }`}
+      >
+        {item.completed && <Check className="h-3.5 w-3.5" />}
+      </button>
 
-        <input
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          onBlur={() => name.trim() && name !== item.name && onRename(item.id, name.trim())}
-          className={`min-w-0 flex-1 bg-transparent text-sm outline-none ${
-            item.completed ? "text-muted line-through" : ""
-          }`}
-        />
+      <input
+        value={name}
+        onChange={(e) => setName(e.target.value)}
+        onBlur={() =>
+          name.trim() && name !== item.name && onRename(item.id, name.trim())
+        }
+        className={`min-w-0 flex-1 bg-transparent text-sm outline-none ${
+          item.completed ? "text-muted line-through" : ""
+        }`}
+      />
 
-        <input
-          value={days}
-          onChange={(e) => setDays(e.target.value)}
-          onBlur={() => {
-            const d = Math.max(1, parseInt(days, 10) || 1);
-            setDays(String(d));
-            if (d !== item.duration_days) onDuration(item.id, d);
-          }}
-          type="number"
-          min={1}
-          aria-label="Durée en jours"
-          className="w-12 shrink-0 rounded-md border border-transparent px-1 py-0.5 text-center text-xs outline-none hover:border-gray-200 focus:border-ink"
-        />
-        <span className="shrink-0 text-xs text-muted">j</span>
+      <input
+        value={days}
+        onChange={(e) => setDays(e.target.value)}
+        onBlur={() => {
+          const d = Math.max(1, parseInt(days, 10) || 1);
+          setDays(String(d));
+          if (d !== item.duration_days) onDuration(item.id, d);
+        }}
+        type="number"
+        min={1}
+        aria-label="Durée en jours"
+        className="w-12 shrink-0 rounded-md border border-transparent px-1 py-0.5 text-center text-xs outline-none hover:border-gray-200 focus:border-ink"
+      />
+      <span className="shrink-0 text-xs text-muted">j</span>
 
-        <button
-          onClick={() => setOpenNote((o) => !o)}
-          aria-label="Note du livrable"
-          className={`shrink-0 rounded p-1 transition-colors hover:bg-gray-100 ${
-            item.notes ? "text-active" : "text-muted"
-          }`}
-        >
-          <FileText className="h-3.5 w-3.5" />
-        </button>
-        <button
-          onClick={() => onDelete(item.id)}
-          aria-label="Supprimer le livrable"
-          className="shrink-0 rounded p-1 text-muted hover:bg-gray-100 hover:text-urgent"
-        >
-          <Trash2 className="h-3.5 w-3.5" />
-        </button>
-      </div>
-
-      {openNote && (
-        <div className="border-t border-gray-100 p-2">
-          <AutoSaveField
-            multiline
-            rows={3}
-            initialValue={item.notes ?? ""}
-            placeholder="Notes sur ce livrable (brief, specs, liens...)"
-            save={(v) => onNote(item.id, v)}
-          />
-        </div>
-      )}
+      {/* Note (panneau Notion) - icône colorée, distincte de la poubelle */}
+      <button
+        onClick={() => onOpenNote(item.id)}
+        aria-label="Note du livrable"
+        className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-lg transition-colors ${
+          item.notes
+            ? "bg-blue-50 text-active"
+            : "text-active hover:bg-blue-50"
+        }`}
+      >
+        <FileText className="h-3.5 w-3.5" />
+      </button>
+      <button
+        onClick={() => onDelete(item.id)}
+        aria-label="Supprimer le livrable"
+        className="shrink-0 rounded p-1 text-muted hover:bg-gray-100 hover:text-urgent"
+      >
+        <Trash2 className="h-3.5 w-3.5" />
+      </button>
     </li>
   );
 }

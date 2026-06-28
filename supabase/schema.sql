@@ -10,7 +10,7 @@
 -- ---------- Types énumérés ----------
 create type project_status as enum (
   'waiting_brief', 'in_production', 'waiting_feedback',
-  'in_revision', 'waiting_payment', 'closed'
+  'in_revision', 'waiting_payment', 'closed', 'cancelled'
 );
 
 create type calendar_category as enum ('freelance', 'entreprise', 'perso');
@@ -46,6 +46,8 @@ create table if not exists projects (
   status         project_status not null default 'waiting_brief',
   category       calendar_category not null default 'freelance',
   color          text,
+  mission_types  text[] not null default '{}',
+  cost           numeric(10, 2),
   start_date     date,
   end_date       date,
   devis_number   text,

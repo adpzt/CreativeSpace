@@ -24,7 +24,7 @@ export async function getClients(): Promise<Client[]> {
   return (data ?? []) as Client[];
 }
 
-// Crée un client (avec tous ses champs renseignés au formulaire de création)
+// Crée un client et renvoie son id (utilisé aussi par l'autocomplétion projet)
 export async function createClient(input: {
   name: string;
   company?: string;
@@ -33,20 +33,25 @@ export async function createClient(input: {
   tags?: string[];
   notes?: string;
   comm_notes?: string;
-}): Promise<void> {
+}): Promise<string> {
   const supabase = createServerSupabase();
-  const { error } = await supabase.from("clients").insert({
-    name: input.name,
-    company: input.company || null,
-    email: input.email || null,
-    phone: input.phone || null,
-    tags: input.tags ?? [],
-    notes: input.notes || null,
-    comm_notes: input.comm_notes || null,
-  });
+  const { data, error } = await supabase
+    .from("clients")
+    .insert({
+      name: input.name,
+      company: input.company || null,
+      email: input.email || null,
+      phone: input.phone || null,
+      tags: input.tags ?? [],
+      notes: input.notes || null,
+      comm_notes: input.comm_notes || null,
+    })
+    .select("id")
+    .single();
 
   if (error) throw new Error(error.message);
   revalidatePath("/work");
+  return data.id as string;
 }
 
 // Met à jour un ou plusieurs champs d'un client (sauvegarde auto)
@@ -99,6 +104,8 @@ export async function createProject(input: {
   status?: ProjectStatus;
   category?: CalendarCategory;
   color?: string | null;
+  mission_types?: string[];
+  cost?: number | null;
   start_date?: string | null;
   end_date?: string | null;
 }): Promise<string> {
@@ -111,6 +118,8 @@ export async function createProject(input: {
       status: input.status ?? "waiting_brief",
       category: input.category ?? "freelance",
       color: input.color || null,
+      mission_types: input.mission_types ?? [],
+      cost: input.cost ?? null,
       start_date: input.start_date || null,
       end_date: input.end_date || null,
     })

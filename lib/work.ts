@@ -77,9 +77,14 @@ export const PROJECT_STATUS: Record<
     dot: "bg-success",
     badge: "bg-green-50 text-success",
   },
+  cancelled: {
+    label: "Annulé",
+    dot: "bg-muted",
+    badge: "bg-gray-100 text-muted",
+  },
 };
 
-// Ordre d'affichage des statuts (colonnes du tableau Projets)
+// Ordre d'affichage des statuts
 export const PROJECT_STATUS_ORDER: ProjectStatus[] = [
   "waiting_brief",
   "in_production",
@@ -87,6 +92,23 @@ export const PROJECT_STATUS_ORDER: ProjectStatus[] = [
   "in_revision",
   "waiting_payment",
   "closed",
+  "cancelled",
+];
+
+// Statuts masqués par défaut dans la liste des projets
+export const HIDDEN_BY_DEFAULT: ProjectStatus[] = ["closed", "cancelled"];
+
+// Types de mission d'un projet (multi-sélection)
+export const MISSION_TYPES = [
+  "Direction artistique",
+  "Graphisme",
+  "Identité visuelle",
+  "Motion",
+  "Site internet",
+  "Social post",
+  "Social ads",
+  "Print",
+  "Autre",
 ];
 
 // % de progression d'un projet, pondéré par la durée des livrables.

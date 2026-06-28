@@ -18,7 +18,8 @@ export type ProjectStatus =
   | "waiting_feedback"
   | "in_revision"
   | "waiting_payment"
-  | "closed";
+  | "closed"
+  | "cancelled";
 
 export type Project = {
   id: string;
@@ -27,6 +28,8 @@ export type Project = {
   status: ProjectStatus;
   category: CalendarCategory;
   color: string | null;
+  mission_types: string[];
+  cost: number | null;
   start_date: string | null;
   end_date: string | null;
   devis_number: string | null;

@@ -62,9 +62,18 @@ export default function ClientsSection({
               onClick={() => setOpenId(client.id)}
               className="rounded-2xl border border-gray-100 p-4 text-left transition-colors hover:border-gray-200 hover:bg-gray-50"
             >
-              <p className="truncate font-medium">{client.name}</p>
+              <div className="flex items-center gap-2">
+                <p className="truncate font-medium">
+                  {client.company || client.name}
+                </p>
+                {!client.company && !client.email && !client.phone && (
+                  <span className="shrink-0 rounded-full bg-orange-50 px-2 py-0.5 text-[10px] font-medium text-pending">
+                    à compléter
+                  </span>
+                )}
+              </div>
               {client.company && (
-                <p className="truncate text-sm text-muted">{client.company}</p>
+                <p className="truncate text-sm text-muted">{client.name}</p>
               )}
               {client.tags.length > 0 && (
                 <div className="mt-2 flex flex-wrap gap-1">
