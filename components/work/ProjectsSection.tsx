@@ -156,7 +156,7 @@ export default function ProjectsSection({
       )}
 
       {creating && (
-        <Overlay onClose={close}>
+        <Overlay onClose={close} dismissible={false}>
           <ProjectCreateForm
             clients={clients}
             onClose={close}

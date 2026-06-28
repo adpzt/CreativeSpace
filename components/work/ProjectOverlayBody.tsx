@@ -16,9 +16,9 @@ import {
   PROJECT_STATUS_ORDER,
   CALENDAR_CATEGORIES,
   CATEGORY_COLOR,
-  PROJECT_COLORS,
   MISSION_TYPES,
   projectProgress,
+  formatEuro,
 } from "@/lib/work";
 import {
   updateProject,
@@ -190,31 +190,26 @@ export default function ProjectOverlayBody({
             </h2>
           </div>
 
-          <div className="mt-2.5 flex flex-wrap items-center gap-2">
+          <div className="my-4 border-t border-gray-100" />
+
+          {/* Catégorie (texte coloré) + statut + types de mission, sur une ligne */}
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
             <span
-              className="rounded-full px-2.5 py-1 text-xs font-medium"
-              style={{
-                backgroundColor: `${CATEGORY_COLOR[category]}1A`,
-                color: CATEGORY_COLOR[category],
-              }}
+              className="text-sm font-semibold"
+              style={{ color: CATEGORY_COLOR[category] }}
             >
               {categoryLabel(category)}
             </span>
             <StatusBadge status={status} />
+            {missions.map((m) => (
+              <span
+                key={m}
+                className="rounded-full bg-gray-100 px-2.5 py-1 text-xs text-gray-600"
+              >
+                {m}
+              </span>
+            ))}
           </div>
-
-          {missions.length > 0 && (
-            <div className="mt-3 flex flex-wrap gap-1.5">
-              {missions.map((m) => (
-                <span
-                  key={m}
-                  className="rounded-full bg-gray-100 px-2.5 py-1 text-xs text-gray-600"
-                >
-                  {m}
-                </span>
-              ))}
-            </div>
-          )}
 
           {/* Infos */}
           <div className="mt-5 space-y-1.5 text-sm">
@@ -233,7 +228,7 @@ export default function ProjectOverlayBody({
             {project.cost != null && (
               <p>
                 <span className="text-muted">Coût : </span>
-                {project.cost} €
+                {formatEuro(project.cost)}
               </p>
             )}
             {(project.devis_number || project.invoice_number) && (
@@ -330,27 +325,46 @@ export default function ProjectOverlayBody({
           save={(v) => updateProject(project.id, { name: v })}
         />
 
-        {/* Catégorie */}
+        {/* Catégorie + couleur (libre) sur la même ligne */}
         <div>
-          <p className={labelClass}>Catégorie</p>
-          <div className="flex flex-wrap gap-2">
-            {CALENDAR_CATEGORIES.map((c) => {
-              const active = c.key === category;
-              return (
+          <p className={labelClass}>Catégorie & couleur</p>
+          <div className="flex flex-wrap items-center gap-3">
+            <div className="flex flex-wrap gap-2">
+              {CALENDAR_CATEGORIES.map((c) => {
+                const active = c.key === category;
+                return (
+                  <button
+                    key={c.key}
+                    onClick={() => changeCategory(c.key)}
+                    className="rounded-full px-3 py-1 text-xs font-medium transition-colors"
+                    style={
+                      active
+                        ? { backgroundColor: c.color, color: "white" }
+                        : { backgroundColor: `${c.color}1A`, color: c.color }
+                    }
+                  >
+                    {c.label}
+                  </button>
+                );
+              })}
+            </div>
+            <div className="ml-auto flex items-center gap-2">
+              <input
+                type="color"
+                value={colorVal || "#2563EB"}
+                onChange={(e) => changeColor(e.target.value)}
+                aria-label="Couleur du projet"
+                className="h-7 w-9 cursor-pointer rounded border border-gray-200 bg-white p-0.5"
+              />
+              {colorVal && (
                 <button
-                  key={c.key}
-                  onClick={() => changeCategory(c.key)}
-                  className="rounded-full px-3 py-1 text-xs font-medium transition-colors"
-                  style={
-                    active
-                      ? { backgroundColor: c.color, color: "white" }
-                      : { backgroundColor: `${c.color}1A`, color: c.color }
-                  }
+                  onClick={() => changeColor("")}
+                  className="text-xs text-muted transition-colors hover:text-ink"
                 >
-                  {c.label}
+                  Sans
                 </button>
-              );
-            })}
+              )}
+            </div>
           </div>
         </div>
 
@@ -428,31 +442,6 @@ export default function ProjectOverlayBody({
               updateProject(project.id, { cost: v ? parseFloat(v) : null })
             }
           />
-        </div>
-
-        {/* Couleur */}
-        <div>
-          <p className={labelClass}>Couleur (pastille calendrier)</p>
-          <div className="flex flex-wrap items-center gap-2">
-            <button
-              onClick={() => changeColor("")}
-              aria-label="Aucune couleur"
-              className={`h-6 w-6 rounded-full border ${
-                !colorVal ? "border-ink" : "border-gray-300"
-              }`}
-            />
-            {PROJECT_COLORS.map((c) => (
-              <button
-                key={c}
-                onClick={() => changeColor(c)}
-                aria-label={`Couleur ${c}`}
-                className={`h-6 w-6 rounded-full ${
-                  colorVal === c ? "ring-2 ring-ink ring-offset-2" : ""
-                }`}
-                style={{ backgroundColor: c }}
-              />
-            ))}
-          </div>
         </div>
 
         {/* Dates */}

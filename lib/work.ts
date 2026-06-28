@@ -47,40 +47,44 @@ export const PROJECT_STATUS: Record<
   ProjectStatus,
   { label: string; dot: string; badge: string }
 > = {
+  // Les 3 "en attente" : gris
   waiting_brief: {
     label: "En attente brief",
-    dot: "bg-pending",
-    badge: "bg-orange-50 text-pending",
+    dot: "bg-muted",
+    badge: "bg-gray-100 text-gray-500",
   },
+  waiting_feedback: {
+    label: "En attente retours",
+    dot: "bg-muted",
+    badge: "bg-gray-100 text-gray-500",
+  },
+  waiting_payment: {
+    label: "En attente solde",
+    dot: "bg-muted",
+    badge: "bg-gray-100 text-gray-500",
+  },
+  // En cours : bleu
   in_production: {
     label: "En production",
     dot: "bg-active",
     badge: "bg-blue-50 text-active",
-  },
-  waiting_feedback: {
-    label: "En attente retours",
-    dot: "bg-pending",
-    badge: "bg-orange-50 text-pending",
   },
   in_revision: {
     label: "En révision",
     dot: "bg-active",
     badge: "bg-blue-50 text-active",
   },
-  waiting_payment: {
-    label: "En attente solde",
-    dot: "bg-urgent",
-    badge: "bg-red-50 text-urgent",
-  },
+  // Terminé : vert
   closed: {
     label: "Clôturé",
     dot: "bg-success",
     badge: "bg-green-50 text-success",
   },
+  // Annulé : rouge
   cancelled: {
     label: "Annulé",
-    dot: "bg-muted",
-    badge: "bg-gray-100 text-muted",
+    dot: "bg-urgent",
+    badge: "bg-red-50 text-urgent",
   },
 };
 
@@ -97,6 +101,17 @@ export const PROJECT_STATUS_ORDER: ProjectStatus[] = [
 
 // Statuts masqués par défaut dans la liste des projets
 export const HIDDEN_BY_DEFAULT: ProjectStatus[] = ["closed", "cancelled"];
+
+// Formate un montant en euros, toujours avec 2 décimales (ex : 695 -> "695,00 €")
+export function formatEuro(n: number | null | undefined): string {
+  if (n == null) return "";
+  return (
+    n.toLocaleString("fr-FR", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }) + " €"
+  );
+}
 
 // Types de mission d'un projet (multi-sélection)
 export const MISSION_TYPES = [

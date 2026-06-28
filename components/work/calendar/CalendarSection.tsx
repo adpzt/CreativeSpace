@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
+import Link from "next/link";
 import {
   startOfWeek,
   endOfWeek,
@@ -43,12 +44,12 @@ import {
 } from "lucide-react";
 import Overlay from "@/components/ui/Overlay";
 import NotePanel from "@/components/ui/NotePanel";
-import AutoSaveField from "@/components/ui/AutoSaveField";
 import { CALENDAR_CATEGORIES } from "@/lib/work";
 import {
   addCalendarBlock,
   updateCalendarBlock,
   deleteCalendarBlock,
+  updateDeliverable,
 } from "@/app/(main)/work/actions";
 import type {
   CalendarBlock,
@@ -67,37 +68,21 @@ export default function CalendarSection({
   initial,
   projects,
   clients,
+  standalone = false,
 }: {
   initial: CalendarBlock[];
   projects: ProjectWithDeliverables[];
   clients: Client[];
+  standalone?: boolean;
 }) {
   const [blocks, setBlocks] = useState<CalendarBlock[]>(initial);
   const [refDate, setRefDate] = useState<Date>(new Date());
   const [view, setView] = useState<"week" | "month">("week");
-  const [fullscreen, setFullscreen] = useState(false);
-  const [editingId, setEditingId] = useState<string | null>(null);
   const [activeId, setActiveId] = useState<string | null>(null);
   const [addCtx, setAddCtx] = useState<AddCtx | null>(null);
   const [noteBlockId, setNoteBlockId] = useState<string | null>(null);
-
-  const anyOverlayOpen = Boolean(
-    editingId || addCtx || noteBlockId
-  );
-
-  // Échap pour quitter le plein écran (sauf si un overlay est ouvert)
-  useEffect(() => {
-    if (!fullscreen) return;
-    document.body.style.overflow = "hidden";
-    function onKey(e: KeyboardEvent) {
-      if (e.key === "Escape" && !anyOverlayOpen) setFullscreen(false);
-    }
-    document.addEventListener("keydown", onKey);
-    return () => {
-      document.removeEventListener("keydown", onKey);
-      document.body.style.overflow = "";
-    };
-  }, [fullscreen, anyOverlayOpen]);
+  // Notes de livrables éditées depuis le calendrier (affichage immédiat)
+  const [delivNotes, setDelivNotes] = useState<Record<string, string>>({});
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
@@ -114,8 +99,24 @@ export default function CalendarSection({
     blocks.filter((b) => dayIso >= b.date_start && dayIso <= b.date_end);
 
   const projectById = new Map(projects.map((p) => [p.id, p]));
+  const deliverableById = new Map<string, Deliverable>();
+  projects.forEach((p) => p.deliverables.forEach((d) => deliverableById.set(d.id, d)));
+
   const colorForBlock = (b: CalendarBlock) =>
     b.project_id ? projectById.get(b.project_id)?.color ?? null : null;
+
+  // Note effective d'un bloc (celle du livrable si lié, sinon celle du bloc)
+  function noteOf(b: CalendarBlock): string {
+    if (b.deliverable_id) {
+      return (
+        delivNotes[b.deliverable_id] ??
+        deliverableById.get(b.deliverable_id)?.notes ??
+        ""
+      );
+    }
+    return b.notes ?? "";
+  }
+  const hasNoteOf = (b: CalendarBlock) => noteOf(b).trim().length > 0;
 
   function clientCompanyOf(p: ProjectWithDeliverables) {
     const c = clients.find((x) => x.id === p.client_id);
@@ -128,7 +129,8 @@ export default function CalendarSection({
   function suggestionsFor(cat: CalendarCategory): Suggestion[] {
     const out: Suggestion[] = [];
     for (const p of projects) {
-      if (p.category !== cat || p.status === "closed") continue;
+      if (p.category !== cat || p.status === "closed" || p.status === "cancelled")
+        continue;
       for (const d of p.deliverables) {
         if (d.completed || placedDeliverableIds.has(d.id)) continue;
         out.push({ project: p, deliverable: d });
@@ -210,13 +212,19 @@ export default function CalendarSection({
     setBlocks((p) => p.map((x) => (x.id === id ? { ...x, title } : x)));
     await updateCalendarBlock(id, { title });
   }
-  async function saveNote(id: string, notes: string) {
-    setBlocks((p) => p.map((x) => (x.id === id ? { ...x, notes } : x)));
-    await updateCalendarBlock(id, { notes });
+  // Sauvegarde de la note : sur le livrable si lié, sinon sur le bloc
+  async function saveNote(b: CalendarBlock, notes: string) {
+    if (b.deliverable_id) {
+      setDelivNotes((m) => ({ ...m, [b.deliverable_id as string]: notes }));
+      await updateDeliverable(b.deliverable_id, { notes });
+    } else {
+      setBlocks((p) => p.map((x) => (x.id === b.id ? { ...x, notes } : x)));
+      await updateCalendarBlock(b.id, { notes });
+    }
   }
   async function remove(id: string) {
     setBlocks((p) => p.filter((x) => x.id !== id));
-    setEditingId(null);
+    setNoteBlockId(null);
     await deleteCalendarBlock(id);
   }
   async function move(b: CalendarBlock, dayIso: string, cat: CalendarCategory) {
@@ -252,7 +260,6 @@ export default function CalendarSection({
   }
 
   const activeBlock = blocks.find((b) => b.id === activeId) ?? null;
-  const editingBlock = blocks.find((b) => b.id === editingId) ?? null;
   const noteBlock = blocks.find((b) => b.id === noteBlockId) ?? null;
 
   const label =
@@ -260,157 +267,146 @@ export default function CalendarSection({
       ? `Semaine du ${format(weekStart, "d MMMM", { locale: fr })}`
       : format(refDate, "MMMM yyyy", { locale: fr });
 
-  const cellMinH = fullscreen ? "min-h-[140px]" : "min-h-[112px]";
-  const minWidth = fullscreen ? 1100 : 920;
-
-  const navBar = (
-    <div className="mb-4 flex items-center justify-between gap-2">
-      <div className="flex items-center gap-1">
-        <button
-          onClick={() =>
-            setRefDate((d) =>
-              view === "week" ? addWeeks(d, -1) : addMonths(d, -1)
-            )
-          }
-          aria-label="Précédent"
-          className="rounded-lg p-2 text-muted hover:bg-gray-100 hover:text-ink"
-        >
-          <ChevronLeft className="h-4 w-4" />
-        </button>
-        <button
-          onClick={() =>
-            setRefDate((d) =>
-              view === "week" ? addWeeks(d, 1) : addMonths(d, 1)
-            )
-          }
-          aria-label="Suivant"
-          className="rounded-lg p-2 text-muted hover:bg-gray-100 hover:text-ink"
-        >
-          <ChevronRight className="h-4 w-4" />
-        </button>
-        <span className="ml-1 text-sm font-medium capitalize">{label}</span>
-        {!isCurrentWeek && view === "week" && (
+  return (
+    <section>
+      {/* Barre de navigation */}
+      <div className="mb-4 flex items-center justify-between gap-2">
+        <div className="flex items-center gap-1">
           <button
-            onClick={() => setRefDate(new Date())}
-            className="ml-2 rounded-lg bg-blue-50 px-2 py-1 text-xs font-medium text-active hover:bg-blue-100"
+            onClick={() =>
+              setRefDate((d) =>
+                view === "week" ? addWeeks(d, -1) : addMonths(d, -1)
+              )
+            }
+            aria-label="Précédent"
+            className="rounded-lg p-2 text-muted hover:bg-gray-100 hover:text-ink"
           >
-            En ce moment
-          </button>
-        )}
-      </div>
-
-      <div className="flex items-center gap-2">
-        <div className="flex rounded-lg bg-gray-100 p-0.5 text-xs font-medium">
-          <button
-            onClick={() => setView("week")}
-            className={`rounded-md px-2.5 py-1 ${
-              view === "week" ? "bg-white shadow-sm" : "text-muted"
-            }`}
-          >
-            Semaine
+            <ChevronLeft className="h-4 w-4" />
           </button>
           <button
-            onClick={() => setView("month")}
-            className={`rounded-md px-2.5 py-1 ${
-              view === "month" ? "bg-white shadow-sm" : "text-muted"
-            }`}
+            onClick={() =>
+              setRefDate((d) =>
+                view === "week" ? addWeeks(d, 1) : addMonths(d, 1)
+              )
+            }
+            aria-label="Suivant"
+            className="rounded-lg p-2 text-muted hover:bg-gray-100 hover:text-ink"
           >
-            Mois
+            <ChevronRight className="h-4 w-4" />
           </button>
-        </div>
-        <button
-          onClick={() => setFullscreen((f) => !f)}
-          aria-label={fullscreen ? "Réduire" : "Agrandir"}
-          className="rounded-lg p-2 text-muted hover:bg-gray-100 hover:text-ink"
-        >
-          {fullscreen ? (
-            <Minimize2 className="h-4 w-4" />
-          ) : (
-            <Maximize2 className="h-4 w-4" />
-          )}
-        </button>
-      </div>
-    </div>
-  );
-
-  const weekGrid = (
-    <DndContext
-      sensors={sensors}
-      collisionDetection={closestCenter}
-      onDragStart={onDragStart}
-      onDragEnd={onDragEnd}
-    >
-      <div className="overflow-x-auto">
-        <div
-          className="grid border-l border-t border-gray-100"
-          style={{
-            gridTemplateColumns: "100px repeat(7, minmax(0, 1fr))",
-            minWidth,
-          }}
-        >
-          <div className="border-b border-r border-gray-100 bg-gray-50" />
-          {days.map((d) => (
-            <div
-              key={iso(d)}
-              className="border-b border-r border-gray-100 bg-gray-50 px-2 py-2 text-center"
+          <span className="ml-1 text-sm font-medium capitalize">{label}</span>
+          {!isCurrentWeek && view === "week" && (
+            <button
+              onClick={() => setRefDate(new Date())}
+              className="ml-2 rounded-lg bg-blue-50 px-2 py-1 text-xs font-medium text-active hover:bg-blue-100"
             >
-              <p className="text-[11px] uppercase text-muted">
-                {format(d, "EEE", { locale: fr })}
-              </p>
-              <p
-                className={`text-sm font-semibold ${
-                  isToday(d) ? "text-active" : ""
-                }`}
-              >
-                {format(d, "d")}
-              </p>
-            </div>
-          ))}
+              En ce moment
+            </button>
+          )}
+        </div>
 
-          {CALENDAR_CATEGORIES.map((cat) => (
-            <div key={cat.key} className="contents">
-              {/* Titre de ligne : léger (texte coloré, fond très clair) */}
-              <div
-                className="flex items-center border-b border-r border-gray-100 px-3 py-2 text-sm font-semibold"
-                style={{
-                  color: cat.color,
-                  backgroundColor: `${cat.color}0F`,
-                }}
-              >
-                {cat.label}
-              </div>
+        <div className="flex items-center gap-2">
+          <div className="flex rounded-lg bg-gray-100 p-0.5 text-xs font-medium">
+            <button
+              onClick={() => setView("week")}
+              className={`rounded-md px-2.5 py-1 ${
+                view === "week" ? "bg-white shadow-sm" : "text-muted"
+              }`}
+            >
+              Semaine
+            </button>
+            <button
+              onClick={() => setView("month")}
+              className={`rounded-md px-2.5 py-1 ${
+                view === "month" ? "bg-white shadow-sm" : "text-muted"
+              }`}
+            >
+              Mois
+            </button>
+          </div>
+          {/* Agrandir = page dédiée ; sur la page dédiée = revenir à Work */}
+          <Link
+            href={standalone ? "/work" : "/calendar"}
+            aria-label={standalone ? "Réduire" : "Agrandir"}
+            className="rounded-lg p-2 text-muted hover:bg-gray-100 hover:text-ink"
+          >
+            {standalone ? (
+              <Minimize2 className="h-4 w-4" />
+            ) : (
+              <Maximize2 className="h-4 w-4" />
+            )}
+          </Link>
+        </div>
+      </div>
+
+      {view === "week" ? (
+        <DndContext
+          sensors={sensors}
+          collisionDetection={closestCenter}
+          onDragStart={onDragStart}
+          onDragEnd={onDragEnd}
+        >
+          <div className="overflow-x-auto">
+            <div
+              className="grid border-l border-t border-gray-100"
+              style={{
+                gridTemplateColumns: "100px repeat(7, minmax(0, 1fr))",
+                minWidth: 920,
+              }}
+            >
+              <div className="border-b border-r border-gray-100 bg-gray-50" />
               {days.map((d) => (
-                <Cell
-                  key={cat.key + iso(d)}
-                  dayIso={iso(d)}
-                  cat={cat.key}
-                  blocks={cellBlocks(iso(d), cat.key)}
-                  colorForBlock={colorForBlock}
-                  className={`${cellMinH} border-b border-r border-gray-100 p-1.5`}
-                  onAdd={() => setAddCtx({ dayIso: iso(d), cat: cat.key })}
-                  onOpen={(id) => setEditingId(id)}
-                />
+                <div
+                  key={iso(d)}
+                  className="border-b border-r border-gray-100 bg-gray-50 px-2 py-2 text-center"
+                >
+                  <p className="text-[11px] uppercase text-muted">
+                    {format(d, "EEE", { locale: fr })}
+                  </p>
+                  <p
+                    className={`text-sm font-semibold ${
+                      isToday(d) ? "text-active" : ""
+                    }`}
+                  >
+                    {format(d, "d")}
+                  </p>
+                </div>
+              ))}
+
+              {CALENDAR_CATEGORIES.map((cat) => (
+                <div key={cat.key} className="contents">
+                  <div
+                    className="flex items-center border-b border-r border-gray-100 px-3 py-2 text-sm font-semibold"
+                    style={{ color: cat.color, backgroundColor: `${cat.color}0F` }}
+                  >
+                    {cat.label}
+                  </div>
+                  {days.map((d) => (
+                    <Cell
+                      key={cat.key + iso(d)}
+                      dayIso={iso(d)}
+                      cat={cat.key}
+                      blocks={cellBlocks(iso(d), cat.key)}
+                      colorForBlock={colorForBlock}
+                      hasNoteOf={hasNoteOf}
+                      className="min-h-[112px] border-b border-r border-gray-100 p-1.5"
+                      onAdd={() => setAddCtx({ dayIso: iso(d), cat: cat.key })}
+                      onOpen={(id) => setNoteBlockId(id)}
+                    />
+                  ))}
+                </div>
               ))}
             </div>
-          ))}
-        </div>
-      </div>
-
-      <DragOverlay>
-        {activeBlock ? (
-          <div className="rounded-lg border border-gray-200 bg-white px-2 py-1 text-xs shadow-md">
-            {activeBlock.title}
           </div>
-        ) : null}
-      </DragOverlay>
-    </DndContext>
-  );
 
-  const content = (
-    <>
-      {navBar}
-      {view === "week" ? (
-        weekGrid
+          <DragOverlay>
+            {activeBlock ? (
+              <div className="rounded-lg border border-gray-200 bg-white px-2 py-1 text-xs shadow-md">
+                {activeBlock.title}
+              </div>
+            ) : null}
+          </DragOverlay>
+        </DndContext>
       ) : (
         <MonthView
           refDate={refDate}
@@ -421,18 +417,6 @@ export default function CalendarSection({
             setView("week");
           }}
         />
-      )}
-    </>
-  );
-
-  return (
-    <>
-      {fullscreen ? (
-        <div className="animate-zoom-in fixed inset-0 z-50 overflow-auto bg-white p-4 sm:p-6">
-          {content}
-        </div>
-      ) : (
-        content
       )}
 
       {/* Overlay d'ajout (saisie libre + livrables proposés) */}
@@ -454,64 +438,39 @@ export default function CalendarSection({
         </Overlay>
       )}
 
-      {/* Overlay d'édition d'un bloc */}
-      {editingBlock && (
-        <Overlay onClose={() => setEditingId(null)}>
-          <div className="space-y-4 pr-8">
-            <AutoSaveField
-              label="Tâche"
-              initialValue={editingBlock.title}
-              save={(v) => saveTitle(editingBlock.id, v)}
-            />
-
-            <button
-              onClick={() =>
-                setNoteBlockId(editingBlock.id)
-              }
-              className="flex w-full items-center gap-2 rounded-xl border border-gray-200 px-3 py-2.5 text-sm transition-colors hover:border-ink"
-            >
-              <FileText
-                className={`h-4 w-4 ${
-                  editingBlock.notes ? "text-active" : "text-muted"
-                }`}
-              />
-              {editingBlock.notes ? "Voir / éditer la note" : "Ajouter une note"}
-            </button>
-
-            <div className="flex items-center justify-between border-t border-gray-100 pt-4">
+      {/* Page façon Notion d'une tâche : titre + notes + Terminé / Supprimer */}
+      {noteBlock && (
+        <NotePanel
+          title={noteBlock.title}
+          onTitleSave={(v) => saveTitle(noteBlock.id, v)}
+          initialValue={noteOf(noteBlock)}
+          onSave={(v) => saveNote(noteBlock, v)}
+          onClose={() => setNoteBlockId(null)}
+          footer={
+            <div className="flex items-center justify-between">
               <button
-                onClick={() => toggle(editingBlock)}
+                onClick={() => toggle(noteBlock)}
                 className={`inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium ${
-                  editingBlock.completed
+                  noteBlock.completed
                     ? "bg-green-50 text-success"
                     : "text-muted hover:bg-gray-100 hover:text-ink"
                 }`}
               >
                 <Check className="h-3.5 w-3.5" />
-                {editingBlock.completed ? "Terminé" : "Terminé ?"}
+                {noteBlock.completed ? "Terminé" : "Terminé ?"}
               </button>
               <button
-                onClick={() => remove(editingBlock.id)}
+                onClick={() => remove(noteBlock.id)}
                 aria-label="Supprimer"
-                className="rounded-lg p-1.5 text-muted hover:bg-gray-100 hover:text-urgent"
+                className="rounded-lg p-1.5 text-muted hover:bg-red-50 hover:text-urgent"
               >
                 <Trash2 className="h-4 w-4" />
               </button>
             </div>
-          </div>
-        </Overlay>
-      )}
-
-      {/* Panneau de notes facon Notion */}
-      {noteBlock && (
-        <NotePanel
-          title={noteBlock.title}
-          initialValue={noteBlock.notes ?? ""}
-          onSave={(v) => saveNote(noteBlock.id, v)}
-          onClose={() => setNoteBlockId(null)}
+          }
         />
       )}
-    </>
+    </section>
   );
 }
 
@@ -522,6 +481,7 @@ function Cell({
   cat,
   blocks,
   colorForBlock,
+  hasNoteOf,
   className,
   onAdd,
   onOpen,
@@ -530,6 +490,7 @@ function Cell({
   cat: CalendarCategory;
   blocks: CalendarBlock[];
   colorForBlock: (b: CalendarBlock) => string | null;
+  hasNoteOf: (b: CalendarBlock) => boolean;
   className?: string;
   onAdd: () => void;
   onOpen: (id: string) => void;
@@ -546,6 +507,7 @@ function Cell({
             key={b.id}
             block={b}
             projectColor={colorForBlock(b)}
+            hasNote={hasNoteOf(b)}
             onOpen={() => onOpen(b.id)}
           />
         ))}
@@ -561,14 +523,15 @@ function Cell({
   );
 }
 
-// Bloc déplaçable : pastille (si projet) + titre. Clic = ouvre l'overlay.
 function DraggableChip({
   block,
   projectColor,
+  hasNote,
   onOpen,
 }: {
   block: CalendarBlock;
   projectColor: string | null;
+  hasNote: boolean;
   onOpen: () => void;
 }) {
   const { attributes, listeners, setNodeRef, transform, isDragging } =
@@ -605,14 +568,11 @@ function DraggableChip({
       >
         {block.title}
       </button>
-      {block.notes && (
-        <FileText className="h-3 w-3 shrink-0 text-muted" />
-      )}
+      {hasNote && <FileText className="h-3 w-3 shrink-0 text-muted" />}
     </div>
   );
 }
 
-// Overlay d'ajout : saisie libre + suggestions de livrables (label = client)
 function AddEntry({
   ctx,
   suggestions,
@@ -685,7 +645,6 @@ function AddEntry({
   );
 }
 
-// Vue mensuelle allégée : numéro en haut a droite + titres
 function MonthView({
   refDate,
   dayBlocks,

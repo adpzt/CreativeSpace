@@ -1,4 +1,12 @@
-import { Home, Briefcase, Wallet, Compass, User, StickyNote } from "lucide-react";
+import {
+  Home,
+  Briefcase,
+  CalendarDays,
+  Wallet,
+  Compass,
+  User,
+  StickyNote,
+} from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
 export type NavItem = {
@@ -13,6 +21,7 @@ export type NavItem = {
 export const NAV_ITEMS: NavItem[] = [
   { href: "/", label: "Accueil", icon: Home, primary: true },
   { href: "/work", label: "Work", icon: Briefcase, primary: true },
+  { href: "/calendar", label: "Calendrier", icon: CalendarDays, primary: false },
   { href: "/finance", label: "Finance", icon: Wallet, primary: true },
   { href: "/freelance", label: "Freelance", icon: Compass, primary: false },
   { href: "/notes", label: "Notes", icon: StickyNote, primary: true },

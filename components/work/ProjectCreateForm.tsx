@@ -85,6 +85,26 @@ export default function ProjectCreateForm({
     setDDays("1");
   }
 
+  function reset() {
+    setName("");
+    setStatus("waiting_brief");
+    setCategory("freelance");
+    setColor("");
+    setMissions([]);
+    setCost("");
+    setDevis("");
+    setInvoice("");
+    setStartDate("");
+    setEndDate("");
+    setNotes("");
+    setClientQuery("");
+    setSelectedClientId("");
+    setDelivs([]);
+    setDName("");
+    setDDays("1");
+    setError(null);
+  }
+
   function submit(e: React.FormEvent) {
     e.preventDefault();
     if (!name.trim()) {
@@ -133,9 +153,16 @@ export default function ProjectCreateForm({
 
   return (
     <form onSubmit={submit} className="space-y-4">
-      <h3 className="pr-8 text-lg font-semibold tracking-tight">
-        Nouveau projet
-      </h3>
+      <div className="flex items-center justify-between gap-2 pr-8">
+        <h3 className="text-lg font-semibold tracking-tight">Nouveau projet</h3>
+        <button
+          type="button"
+          onClick={reset}
+          className="shrink-0 text-xs text-muted transition-colors hover:text-ink"
+        >
+          Réinitialiser
+        </button>
+      </div>
 
       <div>
         <label className={labelClass}>Nom du projet</label>

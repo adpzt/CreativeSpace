@@ -257,6 +257,16 @@ Les détails (fiche client, et à terme fiche projet) s'ouvrent en **overlay** :
 
 **Page de notes (icône note, façon Notion) :** au clic, un panneau glisse depuis la **droite** (style Notion) pour écrire des notes.
 
+**Retours v3 projets (juin 2026) :**
+- À la création, ajouter la **provenance** (Malt, Instagram, Direct...) et la **partie argent** : prix affiché sur le devis (brut) + argent réellement gagné à la fin (net).
+- Statuts : **pastille grise** pour les 3 "en attente", **rouge** pour Annulé. Plus de tags sans couleur ni espace vide avant le texte.
+- Formulaire nouveau projet : ne pas perdre la saisie si on clique à côté / refresh. Bouton **Réinitialiser** en haut pour tout effacer.
+- Récap projet : **aérer** davantage, **ligne de séparation** sous le titre. La pastille couleur seule ne sert à rien : mettre le choix de couleur **à droite de la ligne Catégorie** (et couleur **libre**). Les tags de type de mission sur la **même ligne** que le statut. La catégorie (Freelance/Entreprise/Perso) affichée en **texte coloré** sans pastille/encadré.
+- Argent : toujours en **euros avec 2 décimales** (ajouter ,00 automatiquement).
+- Projet passé en **Clôturé** -> **popup "as-tu été payé ?"** : Oui -> entré dans la Finance comme encaissé ; Non -> Finance affiche "pas encore payé".
+- Livrables : à la création, présenter comme en édition (une ligne vide + "+ livrable" discret). Le compteur de jours avec "j" seul est moche -> à revoir. En édition : remplacer la poubelle par une **croix rouge** à droite du cadre, l'icône note la plus à droite DANS le cadre.
+- **% de progression par livrable** (utile pour 1-2 gros livrables type site web), visible au clic sur le projet en mode normal.
+
 **Fiche projet :**
 - Nom du projet + client associé (lié à la fiche client)
 - Numéro de devis et numéro de facture (champs texte, saisis manuellement par Adrien selon le client et la chronologie : date du devis/facture = ordre chronologique des clients). Ces numéros sont réutilisés dans la page Finance pour relier une entrée d'argent (tag freelance) au devis/facture correspondant.
@@ -316,6 +326,12 @@ Les détails (fiche client, et à terme fiche projet) s'ouvrent en **overlay** :
 - Retirer la **case à cocher** du bloc dans la case. Marquer terminé se fait dans l'overlay du bloc via un bouton "Terminé ?" (discret, en bas). Afficher la **note** du bloc dans l'overlay ; si vide, montrer l'icône note.
 - **Échap** pour quitter le plein écran ; transition zoom/dézoom courte et fluide.
 - Retirer le bouton "Aujourd'hui" permanent : afficher un bouton "En ce moment" seulement quand on n'est pas sur la semaine en cours.
+
+**Retours v3 calendrier (juin 2026) :**
+- Le **+** doit bien proposer les livrables de projets non finis (sous le champ de saisie), comme l'autocomplétion client.
+- Plein écran overlay PAS aimé (perd la nav, dur d'en sortir). À la place : une **page dédiée /calendar** (onglet dans la sidebar gauche), bien visible en grand. (Test, on avisera.)
+- Clic sur une tâche : ouvrir **directement la page façon Notion** (titre en haut, barre de séparation, notes en dessous, et en bas : Terminé + Supprimer).
+- La note d'un bloc lié à un livrable doit être **connectée** à la note de ce livrable (même note).
 
 **Nature du calendrier (validé avec Adrien) :** ce n'est pas un agenda avec des horaires. C'est une to-do hebdomadaire pour s'organiser : "tel jour je dois faire ça". Tout ce qui a besoin d'un horaire précis (calls pro, événements, activités entre amis) reste sur le calendrier natif du téléphone, volontairement séparé. Ici les blocs occupent un ou plusieurs jours entiers (granularité = la journée, jamais l'heure). Plusieurs blocs peuvent coexister dans une même case jour x catégorie, empilés verticalement.
 

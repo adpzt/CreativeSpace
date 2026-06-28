@@ -9,13 +9,16 @@ import { X } from "lucide-react";
 export default function Overlay({
   onClose,
   children,
+  dismissible = true,
 }: {
   onClose: () => void;
   children: React.ReactNode;
+  // Si false, ne se ferme pas au clic sur le fond ni avec Échap (évite les pertes de saisie)
+  dismissible?: boolean;
 }) {
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
-      if (e.key === "Escape") onClose();
+      if (e.key === "Escape" && dismissible) onClose();
     }
     document.addEventListener("keydown", onKey);
     document.body.style.overflow = "hidden";
@@ -23,12 +26,12 @@ export default function Overlay({
       document.removeEventListener("keydown", onKey);
       document.body.style.overflow = "";
     };
-  }, [onClose]);
+  }, [onClose, dismissible]);
 
   return (
     <div
       className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 sm:items-center sm:p-4"
-      onClick={onClose}
+      onClick={dismissible ? onClose : undefined}
     >
       <div
         className="relative max-h-[92vh] w-full max-w-lg overflow-y-auto rounded-t-2xl bg-white p-5 shadow-xl sm:rounded-2xl"
