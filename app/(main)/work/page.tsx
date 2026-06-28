@@ -1,5 +1,6 @@
-import Placeholder from "@/components/Placeholder";
+import { redirect } from "next/navigation";
 
+// /work renvoie directement vers la liste des clients (seule sous-section prête).
 export default function WorkPage() {
-  return <Placeholder title="Work" phase="Phase 2 : projets, clients, calendrier" />;
+  redirect("/work/clients");
 }

@@ -178,6 +178,14 @@ created_at      timestamp
 
 ---
 
+## Convention : points de retour (validation par Adrien)
+
+Le développement avance par petites livraisons testables. À chaque ">>> POINT DE RETOUR", une v1 d'un onglet ou d'une fonctionnalité est déployée et utilisable. Adrien la teste sur mobile ET desktop, puis donne son retour (ce qui va, ce qui cloche, ce qui manque) AVANT qu'on passe à l'étape suivante. On ne s'enfonce jamais dans plusieurs étapes sans validation intermédiaire.
+
+Chaque point de retour précise : ce qui est livré, ce qu'Adrien doit tester, et le retour attendu.
+
+---
+
 ## PHASE 1 — Fondations (commencer ici)
 
 **Objectif :** avoir une app qui tourne, navigable, avec les données qui persistent.
@@ -206,6 +214,11 @@ created_at      timestamp
 - [ ] Supprimer une note
 - [ ] Premier composant fonctionnel à tester
 
+>>> POINT DE RETOUR 1 - Fondations
+- Livré : app déployée sur Vercel, page de login, navigation complète, notes rapides qui persistent.
+- À tester (mobile + desktop) : se connecter avec le mot de passe, naviguer entre les sections, créer / modifier / supprimer une note, utiliser le bouton note rapide flottant, vérifier qu'une note ajoutée sur PC apparaît sur le téléphone après rafraîchissement.
+- Retour attendu : la navigation est-elle claire ? les notes sont-elles assez rapides et simples ? le style général (couleurs, police, épure) te plaît-il AVANT qu'on le réplique sur tout le reste de l'app ?
+
 ---
 
 ## PHASE 2 — Work (coeur de l'app)
@@ -216,6 +229,11 @@ created_at      timestamp
 - [ ] Fiche client (infos + notes + notes communication)
 - [ ] Modifier / supprimer un client
 
+>>> POINT DE RETOUR 2 - Clients
+- Livré : liste des clients + fiche client + création / édition / suppression.
+- À tester : créer un vrai client (PACO Services, Guilhem Pujols), remplir ses notes perso et ses notes communication, le modifier.
+- Retour attendu : la fiche client a-t-elle les bons champs ? manque-t-il une info que tu notes habituellement sur un client ?
+
 ### Étape 2.2 — Projets
 - [ ] Vue tableau avec filtres par statut
 - [ ] Créer un projet (nom, client, dates, statut)
@@ -224,6 +242,11 @@ created_at      timestamp
 - [ ] % progression calculé automatiquement
 - [ ] Notes internes texte libre
 - [ ] Tag communication client (notes liées au client sur ce projet)
+
+>>> POINT DE RETOUR 3 - Projets
+- Livré : vue tableau par statut + fiche projet + livrables + % de progression auto.
+- À tester : créer le projet PACO Services lié au client, ajouter des livrables avec leurs durées (logo 5j, flyer 2j...), cocher un livrable et voir le % bouger, changer le statut en 1 clic.
+- Retour attendu : les 6 statuts sont-ils les bons ? le calcul du % pondéré est-il clair et juste ? l'édition en ligne (sans modal) est-elle pratique ?
 
 ### Étape 2.3 — Calendrier
 - [ ] Semainier : 7 colonnes (jours) x 3 lignes (Freelance / Entreprise / Perso)
@@ -236,6 +259,18 @@ created_at      timestamp
 - [ ] Couleur optionnelle par bloc (6 couleurs)
 - [ ] Toggle vue mensuelle (affichage simplifié)
 
+Le calendrier étant le composant le plus critique, il est livré en DEUX temps pour récolter ton retour avant le plus dur (drag and drop / resize).
+
+>>> POINT DE RETOUR 4a - Calendrier (base)
+- Livré : semainier 7 jours x 3 catégories, créer / éditer / cocher un bloc, navigation entre semaines.
+- À tester : remplir une semaine type comme une vraie to-do (mobile + desktop).
+- Retour attendu : les cases sont-elles assez grandes et lisibles ? écrire du texte dans un bloc est-il fluide (c'était LE reproche fait à Notion) ?
+
+>>> POINT DE RETOUR 4b - Calendrier (drag and drop + resize)
+- Livré : déplacer un bloc (drag and drop) entre jours et catégories, étendre un bloc sur plusieurs jours (resize), couleurs optionnelles, toggle vue mensuelle.
+- À tester en priorité sur mobile (tactile) : déplacer plusieurs blocs, en étirer un sur 2-3 jours, basculer en vue mensuelle.
+- Retour attendu : c'est LE composant critique. Est-ce fluide, instantané, sans bug ni lag ? Est-ce vraiment mieux que Notion ?
+
 ---
 
 ## PHASE 3 — Finance
@@ -247,17 +282,32 @@ created_at      timestamp
 - [ ] Statut "En retard" si échéance dépassée et non encaissé (automatique)
 - [ ] Tri par échéance
 
+>>> POINT DE RETOUR 5 - Revenus
+- Livré : tableau des revenus avec brut / net / provenance / type de mission / statut / dates.
+- À tester : saisir la mission Malt (898€ brut / 790€ net) et la mission The Source freelance (200€), passer un revenu en "Encaissé".
+- Retour attendu : la distinction brut / net est-elle claire et utile ? manque-t-il une info par revenu ? comprends-tu d'un coup d'oeil ce que tu as vraiment gagné ?
+
 ### Étape 3.2 — Dépenses
 - [ ] Liste des dépenses avec filtres par catégorie
 - [ ] Ajouter une dépense (date, montant, description, catégorie)
 - [ ] Tags catégories prédéfinis (modifiables)
 - [ ] Total par catégorie
 
+>>> POINT DE RETOUR 6 - Dépenses
+- Livré : liste des dépenses + catégories + total par catégorie.
+- À tester : ajouter un abonnement (Adobe), une commission Malt, vérifier les totaux.
+- Retour attendu : les catégories prédéfinies sont-elles les bonnes ? en manque-t-il ?
+
 ### Étape 3.3 — URSSAF
 - [ ] 12 cases mensuelles avec statut
 - [ ] Montant estimé URSSAF (calcul auto 21,2% du CA)
 - [ ] Tuto "Comment déclarer" dépliable (étapes détaillées)
 - [ ] Alerte si case non cochée au 1er du mois
+
+>>> POINT DE RETOUR 7 - URSSAF
+- Livré : 12 mois avec statut, montant estimé auto (21,2%), tuto "Comment déclarer".
+- À tester : cocher un mois, saisir un CA et vérifier le calcul de la cotisation.
+- Retour attendu : le calcul te semble-t-il juste par rapport à ce que tu paies réellement ? le tuto est-il clair et complet ?
 
 ### Étape 3.4 — Dashboard financier
 - [ ] CA encaissé total année / mois
@@ -272,6 +322,11 @@ created_at      timestamp
 - [ ] Saisie manuelle des salaires (mois, brut, net, net imposable, employeur)
 - [ ] Revenu total = CA freelance + salaire, jamais mélangé à la base URSSAF
 - [ ] Le salaire alimente uniquement l'estimation d'impôt global et la vision revenu total
+
+>>> POINT DE RETOUR 8 - Dashboard financier + Salarié
+- Livré : métriques (CA encaissé, dû, dépenses, bénéfice net), objectif de CA, alertes seuils, vue Salarié, impôt estimé sur le revenu total.
+- À tester : vérifier que les chiffres correspondent aux revenus et dépenses déjà saisis, ajouter un salaire fictif et voir le revenu total.
+- Retour attendu : c'est la partie la plus sensible. Les estimations (URSSAF, impôt, bénéfice) te paraissent-elles crédibles ? l'affichage te donne-t-il une vraie vision de ta situation financière ?
 
 ---
 
@@ -303,6 +358,11 @@ created_at      timestamp
 - [ ] Liste de prospects (nom, type, lien/handle, statut, notes)
 - [ ] Ajouter / modifier / supprimer un prospect, sauvegarde auto
 
+>>> POINT DE RETOUR 9 - Freelance (les 5 sous-sections)
+- Livré : communication client (tunnel + scripts), brief, devis & CGP, production, prospection.
+- À tester : copier un script en 1 clic, déplier une étape du tunnel, lire les CGP, copier la structure de dossiers, ajouter un prospect.
+- Retour attendu : les textes et scripts sont-ils corrects et à jour ? les boutons "copier" fonctionnent-ils partout ? manque-t-il un script, un red flag, ou un type de prospect ?
+
 ---
 
 ## PHASE 5 — Home Dashboard
@@ -315,6 +375,11 @@ created_at      timestamp
 - [ ] Semainier de la semaine en cours (version compacte)
 - [ ] Boutons accès rapide (Note rapide, Nouveau projet)
 
+>>> POINT DE RETOUR 10 - Home Dashboard
+- Livré : bloc Aujourd'hui, bloc alertes, projets actifs, semainier compact, accès rapides.
+- À tester : vérifier que les alertes remontent bien (un paiement en retard, une URSSAF non cochée, une deadline proche) avec leur bouton d'action.
+- Retour attendu : la promesse "vue d'ensemble en 5 secondes" est-elle tenue ? les bonnes infos sont-elles mises en avant ?
+
 ---
 
 ## PHASE 6 — Page Moi
@@ -324,6 +389,15 @@ created_at      timestamp
 - [ ] TJM actuel (modifiable)
 - [ ] Tableau dernières missions (client, mission, montant, date)
 - [ ] Section Inspiration (liens Pinterest, Dribbble, Behance, Are.na, Awwwards, Fonts In Use)
+
+>>> POINT DE RETOUR 11 - Page Moi
+- Livré : infos pro modifiables (avec crayon + bouton copier), liens pro, TJM, tableau missions, section inspiration.
+- À tester : modifier un champ, copier l'IBAN en 1 clic, ouvrir un lien pro.
+- Retour attendu : toutes tes infos sont-elles correctes et à jour ? le crayon et le bouton copier sont-ils pratiques ? manque-t-il un lien ?
+
+>>> POINT DE RETOUR FINAL - Avant les bonus (Phase 7)
+- À ce stade l'app remplace Notion + Discord + Google Sheets + Notes iPhone.
+- Retour attendu : utilise l'app pendant quelques jours en conditions réelles, puis liste ce qui te ralentit encore, ce qui manque, et ce qu'on priorise dans les bonus (PWA, dark mode, portail client, etc.).
 
 ---
 
