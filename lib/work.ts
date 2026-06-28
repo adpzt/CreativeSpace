@@ -18,6 +18,18 @@ export const CATEGORY_COLOR: Record<CalendarCategory, string> = {
   perso: "#EA580C",
 };
 
+// Palette de couleurs assignables a un projet (pastille dans le calendrier)
+export const PROJECT_COLORS = [
+  "#2563EB", // bleu
+  "#16A34A", // vert
+  "#EA580C", // orange
+  "#DC2626", // rouge
+  "#9333EA", // violet
+  "#DB2777", // rose
+  "#0D9488", // teal
+  "#64748B", // ardoise
+];
+
 // Tags "thème" d'un client : le type de travail qu'il commande.
 export const CLIENT_TAGS = [
   "Motion",

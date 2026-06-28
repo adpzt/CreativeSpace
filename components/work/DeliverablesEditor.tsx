@@ -1,172 +1,241 @@
 "use client";
 
 import { useState } from "react";
-import { Plus, Trash2, ArrowUp, ArrowDown, Check } from "lucide-react";
-import ProgressBar from "@/components/ui/ProgressBar";
-import { projectProgress } from "@/lib/work";
 import {
-  addDeliverable,
-  updateDeliverable,
-  deleteDeliverable,
-} from "@/app/(main)/work/actions";
+  DndContext,
+  closestCenter,
+  PointerSensor,
+  TouchSensor,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from "@dnd-kit/core";
+import {
+  SortableContext,
+  useSortable,
+  arrayMove,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
+import { Check, Trash2, GripVertical, Plus, FileText } from "lucide-react";
+import ProgressBar from "@/components/ui/ProgressBar";
+import AutoSaveField from "@/components/ui/AutoSaveField";
+import { projectProgress } from "@/lib/work";
 import type { Deliverable } from "@/lib/types";
 
-// Éditeur des livrables d'un projet : ajouter, cocher, réordonner, supprimer.
-// La progression (pondérée par la durée) se recalcule en direct.
-export default function DeliverablesEditor({
-  projectId,
-  initial,
-}: {
-  projectId: string;
-  initial: Deliverable[];
-}) {
-  const [items, setItems] = useState<Deliverable[]>(initial);
+type Props = {
+  items: Deliverable[];
+  onToggle: (id: string) => void;
+  onRename: (id: string, name: string) => void;
+  onDuration: (id: string, days: number) => void;
+  onNote: (id: string, notes: string) => void;
+  onAdd: (name: string, days: number, notes: string) => void;
+  onDelete: (id: string) => void;
+  onReorder: (items: Deliverable[]) => void;
+};
+
+export default function DeliverablesEditor(props: Props) {
+  const { items, onAdd, onReorder } = props;
+  const [adding, setAdding] = useState(false);
   const [name, setName] = useState("");
-  const [duration, setDuration] = useState("1");
+  const [days, setDays] = useState("1");
+  const [note, setNote] = useState("");
 
-  const percent = projectProgress(items);
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
+    useSensor(TouchSensor, { activationConstraint: { delay: 180, tolerance: 8 } })
+  );
 
-  async function add() {
+  function onDragEnd(e: DragEndEvent) {
+    const { active, over } = e;
+    if (!over || active.id === over.id) return;
+    const oldIndex = items.findIndex((i) => i.id === active.id);
+    const newIndex = items.findIndex((i) => i.id === over.id);
+    onReorder(arrayMove(items, oldIndex, newIndex));
+  }
+
+  function validateAdd() {
     const n = name.trim();
     if (!n) return;
-    const d = Math.max(1, parseInt(duration, 10) || 1);
-    const created = await addDeliverable({
-      project_id: projectId,
-      name: n,
-      duration_days: d,
-      order_index: items.length,
-    });
-    setItems((prev) => [...prev, created]);
+    onAdd(n, Math.max(1, parseInt(days, 10) || 1), note.trim());
     setName("");
-    setDuration("1");
-  }
-
-  async function toggle(item: Deliverable) {
-    const next = !item.completed;
-    setItems((prev) =>
-      prev.map((i) => (i.id === item.id ? { ...i, completed: next } : i))
-    );
-    await updateDeliverable(item.id, { completed: next });
-  }
-
-  async function remove(id: string) {
-    setItems((prev) => prev.filter((i) => i.id !== id));
-    await deleteDeliverable(id);
-  }
-
-  // Déplace un livrable vers le haut ou le bas (échange des order_index)
-  async function move(index: number, dir: -1 | 1) {
-    const target = index + dir;
-    if (target < 0 || target >= items.length) return;
-    const reordered = [...items];
-    [reordered[index], reordered[target]] = [
-      reordered[target],
-      reordered[index],
-    ];
-    // On réécrit les order_index proprement
-    const withOrder = reordered.map((it, i) => ({ ...it, order_index: i }));
-    setItems(withOrder);
-    await Promise.all([
-      updateDeliverable(withOrder[index].id, { order_index: index }),
-      updateDeliverable(withOrder[target].id, { order_index: target }),
-    ]);
+    setDays("1");
+    setNote("");
+    setAdding(false);
   }
 
   return (
     <div>
       <div className="mb-3">
-        <ProgressBar percent={percent} />
+        <ProgressBar percent={projectProgress(items)} />
       </div>
 
-      {items.length > 0 && (
-        <ul className="mb-3 space-y-1.5">
-          {items.map((item, index) => (
-            <li
-              key={item.id}
-              className="flex items-center gap-2 rounded-xl border border-gray-100 px-3 py-2"
+      <DndContext
+        sensors={sensors}
+        collisionDetection={closestCenter}
+        onDragEnd={onDragEnd}
+      >
+        <SortableContext
+          items={items.map((i) => i.id)}
+          strategy={verticalListSortingStrategy}
+        >
+          <ul className="space-y-1.5">
+            {items.map((item) => (
+              <SortableDeliverable key={item.id} item={item} {...props} />
+            ))}
+          </ul>
+        </SortableContext>
+      </DndContext>
+
+      {/* Ajout d'un livrable : + discret, validation par coche verte */}
+      {adding ? (
+        <div className="mt-2 rounded-xl border border-gray-200 p-2">
+          <div className="flex items-center gap-2">
+            <input
+              autoFocus
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && validateAdd()}
+              placeholder="Nouveau livrable (logo, flyer...)"
+              className="flex-1 rounded-lg border border-gray-200 px-2.5 py-1.5 text-sm outline-none focus:border-ink"
+            />
+            <input
+              value={days}
+              onChange={(e) => setDays(e.target.value)}
+              type="number"
+              min={1}
+              aria-label="Durée en jours"
+              className="w-14 rounded-lg border border-gray-200 px-2 py-1.5 text-center text-sm outline-none focus:border-ink"
+            />
+            <span className="text-xs text-muted">j</span>
+            <button
+              onClick={validateAdd}
+              aria-label="Valider le livrable"
+              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-success text-white transition-opacity hover:opacity-90"
             >
-              <button
-                onClick={() => toggle(item)}
-                aria-label="Cocher le livrable"
-                className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-md border transition-colors ${
-                  item.completed
-                    ? "border-success bg-success text-white"
-                    : "border-gray-300 hover:border-ink"
-                }`}
-              >
-                {item.completed && <Check className="h-3.5 w-3.5" />}
-              </button>
-
-              <span
-                className={`flex-1 truncate text-sm ${
-                  item.completed ? "text-muted line-through" : ""
-                }`}
-              >
-                {item.name}
-              </span>
-
-              <span className="shrink-0 text-xs text-muted">
-                {item.duration_days}j
-              </span>
-
-              <div className="flex shrink-0 items-center">
-                <button
-                  onClick={() => move(index, -1)}
-                  disabled={index === 0}
-                  aria-label="Monter"
-                  className="rounded p-1 text-muted hover:bg-gray-100 disabled:opacity-30"
-                >
-                  <ArrowUp className="h-3.5 w-3.5" />
-                </button>
-                <button
-                  onClick={() => move(index, 1)}
-                  disabled={index === items.length - 1}
-                  aria-label="Descendre"
-                  className="rounded p-1 text-muted hover:bg-gray-100 disabled:opacity-30"
-                >
-                  <ArrowDown className="h-3.5 w-3.5" />
-                </button>
-                <button
-                  onClick={() => remove(item.id)}
-                  aria-label="Supprimer le livrable"
-                  className="rounded p-1 text-muted hover:bg-gray-100 hover:text-urgent"
-                >
-                  <Trash2 className="h-3.5 w-3.5" />
-                </button>
-              </div>
-            </li>
-          ))}
-        </ul>
+              <Check className="h-4 w-4" />
+            </button>
+          </div>
+          <input
+            value={note}
+            onChange={(e) => setNote(e.target.value)}
+            placeholder="Note sur ce livrable (optionnel)"
+            className="mt-2 w-full rounded-lg border border-gray-200 px-2.5 py-1.5 text-xs outline-none focus:border-ink"
+          />
+        </div>
+      ) : (
+        <button
+          onClick={() => setAdding(true)}
+          className="mt-2 inline-flex items-center gap-1 rounded-lg px-2 py-1 text-xs font-medium text-muted transition-colors hover:bg-gray-100 hover:text-ink"
+        >
+          <Plus className="h-3.5 w-3.5" />
+          Livrable
+        </button>
       )}
+    </div>
+  );
+}
 
-      {/* Ajout d'un livrable */}
-      <div className="flex items-center gap-2">
+function SortableDeliverable({
+  item,
+  onToggle,
+  onRename,
+  onDuration,
+  onNote,
+  onDelete,
+}: { item: Deliverable } & Omit<Props, "items" | "onAdd" | "onReorder">) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
+    useSortable({ id: item.id });
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  };
+  const [name, setName] = useState(item.name);
+  const [days, setDays] = useState(String(item.duration_days));
+  const [openNote, setOpenNote] = useState(false);
+
+  return (
+    <li
+      ref={setNodeRef}
+      style={style}
+      className="rounded-xl border border-gray-100 bg-white"
+    >
+      <div className="flex items-center gap-1.5 px-2 py-1.5">
+        <span
+          {...attributes}
+          {...listeners}
+          className="shrink-0 cursor-grab touch-none text-gray-300 hover:text-muted"
+          aria-label="Réordonner"
+        >
+          <GripVertical className="h-4 w-4" />
+        </span>
+
+        <button
+          onClick={() => onToggle(item.id)}
+          aria-label="Cocher"
+          className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-md border transition-colors ${
+            item.completed
+              ? "border-success bg-success text-white"
+              : "border-gray-300 hover:border-ink"
+          }`}
+        >
+          {item.completed && <Check className="h-3.5 w-3.5" />}
+        </button>
+
         <input
           value={name}
           onChange={(e) => setName(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === "Enter") add();
-          }}
-          placeholder="Nouveau livrable (logo, flyer...)"
-          className="flex-1 rounded-xl border border-gray-200 px-3 py-2 text-sm outline-none focus:border-ink placeholder:text-muted"
+          onBlur={() => name.trim() && name !== item.name && onRename(item.id, name.trim())}
+          className={`min-w-0 flex-1 bg-transparent text-sm outline-none ${
+            item.completed ? "text-muted line-through" : ""
+          }`}
         />
+
         <input
-          value={duration}
-          onChange={(e) => setDuration(e.target.value)}
+          value={days}
+          onChange={(e) => setDays(e.target.value)}
+          onBlur={() => {
+            const d = Math.max(1, parseInt(days, 10) || 1);
+            setDays(String(d));
+            if (d !== item.duration_days) onDuration(item.id, d);
+          }}
           type="number"
           min={1}
           aria-label="Durée en jours"
-          className="w-16 rounded-xl border border-gray-200 px-2 py-2 text-center text-sm outline-none focus:border-ink"
+          className="w-12 shrink-0 rounded-md border border-transparent px-1 py-0.5 text-center text-xs outline-none hover:border-gray-200 focus:border-ink"
         />
-        <span className="text-xs text-muted">j</span>
+        <span className="shrink-0 text-xs text-muted">j</span>
+
         <button
-          onClick={add}
-          aria-label="Ajouter le livrable"
-          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gray-100 transition-colors hover:bg-gray-200"
+          onClick={() => setOpenNote((o) => !o)}
+          aria-label="Note du livrable"
+          className={`shrink-0 rounded p-1 transition-colors hover:bg-gray-100 ${
+            item.notes ? "text-active" : "text-muted"
+          }`}
         >
-          <Plus className="h-4 w-4" />
+          <FileText className="h-3.5 w-3.5" />
+        </button>
+        <button
+          onClick={() => onDelete(item.id)}
+          aria-label="Supprimer le livrable"
+          className="shrink-0 rounded p-1 text-muted hover:bg-gray-100 hover:text-urgent"
+        >
+          <Trash2 className="h-3.5 w-3.5" />
         </button>
       </div>
-    </div>
+
+      {openNote && (
+        <div className="border-t border-gray-100 p-2">
+          <AutoSaveField
+            multiline
+            rows={3}
+            initialValue={item.notes ?? ""}
+            placeholder="Notes sur ce livrable (brief, specs, liens...)"
+            save={(v) => onNote(item.id, v)}
+          />
+        </div>
+      )}
+    </li>
   );
 }

@@ -3,9 +3,14 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/Button";
-import { PROJECT_STATUS, PROJECT_STATUS_ORDER } from "@/lib/work";
+import {
+  PROJECT_STATUS,
+  PROJECT_STATUS_ORDER,
+  CALENDAR_CATEGORIES,
+  PROJECT_COLORS,
+} from "@/lib/work";
 import { createProject } from "@/app/(main)/work/actions";
-import type { Client, ProjectStatus } from "@/lib/types";
+import type { CalendarCategory, Client, ProjectStatus } from "@/lib/types";
 
 const labelClass =
   "mb-1.5 block text-xs font-medium uppercase tracking-wide text-muted";
@@ -29,6 +34,8 @@ export default function ProjectCreateForm({
     name: "",
     client_id: "",
     status: "waiting_brief" as ProjectStatus,
+    category: "freelance" as CalendarCategory,
+    color: "" as string,
     start_date: "",
     end_date: "",
   });
@@ -49,6 +56,8 @@ export default function ProjectCreateForm({
         name: f.name.trim(),
         client_id: f.client_id || null,
         status: f.status,
+        category: f.category,
+        color: f.color || null,
         start_date: f.start_date || null,
         end_date: f.end_date || null,
       });
@@ -104,6 +113,47 @@ export default function ProjectCreateForm({
             </option>
           ))}
         </select>
+      </div>
+
+      <div>
+        <label className={labelClass}>Catégorie</label>
+        <select
+          value={f.category}
+          onChange={(e) => up("category", e.target.value as CalendarCategory)}
+          className={inputClass}
+        >
+          {CALENDAR_CATEGORIES.map((c) => (
+            <option key={c.key} value={c.key}>
+              {c.label}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      <div>
+        <label className={labelClass}>Couleur</label>
+        <div className="flex flex-wrap items-center gap-2">
+          <button
+            type="button"
+            onClick={() => up("color", "")}
+            aria-label="Aucune couleur"
+            className={`h-6 w-6 rounded-full border ${
+              !f.color ? "border-ink" : "border-gray-300"
+            }`}
+          />
+          {PROJECT_COLORS.map((c) => (
+            <button
+              key={c}
+              type="button"
+              onClick={() => up("color", c)}
+              aria-label={`Couleur ${c}`}
+              className={`h-6 w-6 rounded-full ${
+                f.color === c ? "ring-2 ring-ink ring-offset-2" : ""
+              }`}
+              style={{ backgroundColor: c }}
+            />
+          ))}
+        </div>
       </div>
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">

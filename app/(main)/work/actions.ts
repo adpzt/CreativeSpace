@@ -97,6 +97,8 @@ export async function createProject(input: {
   name: string;
   client_id?: string | null;
   status?: ProjectStatus;
+  category?: CalendarCategory;
+  color?: string | null;
   start_date?: string | null;
   end_date?: string | null;
 }): Promise<string> {
@@ -107,6 +109,8 @@ export async function createProject(input: {
       name: input.name,
       client_id: input.client_id || null,
       status: input.status ?? "waiting_brief",
+      category: input.category ?? "freelance",
+      color: input.color || null,
       start_date: input.start_date || null,
       end_date: input.end_date || null,
     })
@@ -147,6 +151,7 @@ export async function addDeliverable(input: {
   name: string;
   duration_days: number;
   order_index: number;
+  notes?: string | null;
 }): Promise<Deliverable> {
   const supabase = createServerSupabase();
   const { data, error } = await supabase
@@ -156,6 +161,7 @@ export async function addDeliverable(input: {
       name: input.name,
       duration_days: input.duration_days,
       order_index: input.order_index,
+      notes: input.notes || null,
     })
     .select()
     .single();
@@ -210,6 +216,8 @@ export async function addCalendarBlock(input: {
   date_end: string;
   category: CalendarCategory;
   color?: string | null;
+  project_id?: string | null;
+  deliverable_id?: string | null;
 }): Promise<CalendarBlock> {
   const supabase = createServerSupabase();
   const { data, error } = await supabase
@@ -220,6 +228,8 @@ export async function addCalendarBlock(input: {
       date_end: input.date_end,
       category: input.category,
       color: input.color ?? null,
+      project_id: input.project_id ?? null,
+      deliverable_id: input.deliverable_id ?? null,
     })
     .select()
     .single();

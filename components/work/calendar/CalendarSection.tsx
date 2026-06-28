@@ -47,14 +47,23 @@ import {
   updateCalendarBlock,
   deleteCalendarBlock,
 } from "@/app/(main)/work/actions";
-import type { CalendarBlock, CalendarCategory } from "@/lib/types";
+import type {
+  CalendarBlock,
+  CalendarCategory,
+  Deliverable,
+  ProjectWithDeliverables,
+} from "@/lib/types";
 
 const iso = (d: Date) => format(d, "yyyy-MM-dd");
 
+type Suggestion = { project: ProjectWithDeliverables; deliverable: Deliverable };
+
 export default function CalendarSection({
   initial,
+  projects,
 }: {
   initial: CalendarBlock[];
+  projects: ProjectWithDeliverables[];
 }) {
   const [blocks, setBlocks] = useState<CalendarBlock[]>(initial);
   const [refDate, setRefDate] = useState<Date>(new Date());
@@ -90,6 +99,27 @@ export default function CalendarSection({
   const dayBlocks = (dayIso: string) =>
     blocks.filter((b) => dayIso >= b.date_start && dayIso <= b.date_end);
 
+  const projectById = new Map(projects.map((p) => [p.id, p]));
+  const colorForBlock = (b: CalendarBlock) =>
+    b.project_id ? projectById.get(b.project_id)?.color ?? null : null;
+
+  // Livrables proposables pour une catégorie : projet de cette catégorie,
+  // non clôturé, livrable non terminé et pas déjà placé dans le calendrier.
+  const placedDeliverableIds = new Set(
+    blocks.map((b) => b.deliverable_id).filter(Boolean)
+  );
+  function suggestionsFor(cat: CalendarCategory): Suggestion[] {
+    const out: Suggestion[] = [];
+    for (const p of projects) {
+      if (p.category !== cat || p.status === "closed") continue;
+      for (const d of p.deliverables) {
+        if (d.completed || placedDeliverableIds.has(d.id)) continue;
+        out.push({ project: p, deliverable: d });
+      }
+    }
+    return out;
+  }
+
   // ----- Mutations (insertion optimiste = instantané) -----
   async function create(dayIso: string, cat: CalendarCategory, title: string) {
     const tempId = `temp-${Math.random().toString(36).slice(2)}`;
@@ -112,6 +142,41 @@ export default function CalendarSection({
         date_start: dayIso,
         date_end: dayIso,
         category: cat,
+      });
+      setBlocks((p) => p.map((x) => (x.id === tempId ? b : x)));
+    } catch {
+      setBlocks((p) => p.filter((x) => x.id !== tempId));
+    }
+  }
+  // Crée un bloc lié à un livrable de projet existant
+  async function createFromDeliverable(
+    dayIso: string,
+    cat: CalendarCategory,
+    s: Suggestion
+  ) {
+    const tempId = `temp-${Math.random().toString(36).slice(2)}`;
+    const temp: CalendarBlock = {
+      id: tempId,
+      title: s.deliverable.name,
+      date_start: dayIso,
+      date_end: dayIso,
+      category: cat,
+      color: s.project.color,
+      completed: false,
+      project_id: s.project.id,
+      deliverable_id: s.deliverable.id,
+      created_at: new Date().toISOString(),
+    };
+    setBlocks((p) => [...p, temp]);
+    try {
+      const b = await addCalendarBlock({
+        title: s.deliverable.name,
+        date_start: dayIso,
+        date_end: dayIso,
+        category: cat,
+        color: s.project.color,
+        project_id: s.project.id,
+        deliverable_id: s.deliverable.id,
       });
       setBlocks((p) => p.map((x) => (x.id === tempId ? b : x)));
     } catch {
@@ -293,8 +358,11 @@ export default function CalendarSection({
                   dayIso={iso(d)}
                   cat={cat.key}
                   blocks={cellBlocks(iso(d), cat.key)}
+                  suggestions={suggestionsFor(cat.key)}
+                  colorForBlock={colorForBlock}
                   className={`${cellMinH} border-b border-r border-gray-100 p-1.5`}
                   onCreate={create}
+                  onCreateFromDeliverable={createFromDeliverable}
                   onToggle={toggle}
                   onOpen={(id) => setEditingId(id)}
                 />
@@ -385,16 +453,26 @@ function Cell({
   dayIso,
   cat,
   blocks,
+  suggestions,
+  colorForBlock,
   className,
   onCreate,
+  onCreateFromDeliverable,
   onToggle,
   onOpen,
 }: {
   dayIso: string;
   cat: CalendarCategory;
   blocks: CalendarBlock[];
+  suggestions: Suggestion[];
+  colorForBlock: (b: CalendarBlock) => string | null;
   className?: string;
   onCreate: (dayIso: string, cat: CalendarCategory, title: string) => void;
+  onCreateFromDeliverable: (
+    dayIso: string,
+    cat: CalendarCategory,
+    s: Suggestion
+  ) => void;
   onToggle: (b: CalendarBlock) => void;
   onOpen: (id: string) => void;
 }) {
@@ -409,11 +487,16 @@ function Cell({
           <DraggableChip
             key={b.id}
             block={b}
+            projectColor={colorForBlock(b)}
             onToggle={() => onToggle(b)}
             onOpen={() => onOpen(b.id)}
           />
         ))}
-        <AddBlock onCreate={(t) => onCreate(dayIso, cat, t)} />
+        <AddBlock
+          suggestions={suggestions}
+          onCreate={(t) => onCreate(dayIso, cat, t)}
+          onPick={(s) => onCreateFromDeliverable(dayIso, cat, s)}
+        />
       </div>
     </div>
   );
@@ -422,10 +505,12 @@ function Cell({
 // Bloc déplaçable (toute la surface) ; clic sur le texte = ouvre l'overlay
 function DraggableChip({
   block,
+  projectColor,
   onToggle,
   onOpen,
 }: {
   block: CalendarBlock;
+  projectColor: string | null;
   onToggle: () => void;
   onOpen: () => void;
 }) {
@@ -461,6 +546,12 @@ function DraggableChip({
       >
         {block.completed && <Check className="h-3 w-3" />}
       </button>
+      {projectColor && (
+        <span
+          className="h-2 w-2 shrink-0 rounded-full"
+          style={{ backgroundColor: projectColor }}
+        />
+      )}
       <button
         onPointerDown={(e) => e.stopPropagation()}
         onClick={(e) => {
@@ -477,8 +568,16 @@ function DraggableChip({
   );
 }
 
-// Ajout d'un bloc : juste un "+", qui ouvre un champ
-function AddBlock({ onCreate }: { onCreate: (title: string) => void }) {
+// Ajout d'un bloc : un "+", qui ouvre un champ + des suggestions de livrables
+function AddBlock({
+  suggestions,
+  onCreate,
+  onPick,
+}: {
+  suggestions: Suggestion[];
+  onCreate: (title: string) => void;
+  onPick: (s: Suggestion) => void;
+}) {
   const [adding, setAdding] = useState(false);
   const [value, setValue] = useState("");
 
@@ -501,21 +600,51 @@ function AddBlock({ onCreate }: { onCreate: (title: string) => void }) {
     );
   }
   return (
-    <input
-      autoFocus
-      value={value}
-      onChange={(e) => setValue(e.target.value)}
-      onBlur={commit}
-      onKeyDown={(e) => {
-        if (e.key === "Enter") commit();
-        if (e.key === "Escape") {
-          setValue("");
-          setAdding(false);
-        }
-      }}
-      placeholder="Tâche..."
-      className="w-full rounded-md border border-gray-200 px-2 py-1 text-xs outline-none focus:border-ink"
-    />
+    <div>
+      <input
+        autoFocus
+        value={value}
+        onChange={(e) => setValue(e.target.value)}
+        onBlur={commit}
+        onKeyDown={(e) => {
+          if (e.key === "Enter") commit();
+          if (e.key === "Escape") {
+            setValue("");
+            setAdding(false);
+          }
+        }}
+        placeholder="Tâche..."
+        className="w-full rounded-md border border-gray-200 px-2 py-1 text-xs outline-none focus:border-ink"
+      />
+      {suggestions.length > 0 && (
+        <div className="mt-1 space-y-0.5">
+          <p className="px-1 text-[10px] uppercase tracking-wide text-muted">
+            Livrables
+          </p>
+          {suggestions.slice(0, 6).map((s) => (
+            <button
+              key={s.deliverable.id}
+              onMouseDown={(e) => e.preventDefault()}
+              onClick={() => {
+                onPick(s);
+                setValue("");
+                setAdding(false);
+              }}
+              className="flex w-full items-center gap-1.5 rounded-md px-1.5 py-1 text-left text-[11px] transition-colors hover:bg-gray-100"
+            >
+              <span
+                className="h-2 w-2 shrink-0 rounded-full"
+                style={{ backgroundColor: s.project.color ?? "#CBD5E1" }}
+              />
+              <span className="truncate">{s.deliverable.name}</span>
+              <span className="ml-auto shrink-0 truncate text-muted">
+                {s.project.name}
+              </span>
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
   );
 }
 

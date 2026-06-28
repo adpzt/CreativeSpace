@@ -44,6 +44,8 @@ create table if not exists projects (
   name           text not null,
   client_id      uuid references clients(id) on delete set null,
   status         project_status not null default 'waiting_brief',
+  category       calendar_category not null default 'freelance',
+  color          text,
   start_date     date,
   end_date       date,
   devis_number   text,
@@ -60,6 +62,7 @@ create table if not exists deliverables (
   name          text not null,
   duration_days integer not null default 1,
   completed     boolean not null default false,
+  notes         text,
   order_index   integer not null default 0
 );
 

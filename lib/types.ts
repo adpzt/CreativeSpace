@@ -25,6 +25,8 @@ export type Project = {
   name: string;
   client_id: string | null;
   status: ProjectStatus;
+  category: CalendarCategory;
+  color: string | null;
   start_date: string | null;
   end_date: string | null;
   devis_number: string | null;
@@ -40,6 +42,7 @@ export type Deliverable = {
   name: string;
   duration_days: number;
   completed: boolean;
+  notes: string | null;
   order_index: number;
 };
 

@@ -16,7 +16,7 @@ export default function AutoSaveField({
 }: {
   label?: string;
   initialValue: string;
-  save: (value: string) => Promise<void>;
+  save: (value: string) => void | Promise<void>;
   multiline?: boolean;
   placeholder?: string;
   rows?: number;
