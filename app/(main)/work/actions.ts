@@ -3,6 +3,8 @@
 import { revalidatePath } from "next/cache";
 import { createServerSupabase } from "@/lib/supabase/server";
 import type {
+  CalendarBlock,
+  CalendarCategory,
   Client,
   Deliverable,
   Project,
@@ -182,6 +184,73 @@ export async function updateDeliverable(
 export async function deleteDeliverable(id: string): Promise<void> {
   const supabase = createServerSupabase();
   const { error } = await supabase.from("deliverables").delete().eq("id", id);
+
+  if (error) throw new Error(error.message);
+  revalidatePath("/work");
+}
+
+// =================== CALENDRIER ===================
+
+// Tous les blocs du calendrier (filtrés par semaine cote client)
+export async function getCalendarBlocks(): Promise<CalendarBlock[]> {
+  const supabase = createServerSupabase();
+  const { data, error } = await supabase
+    .from("calendar_blocks")
+    .select("*")
+    .order("date_start", { ascending: true });
+
+  if (error) throw new Error(error.message);
+  return (data ?? []) as CalendarBlock[];
+}
+
+// Crée un bloc et renvoie la ligne créée
+export async function addCalendarBlock(input: {
+  title: string;
+  date_start: string;
+  date_end: string;
+  category: CalendarCategory;
+  color?: string | null;
+}): Promise<CalendarBlock> {
+  const supabase = createServerSupabase();
+  const { data, error } = await supabase
+    .from("calendar_blocks")
+    .insert({
+      title: input.title,
+      date_start: input.date_start,
+      date_end: input.date_end,
+      category: input.category,
+      color: input.color ?? null,
+    })
+    .select()
+    .single();
+
+  if (error) throw new Error(error.message);
+  revalidatePath("/work");
+  return data as CalendarBlock;
+}
+
+// Met à jour un bloc (texte, coché, couleur, dates, catégorie)
+export async function updateCalendarBlock(
+  id: string,
+  patch: Partial<Omit<CalendarBlock, "id" | "created_at">>
+): Promise<void> {
+  const supabase = createServerSupabase();
+  const { error } = await supabase
+    .from("calendar_blocks")
+    .update(patch)
+    .eq("id", id);
+
+  if (error) throw new Error(error.message);
+  revalidatePath("/work");
+}
+
+// Supprime un bloc
+export async function deleteCalendarBlock(id: string): Promise<void> {
+  const supabase = createServerSupabase();
+  const { error } = await supabase
+    .from("calendar_blocks")
+    .delete()
+    .eq("id", id);
 
   if (error) throw new Error(error.message);
   revalidatePath("/work");

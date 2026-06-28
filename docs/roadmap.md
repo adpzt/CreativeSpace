@@ -253,15 +253,15 @@ Chaque point de retour précise : ce qui est livré, ce qu'Adrien doit tester, e
 - Retour attendu : les 6 statuts sont-ils les bons ? le calcul du % pondéré est-il clair et juste ? l'édition en ligne (sans modal) est-elle pratique ?
 
 ### Étape 2.3 — Calendrier
-- [ ] Semainier : 7 colonnes (jours) x 3 lignes (Freelance / Entreprise / Perso)
-- [ ] Créer un bloc par clic dans une case
-- [ ] Éditer le texte d'un bloc
-- [ ] Case à cocher sur chaque bloc (coché = barré + vert)
-- [ ] Navigation entre semaines (flèches)
-- [ ] Drag and drop entre cases
-- [ ] Resize horizontal (étendre sur plusieurs jours)
-- [ ] Couleur optionnelle par bloc (6 couleurs)
-- [ ] Toggle vue mensuelle (affichage simplifié)
+- [x] Semainier : 7 colonnes (jours) x 3 lignes (Freelance / Entreprise / Perso) sur desktop, liste verticale par jour sur mobile
+- [x] Créer un bloc par clic dans une case
+- [x] Éditer le texte d'un bloc (clic sur le titre)
+- [x] Case à cocher sur chaque bloc (coché = barré + vert)
+- [x] Navigation entre semaines (flèches) + bouton Aujourd'hui
+- [ ] Drag and drop entre cases (étape 4b)
+- [ ] Resize horizontal (étendre sur plusieurs jours) (étape 4b)
+- [x] Couleur optionnelle par bloc (6 couleurs)
+- [x] Toggle vue mensuelle (affichage simplifié, titres seulement)
 
 Le calendrier étant le composant le plus critique, il est livré en DEUX temps pour récolter ton retour avant le plus dur (drag and drop / resize).
 

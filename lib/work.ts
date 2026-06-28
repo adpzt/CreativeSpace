@@ -1,4 +1,21 @@
-import type { ProjectStatus } from "@/lib/types";
+import type { CalendarCategory, ProjectStatus } from "@/lib/types";
+
+// Les 3 lignes du calendrier (semainier)
+export const CALENDAR_CATEGORIES: { key: CalendarCategory; label: string }[] = [
+  { key: "freelance", label: "Freelance" },
+  { key: "entreprise", label: "Entreprise" },
+  { key: "perso", label: "Perso" },
+];
+
+// Palette optionnelle des blocs du calendrier (6 couleurs douces).
+export const CALENDAR_COLORS = [
+  "#2563EB", // bleu
+  "#16A34A", // vert
+  "#EA580C", // orange
+  "#DC2626", // rouge
+  "#9333EA", // violet
+  "#64748B", // ardoise
+];
 
 // Tags "thème" d'un client : le type de travail qu'il commande.
 export const CLIENT_TAGS = [

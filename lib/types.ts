@@ -47,3 +47,18 @@ export type Deliverable = {
 export type ProjectWithDeliverables = Project & {
   deliverables: Deliverable[];
 };
+
+export type CalendarCategory = "freelance" | "entreprise" | "perso";
+
+export type CalendarBlock = {
+  id: string;
+  title: string;
+  date_start: string; // 'yyyy-MM-dd'
+  date_end: string; // 'yyyy-MM-dd'
+  category: CalendarCategory;
+  color: string | null;
+  completed: boolean;
+  project_id: string | null;
+  deliverable_id: string | null;
+  created_at: string;
+};
