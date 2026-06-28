@@ -415,6 +415,7 @@ Le calendrier étant le composant le plus critique, il est livré en DEUX temps 
 - [ ] Stats CA par type de mission (camembert Recharts)
 - [ ] Templates de projets récurrents
 - [ ] Notifications push mobile
+- [ ] Recherche globale (chercher en même temps dans notes + projets + clients)
 
 ---
 
