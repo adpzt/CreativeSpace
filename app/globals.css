@@ -1,0 +1,30 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/*
+  Theme clair uniquement pour la v1 (le dark mode viendra plus tard).
+  Style minimaliste iOS-like : noir sur blanc, couleurs fonctionnelles seulement.
+*/
+
+html {
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+body {
+  font-family: var(--font-inter), system-ui, -apple-system, sans-serif;
+}
+
+/* On évite le zoom auto sur les inputs au focus sur iOS (taille mini 16px) */
+input,
+textarea,
+select {
+  font-size: 16px;
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+}
