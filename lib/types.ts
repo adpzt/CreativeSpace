@@ -61,6 +61,7 @@ export type CalendarBlock = {
   category: CalendarCategory;
   color: string | null;
   completed: boolean;
+  notes: string | null;
   project_id: string | null;
   deliverable_id: string | null;
   created_at: string;

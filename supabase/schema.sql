@@ -75,6 +75,7 @@ create table if not exists calendar_blocks (
   category       calendar_category not null,
   color          text,
   completed      boolean not null default false,
+  notes          text,
   project_id     uuid references projects(id) on delete set null,
   deliverable_id uuid references deliverables(id) on delete set null,
   created_at     timestamptz not null default now()

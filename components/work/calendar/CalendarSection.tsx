@@ -12,6 +12,7 @@ import {
   eachDayOfInterval,
   format,
   isSameMonth,
+  isSameWeek,
   isToday,
 } from "date-fns";
 import { fr } from "date-fns/locale";
@@ -37,11 +38,13 @@ import {
   Trash2,
   Maximize2,
   Minimize2,
+  FileText,
+  CornerDownLeft,
 } from "lucide-react";
 import Overlay from "@/components/ui/Overlay";
+import NotePanel from "@/components/ui/NotePanel";
 import AutoSaveField from "@/components/ui/AutoSaveField";
-import { Button } from "@/components/ui/Button";
-import { CALENDAR_CATEGORIES, CATEGORY_COLOR } from "@/lib/work";
+import { CALENDAR_CATEGORIES } from "@/lib/work";
 import {
   addCalendarBlock,
   updateCalendarBlock,
@@ -50,6 +53,7 @@ import {
 import type {
   CalendarBlock,
   CalendarCategory,
+  Client,
   Deliverable,
   ProjectWithDeliverables,
 } from "@/lib/types";
@@ -57,13 +61,16 @@ import type {
 const iso = (d: Date) => format(d, "yyyy-MM-dd");
 
 type Suggestion = { project: ProjectWithDeliverables; deliverable: Deliverable };
+type AddCtx = { dayIso: string; cat: CalendarCategory };
 
 export default function CalendarSection({
   initial,
   projects,
+  clients,
 }: {
   initial: CalendarBlock[];
   projects: ProjectWithDeliverables[];
+  clients: Client[];
 }) {
   const [blocks, setBlocks] = useState<CalendarBlock[]>(initial);
   const [refDate, setRefDate] = useState<Date>(new Date());
@@ -71,28 +78,35 @@ export default function CalendarSection({
   const [fullscreen, setFullscreen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [activeId, setActiveId] = useState<string | null>(null);
+  const [addCtx, setAddCtx] = useState<AddCtx | null>(null);
+  const [noteBlockId, setNoteBlockId] = useState<string | null>(null);
 
-  // Verrou du scroll de la page en plein écran
+  const anyOverlayOpen = Boolean(
+    editingId || addCtx || noteBlockId
+  );
+
+  // Échap pour quitter le plein écran (sauf si un overlay est ouvert)
   useEffect(() => {
     if (!fullscreen) return;
     document.body.style.overflow = "hidden";
+    function onKey(e: KeyboardEvent) {
+      if (e.key === "Escape" && !anyOverlayOpen) setFullscreen(false);
+    }
+    document.addEventListener("keydown", onKey);
     return () => {
+      document.removeEventListener("keydown", onKey);
       document.body.style.overflow = "";
     };
-  }, [fullscreen]);
+  }, [fullscreen, anyOverlayOpen]);
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
-    useSensor(TouchSensor, {
-      activationConstraint: { delay: 180, tolerance: 8 },
-    })
+    useSensor(TouchSensor, { activationConstraint: { delay: 180, tolerance: 8 } })
   );
 
   const weekStart = startOfWeek(refDate, { weekStartsOn: 1 });
-  const days = eachDayOfInterval({
-    start: weekStart,
-    end: addDays(weekStart, 6),
-  });
+  const days = eachDayOfInterval({ start: weekStart, end: addDays(weekStart, 6) });
+  const isCurrentWeek = isSameWeek(refDate, new Date(), { weekStartsOn: 1 });
 
   const cellBlocks = (dayIso: string, cat: CalendarCategory) =>
     blocks.filter((b) => b.category === cat && b.date_start === dayIso);
@@ -103,8 +117,11 @@ export default function CalendarSection({
   const colorForBlock = (b: CalendarBlock) =>
     b.project_id ? projectById.get(b.project_id)?.color ?? null : null;
 
-  // Livrables proposables pour une catégorie : projet de cette catégorie,
-  // non clôturé, livrable non terminé et pas déjà placé dans le calendrier.
+  function clientCompanyOf(p: ProjectWithDeliverables) {
+    const c = clients.find((x) => x.id === p.client_id);
+    return c?.company || c?.name || p.name;
+  }
+
   const placedDeliverableIds = new Set(
     blocks.map((b) => b.deliverable_id).filter(Boolean)
   );
@@ -120,7 +137,7 @@ export default function CalendarSection({
     return out;
   }
 
-  // ----- Mutations (insertion optimiste = instantané) -----
+  // ----- Mutations -----
   async function create(dayIso: string, cat: CalendarCategory, title: string) {
     const tempId = `temp-${Math.random().toString(36).slice(2)}`;
     const temp: CalendarBlock = {
@@ -131,6 +148,7 @@ export default function CalendarSection({
       category: cat,
       color: null,
       completed: false,
+      notes: null,
       project_id: null,
       deliverable_id: null,
       created_at: new Date().toISOString(),
@@ -148,7 +166,6 @@ export default function CalendarSection({
       setBlocks((p) => p.filter((x) => x.id !== tempId));
     }
   }
-  // Crée un bloc lié à un livrable de projet existant
   async function createFromDeliverable(
     dayIso: string,
     cat: CalendarCategory,
@@ -163,6 +180,7 @@ export default function CalendarSection({
       category: cat,
       color: s.project.color,
       completed: false,
+      notes: null,
       project_id: s.project.id,
       deliverable_id: s.deliverable.id,
       created_at: new Date().toISOString(),
@@ -191,6 +209,10 @@ export default function CalendarSection({
   async function saveTitle(id: string, title: string) {
     setBlocks((p) => p.map((x) => (x.id === id ? { ...x, title } : x)));
     await updateCalendarBlock(id, { title });
+  }
+  async function saveNote(id: string, notes: string) {
+    setBlocks((p) => p.map((x) => (x.id === id ? { ...x, notes } : x)));
+    await updateCalendarBlock(id, { notes });
   }
   async function remove(id: string) {
     setBlocks((p) => p.filter((x) => x.id !== id));
@@ -231,6 +253,7 @@ export default function CalendarSection({
 
   const activeBlock = blocks.find((b) => b.id === activeId) ?? null;
   const editingBlock = blocks.find((b) => b.id === editingId) ?? null;
+  const noteBlock = blocks.find((b) => b.id === noteBlockId) ?? null;
 
   const label =
     view === "week"
@@ -266,12 +289,14 @@ export default function CalendarSection({
           <ChevronRight className="h-4 w-4" />
         </button>
         <span className="ml-1 text-sm font-medium capitalize">{label}</span>
-        <button
-          onClick={() => setRefDate(new Date())}
-          className="ml-2 rounded-lg px-2 py-1 text-xs text-muted hover:bg-gray-100 hover:text-ink"
-        >
-          Aujourd'hui
-        </button>
+        {!isCurrentWeek && view === "week" && (
+          <button
+            onClick={() => setRefDate(new Date())}
+            className="ml-2 rounded-lg bg-blue-50 px-2 py-1 text-xs font-medium text-active hover:bg-blue-100"
+          >
+            En ce moment
+          </button>
+        )}
       </div>
 
       <div className="flex items-center gap-2">
@@ -323,7 +348,6 @@ export default function CalendarSection({
             minWidth,
           }}
         >
-          {/* En-tête : coin + jours */}
           <div className="border-b border-r border-gray-100 bg-gray-50" />
           {days.map((d) => (
             <div
@@ -343,12 +367,15 @@ export default function CalendarSection({
             </div>
           ))}
 
-          {/* Lignes des catégories */}
           {CALENDAR_CATEGORIES.map((cat) => (
             <div key={cat.key} className="contents">
+              {/* Titre de ligne : léger (texte coloré, fond très clair) */}
               <div
-                className="flex items-center justify-center border-b border-r border-gray-100 px-2 py-2 text-center text-xs font-semibold text-white"
-                style={{ backgroundColor: cat.color }}
+                className="flex items-center border-b border-r border-gray-100 px-3 py-2 text-sm font-semibold"
+                style={{
+                  color: cat.color,
+                  backgroundColor: `${cat.color}0F`,
+                }}
               >
                 {cat.label}
               </div>
@@ -358,12 +385,9 @@ export default function CalendarSection({
                   dayIso={iso(d)}
                   cat={cat.key}
                   blocks={cellBlocks(iso(d), cat.key)}
-                  suggestions={suggestionsFor(cat.key)}
                   colorForBlock={colorForBlock}
                   className={`${cellMinH} border-b border-r border-gray-100 p-1.5`}
-                  onCreate={create}
-                  onCreateFromDeliverable={createFromDeliverable}
-                  onToggle={toggle}
+                  onAdd={() => setAddCtx({ dayIso: iso(d), cat: cat.key })}
                   onOpen={(id) => setEditingId(id)}
                 />
               ))}
@@ -374,10 +398,7 @@ export default function CalendarSection({
 
       <DragOverlay>
         {activeBlock ? (
-          <div
-            className="rounded-lg border border-gray-200 bg-white px-2 py-1 text-xs shadow-md"
-            style={{ borderLeft: `3px solid ${CATEGORY_COLOR[activeBlock.category]}` }}
-          >
+          <div className="rounded-lg border border-gray-200 bg-white px-2 py-1 text-xs shadow-md">
             {activeBlock.title}
           </div>
         ) : null}
@@ -394,6 +415,7 @@ export default function CalendarSection({
         <MonthView
           refDate={refDate}
           dayBlocks={dayBlocks}
+          colorForBlock={colorForBlock}
           onPickDay={(d) => {
             setRefDate(d);
             setView("week");
@@ -406,11 +428,30 @@ export default function CalendarSection({
   return (
     <>
       {fullscreen ? (
-        <div className="fixed inset-0 z-50 overflow-auto bg-white p-4 sm:p-6">
+        <div className="animate-zoom-in fixed inset-0 z-50 overflow-auto bg-white p-4 sm:p-6">
           {content}
         </div>
       ) : (
         content
+      )}
+
+      {/* Overlay d'ajout (saisie libre + livrables proposés) */}
+      {addCtx && (
+        <Overlay onClose={() => setAddCtx(null)}>
+          <AddEntry
+            ctx={addCtx}
+            suggestions={suggestionsFor(addCtx.cat)}
+            clientLabel={clientCompanyOf}
+            onCreate={(title) => {
+              create(addCtx.dayIso, addCtx.cat, title);
+              setAddCtx(null);
+            }}
+            onPick={(s) => {
+              createFromDeliverable(addCtx.dayIso, addCtx.cat, s);
+              setAddCtx(null);
+            }}
+          />
+        </Overlay>
       )}
 
       {/* Overlay d'édition d'un bloc */}
@@ -422,25 +463,53 @@ export default function CalendarSection({
               initialValue={editingBlock.title}
               save={(v) => saveTitle(editingBlock.id, v)}
             />
+
             <button
-              onClick={() => toggle(editingBlock)}
-              className={`inline-flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-medium ${
-                editingBlock.completed
-                  ? "bg-green-50 text-success"
-                  : "bg-gray-100 text-ink hover:bg-gray-200"
-              }`}
+              onClick={() =>
+                setNoteBlockId(editingBlock.id)
+              }
+              className="flex w-full items-center gap-2 rounded-xl border border-gray-200 px-3 py-2.5 text-sm transition-colors hover:border-ink"
             >
-              <Check className="h-4 w-4" />
-              {editingBlock.completed ? "Terminé" : "Marquer comme terminé"}
+              <FileText
+                className={`h-4 w-4 ${
+                  editingBlock.notes ? "text-active" : "text-muted"
+                }`}
+              />
+              {editingBlock.notes ? "Voir / éditer la note" : "Ajouter une note"}
             </button>
-            <div className="border-t border-gray-100 pt-4">
-              <Button variant="danger" onClick={() => remove(editingBlock.id)}>
+
+            <div className="flex items-center justify-between border-t border-gray-100 pt-4">
+              <button
+                onClick={() => toggle(editingBlock)}
+                className={`inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium ${
+                  editingBlock.completed
+                    ? "bg-green-50 text-success"
+                    : "text-muted hover:bg-gray-100 hover:text-ink"
+                }`}
+              >
+                <Check className="h-3.5 w-3.5" />
+                {editingBlock.completed ? "Terminé" : "Terminé ?"}
+              </button>
+              <button
+                onClick={() => remove(editingBlock.id)}
+                aria-label="Supprimer"
+                className="rounded-lg p-1.5 text-muted hover:bg-gray-100 hover:text-urgent"
+              >
                 <Trash2 className="h-4 w-4" />
-                Supprimer
-              </Button>
+              </button>
             </div>
           </div>
         </Overlay>
+      )}
+
+      {/* Panneau de notes facon Notion */}
+      {noteBlock && (
+        <NotePanel
+          title={noteBlock.title}
+          initialValue={noteBlock.notes ?? ""}
+          onSave={(v) => saveNote(noteBlock.id, v)}
+          onClose={() => setNoteBlockId(null)}
+        />
       )}
     </>
   );
@@ -448,32 +517,21 @@ export default function CalendarSection({
 
 // ---------- Composants internes ----------
 
-// Une case droppable (jour + catégorie) avec ses blocs et l'ajout
 function Cell({
   dayIso,
   cat,
   blocks,
-  suggestions,
   colorForBlock,
   className,
-  onCreate,
-  onCreateFromDeliverable,
-  onToggle,
+  onAdd,
   onOpen,
 }: {
   dayIso: string;
   cat: CalendarCategory;
   blocks: CalendarBlock[];
-  suggestions: Suggestion[];
   colorForBlock: (b: CalendarBlock) => string | null;
   className?: string;
-  onCreate: (dayIso: string, cat: CalendarCategory, title: string) => void;
-  onCreateFromDeliverable: (
-    dayIso: string,
-    cat: CalendarCategory,
-    s: Suggestion
-  ) => void;
-  onToggle: (b: CalendarBlock) => void;
+  onAdd: () => void;
   onOpen: (id: string) => void;
 }) {
   const { setNodeRef, isOver } = useDroppable({ id: `${dayIso}|${cat}` });
@@ -488,30 +546,29 @@ function Cell({
             key={b.id}
             block={b}
             projectColor={colorForBlock(b)}
-            onToggle={() => onToggle(b)}
             onOpen={() => onOpen(b.id)}
           />
         ))}
-        <AddBlock
-          suggestions={suggestions}
-          onCreate={(t) => onCreate(dayIso, cat, t)}
-          onPick={(s) => onCreateFromDeliverable(dayIso, cat, s)}
-        />
+        <button
+          onClick={onAdd}
+          aria-label="Ajouter"
+          className="flex h-6 w-6 items-center justify-center rounded-lg text-muted transition-colors hover:bg-gray-100 hover:text-ink"
+        >
+          <Plus className="h-4 w-4" />
+        </button>
       </div>
     </div>
   );
 }
 
-// Bloc déplaçable (toute la surface) ; clic sur le texte = ouvre l'overlay
+// Bloc déplaçable : pastille (si projet) + titre. Clic = ouvre l'overlay.
 function DraggableChip({
   block,
   projectColor,
-  onToggle,
   onOpen,
 }: {
   block: CalendarBlock;
   projectColor: string | null;
-  onToggle: () => void;
   onOpen: () => void;
 }) {
   const { attributes, listeners, setNodeRef, transform, isDragging } =
@@ -519,7 +576,6 @@ function DraggableChip({
   const style = {
     transform: CSS.Translate.toString(transform),
     opacity: isDragging ? 0.4 : 1,
-    borderLeft: `3px solid ${CATEGORY_COLOR[block.category]}`,
   };
   return (
     <div
@@ -527,25 +583,10 @@ function DraggableChip({
       {...attributes}
       {...listeners}
       style={style}
-      className={`flex cursor-grab touch-none items-center gap-1.5 rounded-lg py-1.5 pl-1.5 pr-2 text-xs ${
+      className={`flex cursor-grab touch-none items-center gap-1.5 rounded-lg px-2 py-1.5 text-xs ${
         block.completed ? "bg-green-50" : "bg-gray-50"
       }`}
     >
-      <button
-        onPointerDown={(e) => e.stopPropagation()}
-        onClick={(e) => {
-          e.stopPropagation();
-          onToggle();
-        }}
-        aria-label="Cocher"
-        className={`flex h-4 w-4 shrink-0 items-center justify-center rounded border transition-colors ${
-          block.completed
-            ? "border-success bg-success text-white"
-            : "border-gray-300 bg-white hover:border-ink"
-        }`}
-      >
-        {block.completed && <Check className="h-3 w-3" />}
-      </button>
       {projectColor && (
         <span
           className="h-2 w-2 shrink-0 rounded-full"
@@ -564,98 +605,96 @@ function DraggableChip({
       >
         {block.title}
       </button>
+      {block.notes && (
+        <FileText className="h-3 w-3 shrink-0 text-muted" />
+      )}
     </div>
   );
 }
 
-// Ajout d'un bloc : un "+", qui ouvre un champ + des suggestions de livrables
-function AddBlock({
+// Overlay d'ajout : saisie libre + suggestions de livrables (label = client)
+function AddEntry({
+  ctx,
   suggestions,
+  clientLabel,
   onCreate,
   onPick,
 }: {
+  ctx: AddCtx;
   suggestions: Suggestion[];
+  clientLabel: (p: ProjectWithDeliverables) => string;
   onCreate: (title: string) => void;
   onPick: (s: Suggestion) => void;
 }) {
-  const [adding, setAdding] = useState(false);
   const [value, setValue] = useState("");
-
-  function commit() {
-    const t = value.trim();
-    if (t) onCreate(t);
-    setValue("");
-    setAdding(false);
-  }
-
-  if (!adding) {
-    return (
-      <button
-        onClick={() => setAdding(true)}
-        aria-label="Ajouter une tâche"
-        className="flex h-6 w-6 items-center justify-center rounded-lg text-muted transition-colors hover:bg-gray-100 hover:text-ink"
-      >
-        <Plus className="h-4 w-4" />
-      </button>
-    );
-  }
+  const catLabel =
+    CALENDAR_CATEGORIES.find((c) => c.key === ctx.cat)?.label ?? "";
   return (
-    <div>
-      <input
-        autoFocus
-        value={value}
-        onChange={(e) => setValue(e.target.value)}
-        onBlur={commit}
-        onKeyDown={(e) => {
-          if (e.key === "Enter") commit();
-          if (e.key === "Escape") {
-            setValue("");
-            setAdding(false);
-          }
-        }}
-        placeholder="Tâche..."
-        className="w-full rounded-md border border-gray-200 px-2 py-1 text-xs outline-none focus:border-ink"
-      />
+    <div className="space-y-4 pr-8">
+      <h3 className="text-lg font-semibold tracking-tight">
+        Ajouter ({catLabel})
+      </h3>
+
+      <div className="flex items-center gap-2">
+        <input
+          autoFocus
+          value={value}
+          onChange={(e) => setValue(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" && value.trim()) onCreate(value.trim());
+          }}
+          placeholder="Nouvelle tâche..."
+          className="flex-1 rounded-xl border border-gray-200 px-3.5 py-2.5 text-sm outline-none focus:border-ink"
+        />
+        <button
+          onClick={() => value.trim() && onCreate(value.trim())}
+          aria-label="Ajouter"
+          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-ink text-white transition-opacity hover:opacity-90"
+        >
+          <CornerDownLeft className="h-4 w-4" />
+        </button>
+      </div>
+
       {suggestions.length > 0 && (
-        <div className="mt-1 space-y-0.5">
-          <p className="px-1 text-[10px] uppercase tracking-wide text-muted">
-            Livrables
+        <div>
+          <p className="mb-2 text-xs font-medium uppercase tracking-wide text-muted">
+            Livrables à planifier
           </p>
-          {suggestions.slice(0, 6).map((s) => (
-            <button
-              key={s.deliverable.id}
-              onMouseDown={(e) => e.preventDefault()}
-              onClick={() => {
-                onPick(s);
-                setValue("");
-                setAdding(false);
-              }}
-              className="flex w-full items-center gap-1.5 rounded-md px-1.5 py-1 text-left text-[11px] transition-colors hover:bg-gray-100"
-            >
-              <span
-                className="h-2 w-2 shrink-0 rounded-full"
-                style={{ backgroundColor: s.project.color ?? "#CBD5E1" }}
-              />
-              <span className="truncate">{s.deliverable.name}</span>
-              <span className="ml-auto shrink-0 truncate text-muted">
-                {s.project.name}
-              </span>
-            </button>
-          ))}
+          <ul className="space-y-1.5">
+            {suggestions.map((s) => (
+              <li key={s.deliverable.id}>
+                <button
+                  onClick={() => onPick(s)}
+                  className="flex w-full items-center gap-2 rounded-xl border border-gray-100 px-3 py-2 text-left text-sm transition-colors hover:border-ink"
+                >
+                  <span
+                    className="h-2.5 w-2.5 shrink-0 rounded-full"
+                    style={{ backgroundColor: s.project.color ?? "#CBD5E1" }}
+                  />
+                  <span className="flex-1 truncate">{s.deliverable.name}</span>
+                  <span className="shrink-0 text-xs text-muted">
+                    {clientLabel(s.project)}
+                  </span>
+                </button>
+              </li>
+            ))}
+          </ul>
         </div>
       )}
     </div>
   );
 }
 
-// Vue mensuelle allégée : numéro du jour en haut a droite + titres des blocs
+// Vue mensuelle allégée : numéro en haut a droite + titres
 function MonthView({
   refDate,
   dayBlocks,
+  colorForBlock,
   onPickDay,
 }: {
   refDate: Date;
   dayBlocks: (dayIso: string) => CalendarBlock[];
+  colorForBlock: (b: CalendarBlock) => string | null;
   onPickDay: (d: Date) => void;
 }) {
   const gridStart = startOfWeek(startOfMonth(refDate), { weekStartsOn: 1 });
@@ -687,14 +726,9 @@ function MonthView({
                   inMonth ? "" : "bg-gray-50/50"
                 }`}
               >
-                {/* Numéro en haut a droite */}
                 <span
                   className={`self-end text-xs font-semibold ${
-                    isToday(d)
-                      ? "text-active"
-                      : inMonth
-                      ? ""
-                      : "text-gray-300"
+                    isToday(d) ? "text-active" : inMonth ? "" : "text-gray-300"
                   }`}
                 >
                   {format(d, "d")}
@@ -707,9 +741,7 @@ function MonthView({
                     >
                       <span
                         className="h-1.5 w-1.5 shrink-0 rounded-full"
-                        style={{
-                          backgroundColor: CATEGORY_COLOR[b.category],
-                        }}
+                        style={{ backgroundColor: colorForBlock(b) ?? "#CBD5E1" }}
                       />
                       <span
                         className={`truncate ${

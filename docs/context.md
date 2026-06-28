@@ -243,6 +243,20 @@ Les détails (fiche client, et à terme fiche projet) s'ouvrent en **overlay** :
 - Depuis le **+ du calendrier** (selon la ligne freelance/entreprise/perso), pouvoir choisir un **livrable de projet existant** non encore placé / non validé / projet non clôturé.
 - Remplacer "Notes internes" par **"Notes"**.
 
+**Retours v2 projets (juin 2026) :**
+- Améliorer la présentation du récap (comme pour les clients) : titre principal plus marquant, vrais titres de section, mise en page plus soignée (date, n° devis...).
+- Icône note des livrables : peu visible (se fond avec la poubelle) -> la rendre **colorée / distincte**, et la montrer **aussi en mode lecture** (pas seulement en édition).
+- Création projet : champ client avec **autocomplétion** (proposer les clients existants dès la 1re lettre, max 2). Si le client n'existe pas, **créer une fiche client** avec le projet assigné + mention "informations à compléter" sur la card client. Pouvoir aussi renseigner dès la création : n° devis/facture, livrables, notes.
+- À l'ouverture d'un projet : bouton **Modifier** plus petit, et **ajouter le bouton Supprimer** (absent en lecture).
+- **Type(s) de mission** (multi-sélection) : DA, Graphisme, Motion, Site internet, Social post, Social ads, etc. À la création et à l'édition.
+- Projets **clôturés masqués** par défaut (visibles via le tri "Clôturé"). Remplacer les boutons de tri par : "Tous" + une **flèche** qui ouvre un menu pour trier par le tag voulu.
+- Corriger les **couleurs/pastilles** incohérentes des tags de tri.
+- Afficher l'**entreprise** du client, pas son nom/prénom.
+- Pouvoir renseigner le **coût total** du projet (comme une entrée d'argent Finance). Projet clôturé -> dans Finance, une ligne "avez-vous été payé ?" à cocher pour l'entrer dans les comptes.
+- Ajouter un statut/tag **Annulé** (projet qui ne se concrétise pas).
+
+**Page de notes (icône note, façon Notion) :** au clic, un panneau glisse depuis la **droite** (style Notion) pour écrire des notes.
+
 **Fiche projet :**
 - Nom du projet + client associé (lié à la fiche client)
 - Numéro de devis et numéro de facture (champs texte, saisis manuellement par Adrien selon le client et la chronologie : date du devis/facture = ordre chronologique des clients). Ces numéros sont réutilisés dans la page Finance pour relier une entrée d'argent (tag freelance) au devis/facture correspondant.
@@ -294,6 +308,14 @@ Les détails (fiche client, et à terme fiche projet) s'ouvrent en **overlay** :
 - Vue Mois : mettre le **numéro du jour en haut à droite** de chaque case.
 - L'ajout d'une tâche doit être **instantané** (pas de délai d'environ 0,5s) -> insertion optimiste.
 - Une fois un projet associé à un bloc, afficher une **pastille de la couleur du projet** à côté du texte.
+
+**Retours v2 calendrier (juin 2026) :**
+- Titres de ligne (Freelance/Entreprise/Perso) : PAS de box pleine colorée (trop lourd). Préférer un style léger : texte coloré / surligné.
+- Le **+** ne doit pas remplir la case : il ouvre un **overlay** proposant la saisie libre ET les livrables proposables. Le label d'un livrable montre le **client** (ex : PACO), pas le nom du projet.
+- Retirer la **barre de couleur** à gauche des blocs (moche) ; garder seulement la **pastille** de couleur du projet.
+- Retirer la **case à cocher** du bloc dans la case. Marquer terminé se fait dans l'overlay du bloc via un bouton "Terminé ?" (discret, en bas). Afficher la **note** du bloc dans l'overlay ; si vide, montrer l'icône note.
+- **Échap** pour quitter le plein écran ; transition zoom/dézoom courte et fluide.
+- Retirer le bouton "Aujourd'hui" permanent : afficher un bouton "En ce moment" seulement quand on n'est pas sur la semaine en cours.
 
 **Nature du calendrier (validé avec Adrien) :** ce n'est pas un agenda avec des horaires. C'est une to-do hebdomadaire pour s'organiser : "tel jour je dois faire ça". Tout ce qui a besoin d'un horaire précis (calls pro, événements, activités entre amis) reste sur le calendrier natif du téléphone, volontairement séparé. Ici les blocs occupent un ou plusieurs jours entiers (granularité = la journée, jamais l'heure). Plusieurs blocs peuvent coexister dans une même case jour x catégorie, empilés verticalement.
 
