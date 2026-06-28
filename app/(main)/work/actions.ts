@@ -7,6 +7,7 @@ import type {
   CalendarCategory,
   Client,
   Deliverable,
+  PaymentSource,
   Project,
   ProjectStatus,
   ProjectWithDeliverables,
@@ -105,7 +106,9 @@ export async function createProject(input: {
   category?: CalendarCategory;
   color?: string | null;
   mission_types?: string[];
-  cost?: number | null;
+  source?: PaymentSource | null;
+  gross_amount?: number | null;
+  net_amount?: number | null;
   start_date?: string | null;
   end_date?: string | null;
 }): Promise<string> {
@@ -119,7 +122,9 @@ export async function createProject(input: {
       category: input.category ?? "freelance",
       color: input.color || null,
       mission_types: input.mission_types ?? [],
-      cost: input.cost ?? null,
+      source: input.source ?? null,
+      gross_amount: input.gross_amount ?? null,
+      net_amount: input.net_amount ?? null,
       start_date: input.start_date || null,
       end_date: input.end_date || null,
     })

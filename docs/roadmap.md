@@ -54,24 +54,33 @@
 id             uuid primary key
 name           text
 client_id      uuid references clients(id)
-status         enum('waiting_brief', 'in_production', 'waiting_feedback', 
-                    'in_revision', 'waiting_payment', 'closed')
+status         enum('waiting_brief','in_production','waiting_feedback',
+                    'in_revision','waiting_payment','closed','cancelled')
+category       calendar_category   -- freelance / entreprise / perso
+color          text                -- pastille calendrier (couleur libre)
+mission_types  text[]              -- DA, Graphisme, Motion, Site, Social...
+source         payment_source      -- provenance (malt, instagram, direct...)
+gross_amount   numeric             -- montant devis (brut)
+net_amount     numeric             -- montant réellement perçu (net)
+paid           boolean             -- payé ? (popup clôture + Finance)
 start_date     date
 end_date       date
-devis_number   text      -- numéro de devis, saisi manuellement
-invoice_number text      -- numéro de facture, saisi manuellement
+devis_number   text
+invoice_number text
 notes          text
 created_at     timestamp
 ```
 
 ### Table : deliverables
 ```sql
-id          uuid primary key
-project_id  uuid references projects(id)
-name        text
+id            uuid primary key
+project_id    uuid references projects(id)
+name          text
 duration_days integer
-completed   boolean default false
-order       integer
+completed     boolean default false
+progress      integer default 0   -- % de progression du livrable (0-100)
+notes         text                -- page de notes (panneau facon Notion)
+order_index   integer
 ```
 
 ### Table : clients

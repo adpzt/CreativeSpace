@@ -2,14 +2,15 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { Check, Trash2 } from "lucide-react";
+import { X, FileText, Plus } from "lucide-react";
 import { Button } from "@/components/ui/Button";
+import NotePanel from "@/components/ui/NotePanel";
 import {
   PROJECT_STATUS,
   PROJECT_STATUS_ORDER,
   CALENDAR_CATEGORIES,
-  PROJECT_COLORS,
   MISSION_TYPES,
+  PAYMENT_SOURCES,
 } from "@/lib/work";
 import {
   createProject,
@@ -17,14 +18,28 @@ import {
   createClient,
   addDeliverable,
 } from "@/app/(main)/work/actions";
-import type { CalendarCategory, Client, ProjectStatus } from "@/lib/types";
+import type {
+  CalendarCategory,
+  Client,
+  PaymentSource,
+  ProjectStatus,
+} from "@/lib/types";
 
 const labelClass =
   "mb-1.5 block text-xs font-medium uppercase tracking-wide text-muted";
 const inputClass =
   "w-full rounded-xl border border-gray-200 px-3.5 py-2.5 text-sm outline-none transition-colors focus:border-ink placeholder:text-muted";
 
-type LocalDeliverable = { tempId: string; name: string; days: number };
+type LocalDeliverable = {
+  tempId: string;
+  name: string;
+  days: string;
+  notes: string;
+};
+
+function newRow(): LocalDeliverable {
+  return { tempId: Math.random().toString(36).slice(2), name: "", days: "1", notes: "" };
+}
 
 export default function ProjectCreateForm({
   clients,
@@ -44,21 +59,20 @@ export default function ProjectCreateForm({
   const [category, setCategory] = useState<CalendarCategory>("freelance");
   const [color, setColor] = useState("");
   const [missions, setMissions] = useState<string[]>([]);
-  const [cost, setCost] = useState("");
+  const [source, setSource] = useState("");
+  const [gross, setGross] = useState("");
+  const [net, setNet] = useState("");
   const [devis, setDevis] = useState("");
   const [invoice, setInvoice] = useState("");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [notes, setNotes] = useState("");
 
-  // Client : autocomplétion + création auto
   const [clientQuery, setClientQuery] = useState("");
   const [selectedClientId, setSelectedClientId] = useState<string>("");
 
-  // Livrables (locaux, créés avec le projet)
-  const [delivs, setDelivs] = useState<LocalDeliverable[]>([]);
-  const [dName, setDName] = useState("");
-  const [dDays, setDDays] = useState("1");
+  const [delivs, setDelivs] = useState<LocalDeliverable[]>([newRow()]);
+  const [noteRowId, setNoteRowId] = useState<string | null>(null);
 
   const suggestions =
     clientQuery.trim() && !selectedClientId
@@ -74,15 +88,8 @@ export default function ProjectCreateForm({
   function toggleMission(m: string) {
     setMissions((ms) => (ms.includes(m) ? ms.filter((x) => x !== m) : [...ms, m]));
   }
-  function addLocalDeliv() {
-    const n = dName.trim();
-    if (!n) return;
-    setDelivs((p) => [
-      ...p,
-      { tempId: Math.random().toString(36).slice(2), name: n, days: Math.max(1, parseInt(dDays, 10) || 1) },
-    ]);
-    setDName("");
-    setDDays("1");
+  function updateRow(id: string, patch: Partial<LocalDeliverable>) {
+    setDelivs((p) => p.map((r) => (r.tempId === id ? { ...r, ...patch } : r)));
   }
 
   function reset() {
@@ -91,7 +98,9 @@ export default function ProjectCreateForm({
     setCategory("freelance");
     setColor("");
     setMissions([]);
-    setCost("");
+    setSource("");
+    setGross("");
+    setNet("");
     setDevis("");
     setInvoice("");
     setStartDate("");
@@ -99,9 +108,7 @@ export default function ProjectCreateForm({
     setNotes("");
     setClientQuery("");
     setSelectedClientId("");
-    setDelivs([]);
-    setDName("");
-    setDDays("1");
+    setDelivs([newRow()]);
     setError(null);
   }
 
@@ -113,7 +120,6 @@ export default function ProjectCreateForm({
     }
     setError(null);
     start(async () => {
-      // Client : sélectionné, sinon créé à la volée s'il est saisi
       let clientId = selectedClientId;
       if (!clientId && clientQuery.trim()) {
         clientId = await createClient({ name: clientQuery.trim() });
@@ -125,11 +131,12 @@ export default function ProjectCreateForm({
         category,
         color: color || null,
         mission_types: missions,
-        cost: cost ? parseFloat(cost) : null,
+        source: (source as PaymentSource) || null,
+        gross_amount: gross ? parseFloat(gross) : null,
+        net_amount: net ? parseFloat(net) : null,
         start_date: startDate || null,
         end_date: endDate || null,
       });
-      // Notes + numéros via update (createProject ne les prend pas)
       if (notes.trim() || devis.trim() || invoice.trim()) {
         await updateProject(id, {
           notes: notes.trim() || null,
@@ -137,13 +144,14 @@ export default function ProjectCreateForm({
           invoice_number: invoice.trim() || null,
         });
       }
-      // Livrables
-      for (let i = 0; i < delivs.length; i++) {
+      const rows = delivs.filter((r) => r.name.trim());
+      for (let i = 0; i < rows.length; i++) {
         await addDeliverable({
           project_id: id,
-          name: delivs[i].name,
-          duration_days: delivs[i].days,
+          name: rows[i].name.trim(),
+          duration_days: Math.max(1, parseInt(rows[i].days, 10) || 1),
           order_index: i,
+          notes: rows[i].notes.trim() || null,
         });
       }
       router.refresh();
@@ -151,289 +159,331 @@ export default function ProjectCreateForm({
     });
   }
 
+  const noteRow = delivs.find((r) => r.tempId === noteRowId);
+
   return (
-    <form onSubmit={submit} className="space-y-4">
-      <div className="flex items-center justify-between gap-2 pr-8">
-        <h3 className="text-lg font-semibold tracking-tight">Nouveau projet</h3>
-        <button
-          type="button"
-          onClick={reset}
-          className="shrink-0 text-xs text-muted transition-colors hover:text-ink"
-        >
-          Réinitialiser
-        </button>
-      </div>
-
-      <div>
-        <label className={labelClass}>Nom du projet</label>
-        <input
-          autoFocus
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          placeholder="Identité visuelle PACO Services"
-          className={inputClass}
-        />
-      </div>
-
-      {/* Client avec autocomplétion */}
-      <div>
-        <label className={labelClass}>Client</label>
-        <input
-          value={clientQuery}
-          onChange={(e) => {
-            setClientQuery(e.target.value);
-            setSelectedClientId("");
-          }}
-          placeholder="Tape un nom (créé automatiquement si inconnu)"
-          className={inputClass}
-        />
-        {suggestions.length > 0 && (
-          <div className="mt-1 space-y-1">
-            {suggestions.map((c) => (
-              <button
-                key={c.id}
-                type="button"
-                onClick={() => {
-                  setSelectedClientId(c.id);
-                  setClientQuery(c.company || c.name);
-                }}
-                className="flex w-full items-center gap-2 rounded-lg border border-gray-100 px-3 py-1.5 text-left text-sm hover:border-ink"
-              >
-                <span className="font-medium">{c.company || c.name}</span>
-                {c.company && (
-                  <span className="text-xs text-muted">{c.name}</span>
-                )}
-              </button>
-            ))}
-          </div>
-        )}
-        {clientQuery.trim() && !selectedClientId && suggestions.length === 0 && (
-          <p className="mt-1 text-xs text-muted">
-            Nouveau client : une fiche sera créée (à compléter ensuite).
-          </p>
-        )}
-      </div>
-
-      {/* Catégorie */}
-      <div>
-        <label className={labelClass}>Catégorie</label>
-        <select
-          value={category}
-          onChange={(e) => setCategory(e.target.value as CalendarCategory)}
-          className={inputClass}
-        >
-          {CALENDAR_CATEGORIES.map((c) => (
-            <option key={c.key} value={c.key}>
-              {c.label}
-            </option>
-          ))}
-        </select>
-      </div>
-
-      {/* Types de mission */}
-      <div>
-        <label className={labelClass}>Type(s) de mission</label>
-        <div className="flex flex-wrap gap-2">
-          {MISSION_TYPES.map((m) => {
-            const active = missions.includes(m);
-            return (
-              <button
-                key={m}
-                type="button"
-                onClick={() => toggleMission(m)}
-                className={`rounded-full border px-3 py-1 text-xs font-medium transition-colors ${
-                  active
-                    ? "border-ink bg-ink text-white"
-                    : "border-gray-200 text-gray-500 hover:border-ink hover:text-ink"
-                }`}
-              >
-                {m}
-              </button>
-            );
-          })}
-        </div>
-      </div>
-
-      {/* Couleur + Statut */}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-        <div>
-          <label className={labelClass}>Statut</label>
-          <select
-            value={status}
-            onChange={(e) => setStatus(e.target.value as ProjectStatus)}
-            className={inputClass}
-          >
-            {PROJECT_STATUS_ORDER.map((s) => (
-              <option key={s} value={s}>
-                {PROJECT_STATUS[s].label}
-              </option>
-            ))}
-          </select>
-        </div>
-        <div>
-          <label className={labelClass}>Coût total (€)</label>
-          <input
-            value={cost}
-            onChange={(e) => setCost(e.target.value)}
-            type="number"
-            min={0}
-            placeholder="695"
-            className={inputClass}
-          />
-        </div>
-      </div>
-
-      <div>
-        <label className={labelClass}>Couleur (pastille calendrier)</label>
-        <div className="flex flex-wrap items-center gap-2">
+    <>
+      <form onSubmit={submit} className="space-y-4">
+        <div className="flex items-center justify-between gap-2 pr-8">
+          <h3 className="text-lg font-semibold tracking-tight">Nouveau projet</h3>
           <button
             type="button"
-            onClick={() => setColor("")}
-            aria-label="Aucune couleur"
-            className={`h-6 w-6 rounded-full border ${
-              !color ? "border-ink" : "border-gray-300"
-            }`}
+            onClick={reset}
+            className="shrink-0 text-xs text-muted transition-colors hover:text-ink"
+          >
+            Réinitialiser
+          </button>
+        </div>
+
+        <div>
+          <label className={labelClass}>Nom du projet</label>
+          <input
+            autoFocus
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder="Identité visuelle PACO Services"
+            className={inputClass}
           />
-          {PROJECT_COLORS.map((c) => (
-            <button
-              key={c}
-              type="button"
-              onClick={() => setColor(c)}
-              aria-label={`Couleur ${c}`}
-              className={`h-6 w-6 rounded-full ${
-                color === c ? "ring-2 ring-ink ring-offset-2" : ""
-              }`}
-              style={{ backgroundColor: c }}
+        </div>
+
+        {/* Client avec autocomplétion */}
+        <div>
+          <label className={labelClass}>Client</label>
+          <input
+            value={clientQuery}
+            onChange={(e) => {
+              setClientQuery(e.target.value);
+              setSelectedClientId("");
+            }}
+            placeholder="Tape un nom (créé automatiquement si inconnu)"
+            className={inputClass}
+          />
+          {suggestions.length > 0 && (
+            <div className="mt-1 space-y-1">
+              {suggestions.map((c) => (
+                <button
+                  key={c.id}
+                  type="button"
+                  onClick={() => {
+                    setSelectedClientId(c.id);
+                    setClientQuery(c.company || c.name);
+                  }}
+                  className="flex w-full items-center gap-2 rounded-lg border border-gray-100 px-3 py-1.5 text-left text-sm hover:border-ink"
+                >
+                  <span className="font-medium">{c.company || c.name}</span>
+                  {c.company && (
+                    <span className="text-xs text-muted">{c.name}</span>
+                  )}
+                </button>
+              ))}
+            </div>
+          )}
+          {clientQuery.trim() &&
+            !selectedClientId &&
+            suggestions.length === 0 && (
+              <p className="mt-1 text-xs text-muted">
+                Nouveau client : une fiche sera créée (à compléter ensuite).
+              </p>
+            )}
+        </div>
+
+        {/* Catégorie + couleur */}
+        <div>
+          <label className={labelClass}>Catégorie & couleur</label>
+          <div className="flex flex-wrap items-center gap-3">
+            <select
+              value={category}
+              onChange={(e) => setCategory(e.target.value as CalendarCategory)}
+              className="flex-1 rounded-xl border border-gray-200 px-3.5 py-2.5 text-sm outline-none focus:border-ink"
+            >
+              {CALENDAR_CATEGORIES.map((c) => (
+                <option key={c.key} value={c.key}>
+                  {c.label}
+                </option>
+              ))}
+            </select>
+            <div className="flex items-center gap-2">
+              <input
+                type="color"
+                value={color || "#2563EB"}
+                onChange={(e) => setColor(e.target.value)}
+                aria-label="Couleur du projet"
+                className="h-9 w-10 cursor-pointer rounded border border-gray-200 bg-white p-0.5"
+              />
+              {color && (
+                <button
+                  type="button"
+                  onClick={() => setColor("")}
+                  className="text-xs text-muted hover:text-ink"
+                >
+                  Sans
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Types de mission */}
+        <div>
+          <label className={labelClass}>Type(s) de mission</label>
+          <div className="flex flex-wrap gap-2">
+            {MISSION_TYPES.map((m) => {
+              const active = missions.includes(m);
+              return (
+                <button
+                  key={m}
+                  type="button"
+                  onClick={() => toggleMission(m)}
+                  className={`rounded-full border px-3 py-1 text-xs font-medium transition-colors ${
+                    active
+                      ? "border-ink bg-ink text-white"
+                      : "border-gray-200 text-gray-500 hover:border-ink hover:text-ink"
+                  }`}
+                >
+                  {m}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Statut + Provenance */}
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <div>
+            <label className={labelClass}>Statut</label>
+            <select
+              value={status}
+              onChange={(e) => setStatus(e.target.value as ProjectStatus)}
+              className={inputClass}
+            >
+              {PROJECT_STATUS_ORDER.map((s) => (
+                <option key={s} value={s}>
+                  {PROJECT_STATUS[s].label}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label className={labelClass}>Provenance</label>
+            <select
+              value={source}
+              onChange={(e) => setSource(e.target.value)}
+              className={inputClass}
+            >
+              <option value="">Non précisée</option>
+              {PAYMENT_SOURCES.map((s) => (
+                <option key={s.key} value={s.key}>
+                  {s.label}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
+
+        {/* Montants */}
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <div>
+            <label className={labelClass}>Montant devis (€)</label>
+            <input
+              value={gross}
+              onChange={(e) => setGross(e.target.value)}
+              type="number"
+              min={0}
+              placeholder="695"
+              className={inputClass}
             />
-          ))}
+          </div>
+          <div>
+            <label className={labelClass}>Montant perçu (€)</label>
+            <input
+              value={net}
+              onChange={(e) => setNet(e.target.value)}
+              type="number"
+              min={0}
+              placeholder="600"
+              className={inputClass}
+            />
+          </div>
         </div>
-      </div>
 
-      {/* Dates */}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-        <div>
-          <label className={labelClass}>Date de début</label>
-          <input
-            type="date"
-            value={startDate}
-            onChange={(e) => setStartDate(e.target.value)}
-            className={inputClass}
-          />
+        {/* Dates */}
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <div>
+            <label className={labelClass}>Date de début</label>
+            <input
+              type="date"
+              value={startDate}
+              onChange={(e) => setStartDate(e.target.value)}
+              className={inputClass}
+            />
+          </div>
+          <div>
+            <label className={labelClass}>Livraison prévue</label>
+            <input
+              type="date"
+              value={endDate}
+              onChange={(e) => setEndDate(e.target.value)}
+              className={inputClass}
+            />
+          </div>
         </div>
-        <div>
-          <label className={labelClass}>Livraison prévue</label>
-          <input
-            type="date"
-            value={endDate}
-            onChange={(e) => setEndDate(e.target.value)}
-            className={inputClass}
-          />
-        </div>
-      </div>
 
-      {/* Numéros */}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-        <div>
-          <label className={labelClass}>N° devis</label>
-          <input
-            value={devis}
-            onChange={(e) => setDevis(e.target.value)}
-            placeholder="2026-014"
-            className={inputClass}
-          />
+        {/* Numéros */}
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <div>
+            <label className={labelClass}>N° devis</label>
+            <input
+              value={devis}
+              onChange={(e) => setDevis(e.target.value)}
+              placeholder="2026-014"
+              className={inputClass}
+            />
+          </div>
+          <div>
+            <label className={labelClass}>N° facture</label>
+            <input
+              value={invoice}
+              onChange={(e) => setInvoice(e.target.value)}
+              placeholder="F2026-014"
+              className={inputClass}
+            />
+          </div>
         </div>
-        <div>
-          <label className={labelClass}>N° facture</label>
-          <input
-            value={invoice}
-            onChange={(e) => setInvoice(e.target.value)}
-            placeholder="F2026-014"
-            className={inputClass}
-          />
-        </div>
-      </div>
 
-      {/* Livrables */}
-      <div>
-        <label className={labelClass}>Livrables</label>
-        {delivs.length > 0 && (
-          <ul className="mb-2 space-y-1.5">
-            {delivs.map((d) => (
-              <li
-                key={d.tempId}
-                className="flex items-center gap-2 rounded-xl border border-gray-100 px-3 py-2 text-sm"
-              >
-                <span className="flex-1 truncate">{d.name}</span>
-                <span className="text-xs text-muted">{d.days}j</span>
+        {/* Livrables (mêmes lignes qu'en édition) */}
+        <div>
+          <label className={labelClass}>Livrables</label>
+          <ul className="space-y-1.5">
+            {delivs.map((r) => (
+              <li key={r.tempId} className="flex items-center gap-1.5">
+                <div className="flex flex-1 items-center gap-1.5 rounded-xl border border-gray-100 px-2 py-1.5">
+                  <input
+                    value={r.name}
+                    onChange={(e) => updateRow(r.tempId, { name: e.target.value })}
+                    placeholder="Livrable (logo, flyer...)"
+                    className="min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-muted"
+                  />
+                  <div className="flex shrink-0 items-center rounded-lg border border-gray-200 pr-1.5 focus-within:border-ink">
+                    <input
+                      value={r.days}
+                      onChange={(e) => updateRow(r.tempId, { days: e.target.value })}
+                      type="number"
+                      min={1}
+                      aria-label="Durée en jours"
+                      className="w-8 rounded-lg border-0 py-1.5 pl-2 text-center text-sm outline-none"
+                    />
+                    <span className="text-[11px] text-muted">j</span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setNoteRowId(r.tempId)}
+                    aria-label="Note du livrable"
+                    className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-lg transition-colors ${
+                      r.notes ? "bg-blue-50 text-active" : "text-active hover:bg-blue-50"
+                    }`}
+                  >
+                    <FileText className="h-3.5 w-3.5" />
+                  </button>
+                </div>
                 <button
                   type="button"
                   onClick={() =>
-                    setDelivs((p) => p.filter((x) => x.tempId !== d.tempId))
+                    setDelivs((p) =>
+                      p.length > 1
+                        ? p.filter((x) => x.tempId !== r.tempId)
+                        : [newRow()]
+                    )
                   }
-                  aria-label="Retirer"
-                  className="rounded p-1 text-muted hover:bg-gray-100 hover:text-urgent"
+                  aria-label="Supprimer le livrable"
+                  className="shrink-0 rounded-lg p-1.5 text-urgent transition-colors hover:bg-red-50"
                 >
-                  <Trash2 className="h-3.5 w-3.5" />
+                  <X className="h-4 w-4" />
                 </button>
               </li>
             ))}
           </ul>
-        )}
-        <div className="flex items-center gap-2">
-          <input
-            value={dName}
-            onChange={(e) => setDName(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") {
-                e.preventDefault();
-                addLocalDeliv();
-              }
-            }}
-            placeholder="Livrable (logo, flyer...)"
-            className="flex-1 rounded-xl border border-gray-200 px-3 py-2 text-sm outline-none focus:border-ink"
-          />
-          <input
-            value={dDays}
-            onChange={(e) => setDDays(e.target.value)}
-            type="number"
-            min={1}
-            aria-label="Durée"
-            className="w-14 rounded-xl border border-gray-200 px-2 py-2 text-center text-sm outline-none focus:border-ink"
-          />
-          <span className="text-xs text-muted">j</span>
           <button
             type="button"
-            onClick={addLocalDeliv}
-            aria-label="Ajouter le livrable"
-            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-success text-white hover:opacity-90"
+            onClick={() => setDelivs((p) => [...p, newRow()])}
+            className="mt-2 inline-flex items-center gap-1 rounded-lg px-2 py-1 text-xs font-medium text-muted transition-colors hover:bg-gray-100 hover:text-ink"
           >
-            <Check className="h-4 w-4" />
+            <Plus className="h-3.5 w-3.5" />
+            Livrable
           </button>
         </div>
-      </div>
 
-      {/* Notes */}
-      <div>
-        <label className={labelClass}>Notes</label>
-        <textarea
-          value={notes}
-          onChange={(e) => setNotes(e.target.value)}
-          rows={3}
-          placeholder="Direction créative, brief, points d'attention..."
-          className={`${inputClass} resize-y leading-relaxed`}
+        {/* Notes */}
+        <div>
+          <label className={labelClass}>Notes</label>
+          <textarea
+            value={notes}
+            onChange={(e) => setNotes(e.target.value)}
+            rows={3}
+            placeholder="Direction créative, brief, points d'attention..."
+            className={`${inputClass} resize-y leading-relaxed`}
+          />
+        </div>
+
+        {error && <p className="text-sm text-urgent">{error}</p>}
+
+        <div className="flex items-center gap-2 pt-1">
+          <Button type="submit" disabled={isPending}>
+            {isPending ? "Création..." : "Créer le projet"}
+          </Button>
+          <Button type="button" variant="ghost" onClick={onClose}>
+            Annuler
+          </Button>
+        </div>
+      </form>
+
+      {noteRow && (
+        <NotePanel
+          title={noteRow.name || "Livrable"}
+          initialValue={noteRow.notes}
+          onSave={(v) => updateRow(noteRow.tempId, { notes: v })}
+          onClose={() => setNoteRowId(null)}
         />
-      </div>
-
-      {error && <p className="text-sm text-urgent">{error}</p>}
-
-      <div className="flex items-center gap-2 pt-1">
-        <Button type="submit" disabled={isPending}>
-          {isPending ? "Création..." : "Créer le projet"}
-        </Button>
-        <Button type="button" variant="ghost" onClick={onClose}>
-          Annuler
-        </Button>
-      </div>
-    </form>
+      )}
+    </>
   );
 }

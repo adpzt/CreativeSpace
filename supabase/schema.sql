@@ -47,7 +47,11 @@ create table if not exists projects (
   category       calendar_category not null default 'freelance',
   color          text,
   mission_types  text[] not null default '{}',
-  cost           numeric(10, 2),
+  source         payment_source,
+  gross_amount   numeric(10, 2),   -- montant devis
+  net_amount     numeric(10, 2),   -- montant réellement perçu
+  paid           boolean,          -- payé ? (clôture + Finance)
+  cost           numeric(10, 2),   -- (déprécié, remplacé par gross/net)
   start_date     date,
   end_date       date,
   devis_number   text,
@@ -64,6 +68,7 @@ create table if not exists deliverables (
   name          text not null,
   duration_days integer not null default 1,
   completed     boolean not null default false,
+  progress      integer not null default 0,
   notes         text,
   order_index   integer not null default 0
 );

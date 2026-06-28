@@ -12,6 +12,13 @@ export type Client = {
   created_at: string;
 };
 
+export type PaymentSource =
+  | "malt"
+  | "instagram"
+  | "direct"
+  | "the_source"
+  | "autres";
+
 export type ProjectStatus =
   | "waiting_brief"
   | "in_production"
@@ -29,6 +36,10 @@ export type Project = {
   category: CalendarCategory;
   color: string | null;
   mission_types: string[];
+  source: PaymentSource | null;
+  gross_amount: number | null;
+  net_amount: number | null;
+  paid: boolean | null;
   cost: number | null;
   start_date: string | null;
   end_date: string | null;
@@ -45,6 +56,7 @@ export type Deliverable = {
   name: string;
   duration_days: number;
   completed: boolean;
+  progress: number;
   notes: string | null;
   order_index: number;
 };

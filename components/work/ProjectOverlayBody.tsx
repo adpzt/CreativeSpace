@@ -9,6 +9,7 @@ import AutoSaveField from "@/components/ui/AutoSaveField";
 import StatusBadge from "@/components/ui/StatusBadge";
 import ProgressBar from "@/components/ui/ProgressBar";
 import NotePanel from "@/components/ui/NotePanel";
+import Overlay from "@/components/ui/Overlay";
 import { Button } from "@/components/ui/Button";
 import DeliverablesEditor from "./DeliverablesEditor";
 import {
@@ -17,6 +18,8 @@ import {
   CALENDAR_CATEGORIES,
   CATEGORY_COLOR,
   MISSION_TYPES,
+  PAYMENT_SOURCES,
+  paymentSourceLabel,
   projectProgress,
   formatEuro,
 } from "@/lib/work";
@@ -31,6 +34,7 @@ import type {
   CalendarCategory,
   Client,
   Deliverable,
+  PaymentSource,
   ProjectStatus,
   ProjectWithDeliverables,
 } from "@/lib/types";
@@ -61,10 +65,12 @@ export default function ProjectOverlayBody({
   const [colorVal, setColorVal] = useState<string>(project.color ?? "");
   const [clientId, setClientId] = useState<string>(project.client_id ?? "");
   const [missions, setMissions] = useState<string[]>(project.mission_types ?? []);
+  const [source, setSource] = useState<string>(project.source ?? "");
   const [deliverables, setDeliverables] = useState<Deliverable[]>(
     project.deliverables
   );
   const [noteDeliverableId, setNoteDeliverableId] = useState<string | null>(null);
+  const [askPaid, setAskPaid] = useState(false);
   const [isDeleting, startDelete] = useTransition();
 
   const client = clients.find((c) => c.id === clientId) ?? null;
@@ -74,6 +80,12 @@ export default function ProjectOverlayBody({
   async function changeStatus(s: ProjectStatus) {
     setStatus(s);
     await updateProject(project.id, { status: s });
+    // À la clôture, on demande si le projet a été payé
+    if (s === "closed") setAskPaid(true);
+  }
+  async function setPaid(paid: boolean) {
+    setAskPaid(false);
+    await updateProject(project.id, { paid });
   }
   async function changeCategory(c: CalendarCategory) {
     setCategory(c);
@@ -86,6 +98,12 @@ export default function ProjectOverlayBody({
   async function changeClient(v: string) {
     setClientId(v);
     await updateProject(project.id, { client_id: v || null });
+  }
+  async function changeSource(v: string) {
+    setSource(v);
+    await updateProject(project.id, {
+      source: (v as PaymentSource) || null,
+    });
   }
   async function toggleMission(m: string) {
     const next = missions.includes(m)
@@ -113,17 +131,22 @@ export default function ProjectOverlayBody({
     );
     await updateDeliverable(id, { duration_days: days });
   }
+  async function progressDeliv(id: string, progress: number) {
+    setDeliverables((p) =>
+      p.map((d) => (d.id === id ? { ...d, progress } : d))
+    );
+    await updateDeliverable(id, { progress });
+  }
   async function noteDeliv(id: string, notes: string) {
     setDeliverables((p) => p.map((d) => (d.id === id ? { ...d, notes } : d)));
     await updateDeliverable(id, { notes });
   }
-  async function addDeliv(name: string, days: number, notes: string) {
+  async function addDeliv(name: string, days: number) {
     const created = await addDeliverable({
       project_id: project.id,
       name,
       duration_days: days,
       order_index: deliverables.length,
-      notes,
     });
     setDeliverables((p) => [...p, created]);
   }
@@ -172,12 +195,30 @@ export default function ProjectOverlayBody({
         })}`
       : null;
 
+  // Popup "as-tu été payé ?" (à la clôture)
+  const paidPopup = askPaid ? (
+    <Overlay onClose={() => setAskPaid(false)}>
+      <div className="pr-8">
+        <h3 className="text-lg font-semibold tracking-tight">As-tu été payé ?</h3>
+        <p className="mt-1 text-sm text-muted">
+          Projet clôturé. Indique si le solde a été encaissé (cela alimentera la
+          Finance).
+        </p>
+        <div className="mt-5 flex gap-2">
+          <Button onClick={() => setPaid(true)}>Oui, encaissé</Button>
+          <Button variant="secondary" onClick={() => setPaid(false)}>
+            Pas encore
+          </Button>
+        </div>
+      </div>
+    </Overlay>
+  ) : null;
+
   // ================= MODE LECTURE (récap) =================
   if (!editing) {
     return (
       <>
         <div className="pr-8">
-          {/* Titre principal marquant */}
           <div className="flex items-center gap-2.5">
             {colorVal && (
               <span
@@ -192,7 +233,6 @@ export default function ProjectOverlayBody({
 
           <div className="my-4 border-t border-gray-100" />
 
-          {/* Catégorie (texte coloré) + statut + types de mission, sur une ligne */}
           <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
             <span
               className="text-sm font-semibold"
@@ -211,12 +251,17 @@ export default function ProjectOverlayBody({
             ))}
           </div>
 
-          {/* Infos */}
           <div className="mt-5 space-y-1.5 text-sm">
             {clientLabel && (
               <p>
                 <span className="text-muted">Client : </span>
                 {clientLabel}
+              </p>
+            )}
+            {project.source && (
+              <p>
+                <span className="text-muted">Provenance : </span>
+                {paymentSourceLabel(project.source)}
               </p>
             )}
             {dates && (
@@ -225,27 +270,37 @@ export default function ProjectOverlayBody({
                 {dates}
               </p>
             )}
-            {project.cost != null && (
+            {(project.gross_amount != null || project.net_amount != null) && (
               <p>
-                <span className="text-muted">Coût : </span>
-                {formatEuro(project.cost)}
+                {project.gross_amount != null && (
+                  <>
+                    <span className="text-muted">Devis : </span>
+                    {formatEuro(project.gross_amount)}
+                  </>
+                )}
+                {project.net_amount != null && (
+                  <>
+                    <span className="text-muted">
+                      {project.gross_amount != null ? "  ·  Perçu : " : "Perçu : "}
+                    </span>
+                    {formatEuro(project.net_amount)}
+                  </>
+                )}
               </p>
             )}
             {(project.devis_number || project.invoice_number) && (
               <p className="text-muted">
-                {project.devis_number && `Devis ${project.devis_number}`}
+                {project.devis_number && `Devis n° ${project.devis_number}`}
                 {project.devis_number && project.invoice_number && " · "}
-                {project.invoice_number && `Facture ${project.invoice_number}`}
+                {project.invoice_number && `Facture n° ${project.invoice_number}`}
               </p>
             )}
           </div>
 
-          {/* Progression */}
           <div className="mt-5">
             <ProgressBar percent={projectProgress(deliverables)} />
           </div>
 
-          {/* Livrables */}
           {deliverables.length > 0 && (
             <div className="mt-5">
               <p className={sectionLabel}>Livrables</p>
@@ -262,7 +317,6 @@ export default function ProjectOverlayBody({
             </div>
           )}
 
-          {/* Notes */}
           {project.notes && (
             <div className="mt-5">
               <p className={sectionLabel}>Notes</p>
@@ -272,7 +326,6 @@ export default function ProjectOverlayBody({
             </div>
           )}
 
-          {/* Actions */}
           <div className="mt-6 flex items-center gap-2">
             <button
               onClick={() => setEditing(true)}
@@ -300,6 +353,7 @@ export default function ProjectOverlayBody({
             onClose={() => setNoteDeliverableId(null)}
           />
         )}
+        {paidPopup}
       </>
     );
   }
@@ -325,7 +379,7 @@ export default function ProjectOverlayBody({
           save={(v) => updateProject(project.id, { name: v })}
         />
 
-        {/* Catégorie + couleur (libre) sur la même ligne */}
+        {/* Catégorie + couleur (libre) */}
         <div>
           <p className={labelClass}>Catégorie & couleur</p>
           <div className="flex flex-wrap items-center gap-3">
@@ -416,7 +470,7 @@ export default function ProjectOverlayBody({
           </div>
         </div>
 
-        {/* Client + Coût */}
+        {/* Client + Provenance */}
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div>
             <label className={labelClass}>Client</label>
@@ -433,13 +487,49 @@ export default function ProjectOverlayBody({
               ))}
             </select>
           </div>
+          <div>
+            <label className={labelClass}>Provenance</label>
+            <select
+              value={source}
+              onChange={(e) => changeSource(e.target.value)}
+              className={inputClass}
+            >
+              <option value="">Non précisée</option>
+              {PAYMENT_SOURCES.map((s) => (
+                <option key={s.key} value={s.key}>
+                  {s.label}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
+
+        {/* Montants */}
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <AutoSaveField
-            label="Coût total (€)"
+            label="Montant devis (€)"
             type="number"
-            initialValue={project.cost != null ? String(project.cost) : ""}
+            initialValue={
+              project.gross_amount != null ? String(project.gross_amount) : ""
+            }
             placeholder="695"
             save={(v) =>
-              updateProject(project.id, { cost: v ? parseFloat(v) : null })
+              updateProject(project.id, {
+                gross_amount: v ? parseFloat(v) : null,
+              })
+            }
+          />
+          <AutoSaveField
+            label="Montant perçu (€)"
+            type="number"
+            initialValue={
+              project.net_amount != null ? String(project.net_amount) : ""
+            }
+            placeholder="600"
+            save={(v) =>
+              updateProject(project.id, {
+                net_amount: v ? parseFloat(v) : null,
+              })
             }
           />
         </div>
@@ -484,6 +574,7 @@ export default function ProjectOverlayBody({
             onToggle={toggleDeliv}
             onRename={renameDeliv}
             onDuration={durationDeliv}
+            onProgress={progressDeliv}
             onOpenNote={(id) => setNoteDeliverableId(id)}
             onAdd={addDeliv}
             onDelete={deleteDeliv}
@@ -516,11 +607,12 @@ export default function ProjectOverlayBody({
           onClose={() => setNoteDeliverableId(null)}
         />
       )}
+      {paidPopup}
     </>
   );
 }
 
-// Livrable en lecture : cochable + note (panneau Notion), icône colorée visible
+// Livrable en lecture : cochable + % de progression + note (panneau Notion)
 function ReadDeliverable({
   item,
   onToggle,
@@ -530,6 +622,7 @@ function ReadDeliverable({
   onToggle: (id: string) => void;
   onOpenNote: () => void;
 }) {
+  const showProgress = !item.completed && (item.progress ?? 0) > 0;
   return (
     <li className="flex items-center gap-2 rounded-xl border border-gray-100 px-3 py-2">
       <button
@@ -550,6 +643,11 @@ function ReadDeliverable({
       >
         {item.name}
       </span>
+      {showProgress && (
+        <span className="shrink-0 text-xs font-medium text-active">
+          {item.progress}%
+        </span>
+      )}
       <span className="shrink-0 text-xs text-muted">{item.duration_days}j</span>
       <button
         onClick={onOpenNote}

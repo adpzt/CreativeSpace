@@ -1,4 +1,21 @@
-import type { CalendarCategory, ProjectStatus } from "@/lib/types";
+import type {
+  CalendarCategory,
+  PaymentSource,
+  ProjectStatus,
+} from "@/lib/types";
+
+// Provenance d'une mission / d'un revenu
+export const PAYMENT_SOURCES: { key: PaymentSource; label: string }[] = [
+  { key: "malt", label: "Malt" },
+  { key: "instagram", label: "Instagram" },
+  { key: "direct", label: "Direct" },
+  { key: "the_source", label: "The Source" },
+  { key: "autres", label: "Autres" },
+];
+
+export function paymentSourceLabel(s: PaymentSource | null | undefined): string {
+  return PAYMENT_SOURCES.find((x) => x.key === s)?.label ?? "";
+}
 
 // Les 3 lignes du calendrier (semainier), avec leur couleur.
 // Freelance = bleu, Entreprise = vert, Perso = orange.
@@ -127,14 +144,20 @@ export const MISSION_TYPES = [
 ];
 
 // % de progression d'un projet, pondéré par la durée des livrables.
-// Exemple : logo (5j) + flyer (2j) = 7j ; logo coché => 5/7 = 71%.
+// Chaque livrable a son propre % (0-100) ; coché = 100%.
+// Exemple : logo (5j, 100%) + flyer (2j, 50%) = (5*100 + 2*50) / 7 = 86%.
 export function projectProgress(
-  deliverables: { duration_days: number; completed: boolean }[]
+  deliverables: {
+    duration_days: number;
+    completed: boolean;
+    progress?: number;
+  }[]
 ): number {
   const total = deliverables.reduce((s, d) => s + (d.duration_days || 0), 0);
   if (total === 0) return 0;
-  const done = deliverables
-    .filter((d) => d.completed)
-    .reduce((s, d) => s + (d.duration_days || 0), 0);
-  return Math.round((done / total) * 100);
+  const done = deliverables.reduce((s, d) => {
+    const eff = d.completed ? 100 : d.progress ?? 0;
+    return s + (d.duration_days || 0) * eff;
+  }, 0);
+  return Math.round(done / total);
 }
