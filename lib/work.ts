@@ -58,3 +58,16 @@ export const PROJECT_STATUS_ORDER: ProjectStatus[] = [
   "waiting_payment",
   "closed",
 ];
+
+// % de progression d'un projet, pondéré par la durée des livrables.
+// Exemple : logo (5j) + flyer (2j) = 7j ; logo coché => 5/7 = 71%.
+export function projectProgress(
+  deliverables: { duration_days: number; completed: boolean }[]
+): number {
+  const total = deliverables.reduce((s, d) => s + (d.duration_days || 0), 0);
+  if (total === 0) return 0;
+  const done = deliverables
+    .filter((d) => d.completed)
+    .reduce((s, d) => s + (d.duration_days || 0), 0);
+  return Math.round((done / total) * 100);
+}

@@ -23,7 +23,6 @@ export default function ClientCreateForm({ onClose }: { onClose: () => void }) {
     email: "",
     phone: "",
     notes: "",
-    comm_notes: "",
   });
 
   function up(key: keyof typeof f, value: string) {
@@ -47,7 +46,6 @@ export default function ClientCreateForm({ onClose }: { onClose: () => void }) {
         email: f.email.trim(),
         phone: f.phone.trim(),
         notes: f.notes.trim(),
-        comm_notes: f.comm_notes.trim(),
         tags,
       });
       router.refresh();
@@ -128,23 +126,12 @@ export default function ClientCreateForm({ onClose }: { onClose: () => void }) {
       </div>
 
       <div>
-        <label className={labelClass}>Notes perso</label>
+        <label className={labelClass}>Notes</label>
         <textarea
           value={f.notes}
           onChange={(e) => up("notes", e.target.value)}
-          rows={3}
-          placeholder="Ses habitudes, ses red flags..."
-          className={`${inputClass} resize-y leading-relaxed`}
-        />
-      </div>
-
-      <div>
-        <label className={labelClass}>Notes communication</label>
-        <textarea
-          value={f.comm_notes}
-          onChange={(e) => up("comm_notes", e.target.value)}
-          rows={3}
-          placeholder="Sa façon de travailler, à relire avant un appel..."
+          rows={4}
+          placeholder="Ses habitudes, ses red flags, sa façon de travailler..."
           className={`${inputClass} resize-y leading-relaxed`}
         />
       </div>

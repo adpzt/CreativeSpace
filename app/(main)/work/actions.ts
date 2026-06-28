@@ -2,7 +2,13 @@
 
 import { revalidatePath } from "next/cache";
 import { createServerSupabase } from "@/lib/supabase/server";
-import type { Client } from "@/lib/types";
+import type {
+  Client,
+  Deliverable,
+  Project,
+  ProjectStatus,
+  ProjectWithDeliverables,
+} from "@/lib/types";
 
 // Liste de tous les clients (les plus récents d'abord)
 export async function getClients(): Promise<Client[]> {
@@ -57,6 +63,125 @@ export async function updateClient(
 export async function deleteClient(id: string): Promise<void> {
   const supabase = createServerSupabase();
   const { error } = await supabase.from("clients").delete().eq("id", id);
+
+  if (error) throw new Error(error.message);
+  revalidatePath("/work");
+}
+
+// =================== PROJETS ===================
+
+// Liste des projets avec leurs livrables (pour calculer la progression)
+export async function getProjects(): Promise<ProjectWithDeliverables[]> {
+  const supabase = createServerSupabase();
+  const { data, error } = await supabase
+    .from("projects")
+    .select("*, deliverables(*)")
+    .order("created_at", { ascending: false });
+
+  if (error) throw new Error(error.message);
+
+  return (data ?? []).map((p) => {
+    const project = p as ProjectWithDeliverables;
+    // On trie les livrables par leur ordre
+    const deliverables = [...(project.deliverables ?? [])].sort(
+      (a, b) => a.order_index - b.order_index
+    );
+    return { ...project, deliverables };
+  });
+}
+
+// Crée un projet et renvoie son id (pour ouvrir directement sa fiche)
+export async function createProject(input: {
+  name: string;
+  client_id?: string | null;
+  status?: ProjectStatus;
+  start_date?: string | null;
+  end_date?: string | null;
+}): Promise<string> {
+  const supabase = createServerSupabase();
+  const { data, error } = await supabase
+    .from("projects")
+    .insert({
+      name: input.name,
+      client_id: input.client_id || null,
+      status: input.status ?? "waiting_brief",
+      start_date: input.start_date || null,
+      end_date: input.end_date || null,
+    })
+    .select("id")
+    .single();
+
+  if (error) throw new Error(error.message);
+  revalidatePath("/work");
+  return data.id as string;
+}
+
+// Met à jour un ou plusieurs champs d'un projet
+export async function updateProject(
+  id: string,
+  patch: Partial<Omit<Project, "id" | "created_at">>
+): Promise<void> {
+  const supabase = createServerSupabase();
+  const { error } = await supabase.from("projects").update(patch).eq("id", id);
+
+  if (error) throw new Error(error.message);
+  revalidatePath("/work");
+}
+
+// Supprime un projet (ses livrables sont supprimés en cascade)
+export async function deleteProject(id: string): Promise<void> {
+  const supabase = createServerSupabase();
+  const { error } = await supabase.from("projects").delete().eq("id", id);
+
+  if (error) throw new Error(error.message);
+  revalidatePath("/work");
+}
+
+// =================== LIVRABLES ===================
+
+// Ajoute un livrable a un projet et renvoie la ligne créée
+export async function addDeliverable(input: {
+  project_id: string;
+  name: string;
+  duration_days: number;
+  order_index: number;
+}): Promise<Deliverable> {
+  const supabase = createServerSupabase();
+  const { data, error } = await supabase
+    .from("deliverables")
+    .insert({
+      project_id: input.project_id,
+      name: input.name,
+      duration_days: input.duration_days,
+      order_index: input.order_index,
+    })
+    .select()
+    .single();
+
+  if (error) throw new Error(error.message);
+  revalidatePath("/work");
+  return data as Deliverable;
+}
+
+// Met à jour un livrable (cocher, renommer, changer la durée)
+export async function updateDeliverable(
+  id: string,
+  patch: Partial<Omit<Deliverable, "id" | "project_id">>
+): Promise<void> {
+  const supabase = createServerSupabase();
+  const { error } = await supabase
+    .from("deliverables")
+    .update(patch)
+    .eq("id", id);
+
+  if (error) throw new Error(error.message);
+  revalidatePath("/work");
+}
+
+// Supprime un livrable
+export async function deleteDeliverable(id: string): Promise<void> {
+  const supabase = createServerSupabase();
+  const { error } = await supabase.from("deliverables").delete().eq("id", id);
 
   if (error) throw new Error(error.message);
   revalidatePath("/work");

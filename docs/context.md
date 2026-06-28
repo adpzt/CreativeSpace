@@ -259,15 +259,15 @@ Les détails (fiche client, et à terme fiche projet) s'ouvrent en **overlay** :
 **Important (validé avec Adrien) :** les clients sont une section SECONDAIRE de la page Work, affichée en bas comme un résumé / historique. Ce n'est pas une page entière. Chaque client s'ouvre en **overlay** (panneau centré, fond assombri).
 
 **Comportement de l'overlay client :**
-- À l'ouverture, on est en **mode lecture** : un résumé propre (prénom / nom en titre, entreprise, tags thème, email, téléphone, notes, notes communication).
+- À l'ouverture, on est en **mode lecture** : un résumé propre (prénom / nom en titre, entreprise, tags thème, email, téléphone, notes, et la liste des projets assignés a ce client).
 - Un petit bouton **crayon** bascule en mode édition (champs à sauvegarde auto). On ne tombe jamais directement sur un formulaire d'édition.
 - Bouton de suppression du client (avec confirmation).
 
 **Champs d'un client :**
 - Nom, entreprise, email, téléphone
-- **Tags thème** (type de travail pour ce client) : Motion, Graphisme, Direction artistique, Site internet, Social media, Print, Autre. Multi-sélection. (Remplace l'ancienne idée "historique des projets liés", jugée inutile par Adrien.)
-- Notes perso (ce qu'il a dit, ses habitudes, ses red flags éventuels)
-- Notes communication (échanges importants sur sa façon de travailler, à relire avant un appel)
+- **Tags thème** (type de travail pour ce client) : Motion, Graphisme, Direction artistique, Site internet, Social media, Print, Autre. Multi-sélection.
+- **Notes** (une seule zone : ses habitudes, ses red flags, sa façon de travailler. Adrien a demandé de fusionner notes perso et notes communication en une seule.)
+- **Projets assignés** : quand un projet est rattaché a ce client (dans la section Projets), il apparaît automatiquement dans son overlay (nom + statut). Affichage seulement.
 
 ---
 

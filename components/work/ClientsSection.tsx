@@ -7,12 +7,18 @@ import Overlay from "@/components/ui/Overlay";
 import { Button } from "@/components/ui/Button";
 import ClientCreateForm from "./ClientCreateForm";
 import ClientOverlayBody from "./ClientOverlayBody";
-import type { Client } from "@/lib/types";
+import type { Client, Project } from "@/lib/types";
 
 // Section Clients : résumé / historique en bas de la page Work.
 // Chaque client s'ouvre en overlay. Le bouton "Nouveau client" ouvre
 // le formulaire de création dans le même overlay.
-export default function ClientsSection({ clients }: { clients: Client[] }) {
+export default function ClientsSection({
+  clients,
+  projects,
+}: {
+  clients: Client[];
+  projects: Project[];
+}) {
   const router = useRouter();
   const [openId, setOpenId] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
@@ -90,6 +96,7 @@ export default function ClientsSection({ clients }: { clients: Client[] }) {
           <ClientOverlayBody
             key={openClient.id}
             client={openClient}
+            projects={projects.filter((p) => p.client_id === openClient.id)}
             onClose={close}
           />
         </Overlay>

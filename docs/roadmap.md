@@ -239,13 +239,13 @@ Chaque point de retour précise : ce qui est livré, ce qu'Adrien doit tester, e
 - Retour attendu : la fiche client a-t-elle les bons champs ? manque-t-il une info que tu notes habituellement sur un client ?
 
 ### Étape 2.2 — Projets
-- [ ] Vue tableau avec filtres par statut
-- [ ] Créer un projet (nom, client, dates, statut)
-- [ ] Fiche projet : infos générales + statut modifiable
-- [ ] Livrables : ajouter, cocher, réordonner
-- [ ] % progression calculé automatiquement
-- [ ] Notes internes texte libre
-- [ ] Tag communication client (notes liées au client sur ce projet)
+- [x] Vue liste avec filtres par statut (en haut de la page Work)
+- [x] Créer un projet (nom, client, dates, statut) en overlay
+- [x] Overlay projet (outil de travail, tout directement éditable) : nom, statut en pastilles, client, dates, n° devis/facture
+- [x] Livrables : ajouter, cocher, réordonner (flèches), supprimer
+- [x] % progression calculé automatiquement (pondéré par durée), barre visuelle
+- [x] Notes internes texte libre
+- [x] Projet assigné a un client -> apparaît sur la fiche client
 
 >>> POINT DE RETOUR 3 - Projets
 - Livré : vue tableau par statut + fiche projet + livrables + % de progression auto.

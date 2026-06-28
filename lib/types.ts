@@ -33,3 +33,17 @@ export type Project = {
   comm_notes: string | null;
   created_at: string;
 };
+
+export type Deliverable = {
+  id: string;
+  project_id: string;
+  name: string;
+  duration_days: number;
+  completed: boolean;
+  order_index: number;
+};
+
+// Projet avec ses livrables (utilisé pour calculer la progression)
+export type ProjectWithDeliverables = Project & {
+  deliverables: Deliverable[];
+};

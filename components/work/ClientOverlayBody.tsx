@@ -4,19 +4,22 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Pencil, Trash2, Mail, Phone, Eye } from "lucide-react";
 import AutoSaveField from "@/components/ui/AutoSaveField";
+import StatusBadge from "@/components/ui/StatusBadge";
 import { Button } from "@/components/ui/Button";
 import { CLIENT_TAGS } from "@/lib/work";
 import { updateClient, deleteClient } from "@/app/(main)/work/actions";
-import type { Client } from "@/lib/types";
+import type { Client, Project } from "@/lib/types";
 
 // Contenu de l'overlay d'un client : mode lecture (résumé) par défaut,
 // bascule en édition via le crayon. Tient son propre état (réinitialisé
 // par client grâce a la prop key dans le parent).
 export default function ClientOverlayBody({
   client,
+  projects,
   onClose,
 }: {
   client: Client;
+  projects: Project[];
   onClose: () => void;
 }) {
   const router = useRouter();
@@ -90,7 +93,7 @@ export default function ClientOverlayBody({
         {client.notes && (
           <div className="mt-5">
             <p className="mb-1 text-xs font-medium uppercase tracking-wide text-muted">
-              Notes perso
+              Notes
             </p>
             <p className="whitespace-pre-wrap text-sm leading-relaxed">
               {client.notes}
@@ -98,16 +101,27 @@ export default function ClientOverlayBody({
           </div>
         )}
 
-        {client.comm_notes && (
-          <div className="mt-5">
-            <p className="mb-1 text-xs font-medium uppercase tracking-wide text-muted">
-              Notes communication
-            </p>
-            <p className="whitespace-pre-wrap text-sm leading-relaxed">
-              {client.comm_notes}
-            </p>
-          </div>
-        )}
+        {/* Projets assignés a ce client */}
+        <div className="mt-5">
+          <p className="mb-2 text-xs font-medium uppercase tracking-wide text-muted">
+            Projets
+          </p>
+          {projects.length === 0 ? (
+            <p className="text-sm text-muted">Aucun projet assigné.</p>
+          ) : (
+            <ul className="space-y-1.5">
+              {projects.map((p) => (
+                <li
+                  key={p.id}
+                  className="flex items-center justify-between gap-2 rounded-xl border border-gray-100 px-3 py-2"
+                >
+                  <span className="truncate text-sm font-medium">{p.name}</span>
+                  <StatusBadge status={p.status} />
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
 
         <div className="mt-6">
           <Button variant="secondary" onClick={() => setEditing(true)}>
@@ -183,18 +197,11 @@ export default function ClientOverlayBody({
       </div>
 
       <AutoSaveField
-        label="Notes perso"
+        label="Notes"
         multiline
         initialValue={client.notes ?? ""}
-        placeholder="Ses habitudes, ses red flags..."
+        placeholder="Ses habitudes, ses red flags, sa façon de travailler..."
         save={(v) => updateClient(client.id, { notes: v })}
-      />
-      <AutoSaveField
-        label="Notes communication"
-        multiline
-        initialValue={client.comm_notes ?? ""}
-        placeholder="Sa façon de travailler, à relire avant un appel..."
-        save={(v) => updateClient(client.id, { comm_notes: v })}
       />
 
       <div className="border-t border-gray-100 pt-4">
