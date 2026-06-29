@@ -60,8 +60,9 @@ category       calendar_category   -- freelance / entreprise / perso
 color          text                -- pastille calendrier (couleur libre)
 mission_types  text[]              -- DA, Graphisme, Motion, Site, Social...
 source         payment_source      -- provenance (malt, instagram, direct...)
-gross_amount   numeric             -- montant devis (brut)
-net_amount     numeric             -- montant réellement perçu (net)
+gross_amount   numeric             -- prix sur le devis
+net_amount     numeric             -- argent réellement gagné (net)
+mission_expenses jsonb             -- dépenses de mission [{label, amount}] (-> Finance)
 paid           boolean             -- payé ? (popup clôture + Finance)
 start_date     date
 end_date       date
@@ -452,6 +453,7 @@ Phase 7 (bonus)             → au fil de l'eau
 - Nommage des fichiers : kebab-case pour les fichiers, PascalCase pour les composants React
 - Pas de lorem ipsum, utiliser des données de test réalistes (PACO Services, Wali Invest, The Source)
 - Commenter le code en français pour qu'Adrien comprenne ce qu'il se passe
+- IMPORTANT : le `content` de tailwind.config inclut `./lib/**/*` (sinon les classes de couleur définies en chaînes dans lib/ comme bg-muted/bg-urgent sont purgées au build -> pastilles invisibles)
 - Mot de passe d'entrée en variable d'environnement, jamais commité
 - Drag and drop / resize avec dnd-kit (compatible tactile mobile)
 - Option B pour le lien projet/calendrier : colonnes project_id et deliverable_id présentes, mais blocs indépendants une fois créés

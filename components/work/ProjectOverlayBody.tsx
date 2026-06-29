@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { format, parseISO } from "date-fns";
 import { fr } from "date-fns/locale";
@@ -15,6 +15,8 @@ import {
   CalendarDays,
   Wallet,
   ChevronDown,
+  X,
+  Plus,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import AutoSaveField from "@/components/ui/AutoSaveField";
@@ -47,6 +49,7 @@ import type {
   CalendarCategory,
   Client,
   Deliverable,
+  MissionExpense,
   PaymentSource,
   ProjectStatus,
   ProjectWithDeliverables,
@@ -84,7 +87,10 @@ export default function ProjectOverlayBody({
   );
   const [noteDeliverableId, setNoteDeliverableId] = useState<string | null>(null);
   const [askPaid, setAskPaid] = useState(false);
-  const [showDetail, setShowDetail] = useState(project.gross_amount != null);
+  const [showDetail, setShowDetail] = useState(false);
+  const [expenses, setExpenses] = useState<MissionExpense[]>(
+    project.mission_expenses ?? []
+  );
   const [isDeleting, startDelete] = useTransition();
 
   const client = clients.find((c) => c.id === clientId) ?? null;
@@ -119,6 +125,19 @@ export default function ProjectOverlayBody({
       source: (v as PaymentSource) || null,
     });
   }
+  // Sauvegarde différée des dépenses de mission
+  useEffect(() => {
+    if (
+      JSON.stringify(expenses) ===
+      JSON.stringify(project.mission_expenses ?? [])
+    )
+      return;
+    const t = setTimeout(() => {
+      updateProject(project.id, { mission_expenses: expenses });
+    }, 600);
+    return () => clearTimeout(t);
+  }, [expenses, project.id, project.mission_expenses]);
+
   async function toggleMission(m: string) {
     const next = missions.includes(m)
       ? missions.filter((x) => x !== m)
@@ -331,6 +350,7 @@ export default function ProjectOverlayBody({
                     key={d.id}
                     item={d}
                     onToggle={toggleDeliv}
+                    onProgress={progressDeliv}
                     onOpenNote={() => setNoteDeliverableId(d.id)}
                   />
                 ))}
@@ -400,32 +420,22 @@ export default function ProjectOverlayBody({
           save={(v) => updateProject(project.id, { name: v })}
         />
 
-        {/* Catégorie + couleur (libre) */}
+        {/* Catégorie + couleur */}
         <div>
           <p className={labelClass}>Catégorie & couleur</p>
           <div className="flex flex-wrap items-center gap-3">
-            <div className="flex flex-wrap gap-2">
-              {CALENDAR_CATEGORIES.map((c) => {
-                const active = c.key === category;
-                return (
-                  <button
-                    key={c.key}
-                    onClick={() => changeCategory(c.key)}
-                    className="rounded-full px-3 py-1 text-xs font-medium transition-colors"
-                    style={
-                      active
-                        ? { backgroundColor: c.color, color: "white" }
-                        : { backgroundColor: `${c.color}1A`, color: c.color }
-                    }
-                  >
-                    {c.label}
-                  </button>
-                );
-              })}
-            </div>
-            <div className="ml-auto">
-              <ColorPicker value={colorVal} onChange={changeColor} />
-            </div>
+            <select
+              value={category}
+              onChange={(e) => changeCategory(e.target.value as CalendarCategory)}
+              className="flex-1 rounded-xl border border-gray-200 px-3.5 py-2.5 text-sm outline-none focus:border-ink"
+            >
+              {CALENDAR_CATEGORIES.map((c) => (
+                <option key={c.key} value={c.key}>
+                  {c.label}
+                </option>
+              ))}
+            </select>
+            <ColorPicker value={colorVal} onChange={changeColor} />
           </div>
         </div>
 
@@ -452,44 +462,35 @@ export default function ProjectOverlayBody({
           </div>
         </div>
 
-        {/* Statut */}
+        {/* Client */}
         <div>
-          <p className={labelClass}>Statut</p>
-          <div className="flex flex-wrap gap-2">
-            {PROJECT_STATUS_ORDER.map((s) => {
-              const conf = PROJECT_STATUS[s];
-              const active = s === status;
-              return (
-                <button
-                  key={s}
-                  onClick={() => changeStatus(s)}
-                  className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium transition-colors ${
-                    active
-                      ? conf.badge + " ring-1 ring-inset ring-current"
-                      : "bg-gray-50 text-muted hover:text-ink"
-                  }`}
-                >
-                  <span className={`h-1.5 w-1.5 rounded-full ${conf.dot}`} />
-                  {conf.label}
-                </button>
-              );
-            })}
-          </div>
+          <label className={labelClass}>Client</label>
+          <select
+            value={clientId}
+            onChange={(e) => changeClient(e.target.value)}
+            className={inputClass}
+          >
+            <option value="">Aucun client</option>
+            {clients.map((c) => (
+              <option key={c.id} value={c.id}>
+                {c.company || c.name}
+              </option>
+            ))}
+          </select>
         </div>
 
-        {/* Client + Provenance */}
+        {/* Statut + Provenance */}
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div>
-            <label className={labelClass}>Client</label>
+            <label className={labelClass}>Statut</label>
             <select
-              value={clientId}
-              onChange={(e) => changeClient(e.target.value)}
+              value={status}
+              onChange={(e) => changeStatus(e.target.value as ProjectStatus)}
               className={inputClass}
             >
-              <option value="">Aucun client</option>
-              {clients.map((c) => (
-                <option key={c.id} value={c.id}>
-                  {c.company || c.name}
+              {PROJECT_STATUS_ORDER.map((s) => (
+                <option key={s} value={s}>
+                  {PROJECT_STATUS[s].label}
                 </option>
               ))}
             </select>
@@ -537,7 +538,7 @@ export default function ProjectOverlayBody({
             + de détail
           </button>
           {showDetail && (
-            <div className="mt-3 space-y-2">
+            <div className="mt-3 space-y-4">
               <AutoSaveField
                 label="Prix sur le devis (€)"
                 type="number"
@@ -553,10 +554,70 @@ export default function ProjectOverlayBody({
                   })
                 }
               />
-              <p className="text-xs text-muted">
-                Les dépenses de la mission (avec justificatif) seront ajoutées
-                avec la Finance.
-              </p>
+              <div>
+                <p className={labelClass}>Dépenses de la mission</p>
+                {expenses.length > 0 && (
+                  <ul className="mb-1.5 space-y-1.5">
+                    {expenses.map((ex, i) => (
+                      <li key={i} className="flex items-center gap-1.5">
+                        <input
+                          value={ex.label}
+                          onChange={(e) =>
+                            setExpenses((p) =>
+                              p.map((x, idx) =>
+                                idx === i ? { ...x, label: e.target.value } : x
+                              )
+                            )
+                          }
+                          placeholder="Justificatif (ex : impression)"
+                          className="min-w-0 flex-1 rounded-xl border border-gray-200 px-3 py-2 text-sm outline-none focus:border-ink"
+                        />
+                        <div className="flex shrink-0 items-center rounded-lg border border-gray-200 pr-1.5 focus-within:border-ink">
+                          <input
+                            value={ex.amount || ""}
+                            onChange={(e) =>
+                              setExpenses((p) =>
+                                p.map((x, idx) =>
+                                  idx === i
+                                    ? {
+                                        ...x,
+                                        amount: parseFloat(e.target.value) || 0,
+                                      }
+                                    : x
+                                )
+                              )
+                            }
+                            type="number"
+                            min={0}
+                            className="w-16 rounded-lg border-0 py-1.5 pl-2 text-right text-sm outline-none"
+                          />
+                          <span className="text-[11px] text-muted">€</span>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setExpenses((p) => p.filter((_, idx) => idx !== i))
+                          }
+                          aria-label="Retirer la dépense"
+                          className="shrink-0 rounded-lg p-1.5 text-urgent hover:bg-red-50"
+                        >
+                          <X className="h-4 w-4" />
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+                <button
+                  type="button"
+                  onClick={() =>
+                    setExpenses((p) => [...p, { label: "", amount: 0 }])
+                  }
+                  className="inline-flex items-center gap-1 rounded-lg px-2 py-1 text-xs font-medium text-muted transition-colors hover:bg-gray-100 hover:text-ink"
+                >
+                  <Plus className="h-3.5 w-3.5" />
+                  Dépense
+                </button>
+              </div>
             </div>
           )}
         </div>
@@ -656,17 +717,19 @@ function InfoRow({
   );
 }
 
-// Livrable en lecture : cochable + % de progression + note (panneau Notion)
+// Livrable en lecture : cochable + % modifiable directement + note (Notion)
 function ReadDeliverable({
   item,
   onToggle,
+  onProgress,
   onOpenNote,
 }: {
   item: Deliverable;
   onToggle: (id: string) => void;
+  onProgress: (id: string, progress: number) => void;
   onOpenNote: () => void;
 }) {
-  const showProgress = !item.completed && (item.progress ?? 0) > 0;
+  const [prog, setProg] = useState(String(item.progress ?? 0));
   return (
     <li className="flex items-center gap-2 rounded-xl border border-gray-100 px-3 py-2">
       <button
@@ -687,11 +750,25 @@ function ReadDeliverable({
       >
         {item.name}
       </span>
-      {showProgress && (
-        <span className="shrink-0 text-xs font-medium text-active">
-          {item.progress}%
-        </span>
-      )}
+      {/* % modifiable directement (100 si terminé) */}
+      <div className="flex shrink-0 items-center rounded-lg border border-gray-200 pr-1 focus-within:border-ink">
+        <input
+          value={item.completed ? "100" : prog}
+          disabled={item.completed}
+          onChange={(e) => setProg(e.target.value)}
+          onBlur={() => {
+            const p = Math.max(0, Math.min(100, parseInt(prog, 10) || 0));
+            setProg(String(p));
+            if (p !== (item.progress ?? 0)) onProgress(item.id, p);
+          }}
+          type="number"
+          min={0}
+          max={100}
+          aria-label="Progression en %"
+          className="w-9 rounded-lg border-0 py-1 pl-1.5 text-center text-xs outline-none disabled:bg-transparent disabled:text-muted"
+        />
+        <span className="text-[11px] text-muted">%</span>
+      </div>
       <span className="shrink-0 text-xs text-muted">{item.duration_days}j</span>
       <button
         onClick={onOpenNote}

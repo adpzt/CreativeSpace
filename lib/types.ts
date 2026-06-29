@@ -12,6 +12,8 @@ export type Client = {
   created_at: string;
 };
 
+export type MissionExpense = { label: string; amount: number };
+
 export type PaymentSource =
   | "malt"
   | "instagram"
@@ -39,6 +41,7 @@ export type Project = {
   source: PaymentSource | null;
   gross_amount: number | null;
   net_amount: number | null;
+  mission_expenses: MissionExpense[];
   paid: boolean | null;
   cost: number | null;
   start_date: string | null;

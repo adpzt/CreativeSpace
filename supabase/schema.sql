@@ -50,6 +50,7 @@ create table if not exists projects (
   source         payment_source,
   gross_amount   numeric(10, 2),   -- montant devis
   net_amount     numeric(10, 2),   -- montant réellement perçu
+  mission_expenses jsonb not null default '[]'::jsonb,  -- dépenses de mission
   paid           boolean,          -- payé ? (clôture + Finance)
   cost           numeric(10, 2),   -- (déprécié, remplacé par gross/net)
   start_date     date,

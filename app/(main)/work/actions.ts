@@ -197,6 +197,14 @@ export async function updateDeliverable(
     .eq("id", id);
 
   if (error) throw new Error(error.message);
+
+  // Si on renomme le livrable, on renomme aussi les blocs du calendrier liés
+  if (patch.name !== undefined) {
+    await supabase
+      .from("calendar_blocks")
+      .update({ title: patch.name })
+      .eq("deliverable_id", id);
+  }
   revalidatePath("/work");
 }
 

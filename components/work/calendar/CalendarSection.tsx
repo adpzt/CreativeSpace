@@ -38,7 +38,6 @@ import {
   Plus,
   Check,
   Trash2,
-  FileText,
   CornerDownLeft,
 } from "lucide-react";
 import Overlay from "@/components/ui/Overlay";
@@ -119,7 +118,6 @@ export default function CalendarSection({
     }
     return b.notes ?? "";
   }
-  const hasNoteOf = (b: CalendarBlock) => noteOf(b).trim().length > 0;
 
   function clientCompanyOf(p: ProjectWithDeliverables) {
     const c = clients.find((x) => x.id === p.client_id);
@@ -212,8 +210,11 @@ export default function CalendarSection({
     await updateCalendarBlock(b.id, { completed });
   }
   async function saveTitle(id: string, title: string) {
+    const b = blocks.find((x) => x.id === id);
     setBlocks((p) => p.map((x) => (x.id === id ? { ...x, title } : x)));
     await updateCalendarBlock(id, { title });
+    // Si le bloc est lié à un livrable, on renomme aussi le livrable
+    if (b?.deliverable_id) await updateDeliverable(b.deliverable_id, { name: title });
   }
   // Sauvegarde de la note : sur le livrable si lié, sinon sur le bloc
   async function saveNote(b: CalendarBlock, notes: string) {
@@ -264,6 +265,31 @@ export default function CalendarSection({
 
   const activeBlock = blocks.find((b) => b.id === activeId) ?? null;
   const noteBlock = blocks.find((b) => b.id === noteBlockId) ?? null;
+
+  // Métadonnées affichées dans la note d'un bloc lié à un projet/livrable
+  const noteBlockMeta = (() => {
+    if (!noteBlock?.project_id) return null;
+    const p = projectById.get(noteBlock.project_id);
+    if (!p) return null;
+    const company = clientCompanyOf(p);
+    const d = noteBlock.deliverable_id
+      ? deliverableById.get(noteBlock.deliverable_id)
+      : null;
+    return (
+      <>
+        <p className="text-muted">
+          {p.name}
+          {company ? ` · ${company}` : ""}
+        </p>
+        {d && (
+          <p>
+            <span className="text-muted">Progression : </span>
+            {d.completed ? 100 : d.progress ?? 0}%
+          </p>
+        )}
+      </>
+    );
+  })();
 
   const label =
     view === "week"
@@ -380,7 +406,6 @@ export default function CalendarSection({
                       cat={cat.key}
                       blocks={cellBlocks(iso(d), cat.key)}
                       colorForBlock={colorForBlock}
-                      hasNoteOf={hasNoteOf}
                       className="min-h-[112px] border-b border-r border-gray-100 p-1.5"
                       onAdd={() => setAddCtx({ dayIso: iso(d), cat: cat.key })}
                       onOpen={(id) => setNoteBlockId(id)}
@@ -447,6 +472,7 @@ export default function CalendarSection({
         <NotePanel
           title={noteBlock.title}
           onTitleSave={(v) => saveTitle(noteBlock.id, v)}
+          meta={noteBlockMeta}
           initialValue={noteOf(noteBlock)}
           onSave={(v) => saveNote(noteBlock, v)}
           onClose={() => setNoteBlockId(null)}
@@ -485,7 +511,6 @@ function Cell({
   cat,
   blocks,
   colorForBlock,
-  hasNoteOf,
   className,
   onAdd,
   onOpen,
@@ -494,7 +519,6 @@ function Cell({
   cat: CalendarCategory;
   blocks: CalendarBlock[];
   colorForBlock: (b: CalendarBlock) => string | null;
-  hasNoteOf: (b: CalendarBlock) => boolean;
   className?: string;
   onAdd: () => void;
   onOpen: (id: string) => void;
@@ -511,7 +535,6 @@ function Cell({
             key={b.id}
             block={b}
             projectColor={colorForBlock(b)}
-            hasNote={hasNoteOf(b)}
             onOpen={() => onOpen(b.id)}
           />
         ))}
@@ -530,12 +553,10 @@ function Cell({
 function DraggableChip({
   block,
   projectColor,
-  hasNote,
   onOpen,
 }: {
   block: CalendarBlock;
   projectColor: string | null;
-  hasNote: boolean;
   onOpen: () => void;
 }) {
   const { attributes, listeners, setNodeRef, transform, isDragging } =
@@ -544,35 +565,31 @@ function DraggableChip({
     transform: CSS.Translate.toString(transform),
     opacity: isDragging ? 0.4 : 1,
   };
+  // Tout le bloc est cliquable (ouvre la note) ET déplaçable.
   return (
     <div
       ref={setNodeRef}
       {...attributes}
       {...listeners}
+      onClick={onOpen}
       style={style}
-      className={`flex cursor-grab touch-none items-center gap-1.5 rounded-lg px-2 py-1.5 text-xs ${
+      className={`flex cursor-grab touch-none items-start gap-1.5 rounded-lg px-2 py-1.5 text-xs ${
         block.completed ? "bg-green-50" : "bg-gray-50"
       }`}
     >
       {projectColor && (
         <span
-          className="h-2 w-2 shrink-0 rounded-full"
+          className="mt-1 h-2 w-2 shrink-0 rounded-full"
           style={{ backgroundColor: projectColor }}
         />
       )}
-      <button
-        onPointerDown={(e) => e.stopPropagation()}
-        onClick={(e) => {
-          e.stopPropagation();
-          onOpen();
-        }}
-        className={`flex-1 truncate text-left ${
+      <span
+        className={`flex-1 whitespace-normal break-words text-left ${
           block.completed ? "text-muted line-through" : ""
         }`}
       >
         {block.title}
-      </button>
-      {hasNote && <FileText className="h-3 w-3 shrink-0 text-muted" />}
+      </span>
     </div>
   );
 }
