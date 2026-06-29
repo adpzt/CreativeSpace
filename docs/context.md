@@ -1,6 +1,44 @@
 # CREATIVE SPACE — CONTEXT.MD
 ## Document de référence complet pour Claude Code
-## Dernière mise à jour : juin 2026
+## Dernière mise à jour : 30 juin 2026
+
+---
+
+## 0. ÉTAT D'AVANCEMENT (à lire en premier)
+
+**Déployé et en ligne :** https://creative-space-lemon.vercel.app
+**Repo :** git@github.com:adpzt/CreativeSpace.git (auth clé SSH déjà sur la machine)
+**Flux :** modifier le code -> `npm run build` (vérif) -> commit -> push sur main -> Vercel redéploie tout seul (~1-2 min). Vérifier en ligne avec curl le code HTTP 200.
+
+**Fait et validé par Adrien :**
+- PHASE 1 (fondations) : login (mdp Denis250), nav sidebar/bottom, bouton note rapide flottant, Notes rapides (autosave). 
+- PHASE 2 (Work) : page unique qui scrolle = Projets (haut) + Calendrier + Clients (résumé bas).
+  - Clients : résumé + overlay lecture/crayon, tags thème, note unique. Card "à compléter" si infos manquantes.
+  - Projets : liste filtrable (menu tri), overlay récap (lecture) + crayon (édition = mêmes selects que la création), catégorie (freelance/entreprise/perso) en texte coloré, couleur (pastilles rondes + libre), types de mission (multi), provenance, **argent gagné (net) + "+ de détail" (prix devis + dépenses de mission)**, livrables (drag&drop réordonner, durée, croix rouge supprimer, note Notion par livrable, % par livrable au clic en recap + dans la note), popup "as-tu été payé ?" à la clôture, statut Annulé.
+  - Calendrier : semainier **5 jours par défaut + bouton week-end** (déplie Sam/Dim), lignes Freelance(bleu)/Entreprise(vert)/Perso(orange) en texte coloré léger, blocs déplaçables (dnd-kit) tout le bloc cliquable+draggable, clic = page note façon Notion (titre + meta projet/client/% + Terminé/Supprimer), le "+" ouvre un overlay (saisie + livrables des projets à planifier, label = client), pastille couleur projet sur bloc lié, vue mois. Note bloc lié = note du livrable (connectées). Renommer un livrable renomme le bloc (et inversement).
+  - Bannière image façon Notion en haut de Work (Supabase Storage).
+
+**En cours - PHASE 3 (Finance)** = page unique : résumé (CA encaissé an/mois, en attente) + sections.
+- FAIT : Revenus (hybride : projets clôturés "à valider" pré-remplis + revenus manuels ; statut Encaissé/Attente/Retard). Dépenses (manuelles + dépenses de mission des projets auto, lecture seule). URSSAF (12 mois, CA déclaré, **taux 24% mais 12%/mois avec ACRE jusqu'au 31 mars 2027**, tuto, total annuel).
+- RESTE : Dashboard (bénéfice net = CA - dépenses - URSSAF, objectif CA + barre, seuils micro-BNC/TVA/impôt, impôt estimé), Salarié (salaires alternance + impôt sur revenu total), **Diagrammes** (camemberts provenance/type + CA par mois en jolis encadrés + icône "liste" pour vue ligne par ligne).
+
+**À faire ensuite :** Phase 4 (Freelance), Phase 5 (Home/dashboard alertes), Phase 6 (Moi), Phase 7 (bonus : PWA, dark mode, etc.).
+
+**Migrations SQL exécutées par Adrien (dans Supabase) :** schema.sql initial + 001 (tags clients) + 002 (projet category/color, deliverable notes) + 003 (calendar_blocks.notes) + 004 (statut cancelled, mission_types, cost) + 005 (source, gross/net, paid, deliverable progress) + 006 (mission_expenses jsonb) + 007 (bucket storage banners). Toujours lui fournir le SQL et lui dire de l'exécuter (il est débutant, le faire pas à pas).
+
+---
+
+## 0bis. RÉFLEXES IMPÉRATIFS POUR CLAUDE (erreurs déjà commises, à NE PAS refaire)
+
+- **NE JAMAIS dire "c'est fait / corrigé" sans l'avoir vraiment vérifié.** Adrien l'a reproché plusieurs fois. Vérifier dans le code que ça marche réellement avant d'annoncer. Si pas sûr, le dire.
+- **Tailwind purge les classes** : `tailwind.config.ts` content DOIT inclure `./lib/**/*` (les couleurs de statut sont définies en chaînes dans lib/work.ts comme `bg-muted`, `bg-urgent` ; sans ça elles sont supprimées au build et les pastilles deviennent invisibles). Bug qui a duré 3 itérations.
+- **État client vs props serveur** : les composants client qui tiennent un `useState(initialProp)` ne se mettent PAS à jour quand le serveur renvoie de nouvelles données (ex : CalendarSection). Toujours ajouter `useEffect(() => setState(prop), [prop])` pour resynchroniser après une action serveur (revalidatePath). Sinon les changements faits ailleurs (renommage, etc.) ne se répercutent pas.
+- **Toujours `npm run build` avant de commit/push** (attrape les erreurs TS + ESLint qui font échouer Vercel). ESLint : `react/no-unescaped-entities` est désactivé (textes FR avec apostrophes) ; pas d'`<img>` sans `eslint-disable @next/next/no-img-element`.
+- **Pas d'em dash (—) dans les textes d'interface.** Commentaires de code en français.
+- **Argent** : toujours en euros avec 2 décimales (`formatEuro` dans lib/work.ts).
+- **Méthode validée par Adrien** : quand il y a beaucoup de retours, les SÉPARER en blocs cohérents et livrer/valider par étapes (points de retour). Ne pas tout empiler sans validation.
+- **Mettre à jour context.md ET roadmap.md à chaque session** (cocher les cases, consigner décisions + retours + erreurs). Adrien y tient.
+- Les retours d'Adrien sont **pour desktop** pour l'instant ; le mobile sera revu plus tard.
 
 ---
 

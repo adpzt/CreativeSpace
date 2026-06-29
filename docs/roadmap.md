@@ -200,29 +200,29 @@ Chaque point de retour précise : ce qui est livré, ce qu'Adrien doit tester, e
 
 **Objectif :** avoir une app qui tourne, navigable, avec les données qui persistent.
 
-### Étape 1.1 — Setup projet
-- [ ] Init Next.js 14 avec App Router
-- [ ] Config Tailwind CSS + Inter font
-- [ ] Install Lucide React, Zustand, date-fns
-- [ ] Setup Supabase (créer projet, récupérer clés API)
-- [ ] Créer toutes les tables SQL dans Supabase
-- [ ] Config variables d'environnement (.env.local)
-- [ ] Push sur GitHub
-- [ ] Déployer sur Vercel (connecté au repo GitHub)
+### Étape 1.1 — Setup projet  [FAIT]
+- [x] Init Next.js 14 avec App Router
+- [x] Config Tailwind CSS + Inter font
+- [x] Install Lucide React, Zustand, date-fns (+ dnd-kit, @supabase/supabase-js)
+- [x] Setup Supabase (projet CreativeSpace, clés API)
+- [x] Créer toutes les tables SQL dans Supabase (schema.sql + migrations 001-007)
+- [x] Config variables d'environnement (.env.local)
+- [x] Push sur GitHub (git@github.com:adpzt/CreativeSpace.git)
+- [x] Déployer sur Vercel (https://creative-space-lemon.vercel.app)
 
-### Étape 1.2 — Layout global
-- [ ] Page de login : mot de passe d'entrée unique (stocké en variable d'environnement), protège toute l'app
-- [ ] Sidebar fixe desktop (icônes + labels, 5 sections : Work, Finance, Freelance, Moi, Notes)
-- [ ] Bottom navigation mobile (5 icônes)
-- [ ] Header simple avec titre de la page courante
-- [ ] Bouton "Note rapide" flottant (accessible depuis toutes les pages)
-- [ ] Page 404 simple
+### Étape 1.2 — Layout global  [FAIT]
+- [x] Page de login : mot de passe d'entrée (env APP_PASSWORD) + middleware
+- [x] Sidebar fixe desktop (icônes + labels)
+- [x] Bottom navigation mobile
+- [x] Header simple avec titre de la page courante
+- [x] Bouton "Note rapide" flottant (accessible depuis toutes les pages)
+- [x] Page 404 simple (Next par défaut)
 
-### Étape 1.3 — Notes rapides
-- [ ] Zone texte libre, sauvegarde auto dans Supabase
-- [ ] Liste des notes précédentes (date + aperçu)
-- [ ] Supprimer une note
-- [ ] Premier composant fonctionnel à tester
+### Étape 1.3 — Notes rapides  [FAIT]
+- [x] Zone texte libre, sauvegarde auto dans Supabase
+- [x] Liste des notes précédentes (date + aperçu)
+- [x] Supprimer une note
+- [x] Premier composant fonctionnel testé
 
 >>> POINT DE RETOUR 1 - Fondations
 - Livré : app déployée sur Vercel, page de login, navigation complète, notes rapides qui persistent.
