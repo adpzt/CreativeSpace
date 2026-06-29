@@ -4,14 +4,15 @@ import { useEffect, useRef, useState } from "react";
 import type { ReactNode } from "react";
 import { X, Check, Loader2 } from "lucide-react";
 
-// Panneau façon Notion : glisse depuis la droite. Titre (éditable) en haut,
-// barre de séparation, zone de notes, et un footer optionnel (actions) en bas.
+// Panneau façon Notion : glisse depuis la droite. Grand titre (éditable),
+// propriétés (meta), barre de séparation, zone de notes, footer optionnel.
 export default function NotePanel({
   title,
   initialValue,
   onSave,
   onClose,
   onTitleSave,
+  meta,
   footer,
 }: {
   title: string;
@@ -19,6 +20,7 @@ export default function NotePanel({
   onSave: (value: string) => void | Promise<void>;
   onClose: () => void;
   onTitleSave?: (title: string) => void | Promise<void>;
+  meta?: ReactNode;
   footer?: ReactNode;
 }) {
   const [shown, setShown] = useState(false);
@@ -47,7 +49,6 @@ export default function NotePanel({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Sauvegarde auto de la note
   useEffect(() => {
     if (value === lastSaved.current) return;
     setStatus("saving");
@@ -63,7 +64,6 @@ export default function NotePanel({
     return () => clearTimeout(t);
   }, [value, onSave]);
 
-  // Sauvegarde auto du titre
   useEffect(() => {
     if (!onTitleSave) return;
     if (titleVal === lastTitle.current) return;
@@ -85,51 +85,52 @@ export default function NotePanel({
         onClick={close}
       />
       <div
-        className={`relative flex h-full w-full max-w-md flex-col bg-white shadow-xl transition-transform duration-200 ease-out ${
+        className={`relative flex h-full w-full max-w-lg flex-col bg-white shadow-xl transition-transform duration-200 ease-out ${
           shown ? "translate-x-0" : "translate-x-full"
         }`}
       >
-        {/* Titre + statut + fermeture */}
-        <div className="flex items-center gap-2 border-b border-gray-100 px-5 py-3">
-          {onTitleSave ? (
-            <input
-              value={titleVal}
-              onChange={(e) => setTitleVal(e.target.value)}
-              className="min-w-0 flex-1 bg-transparent text-base font-semibold outline-none"
-              placeholder="Titre"
-            />
-          ) : (
-            <h3 className="min-w-0 flex-1 truncate text-base font-semibold">
-              {title}
-            </h3>
-          )}
+        {/* Barre du haut : statut + fermeture */}
+        <div className="flex items-center justify-end gap-2 px-4 pt-3">
           {status === "saving" && (
-            <Loader2 className="h-3 w-3 shrink-0 animate-spin text-muted" />
+            <Loader2 className="h-3.5 w-3.5 animate-spin text-muted" />
           )}
-          {status === "saved" && (
-            <Check className="h-3 w-3 shrink-0 text-success" />
-          )}
+          {status === "saved" && <Check className="h-3.5 w-3.5 text-success" />}
           <button
             onClick={close}
             aria-label="Fermer"
-            className="shrink-0 rounded-lg p-1.5 text-muted hover:bg-gray-100"
+            className="rounded-lg p-1.5 text-muted hover:bg-gray-100"
           >
             <X className="h-4 w-4" />
           </button>
         </div>
 
-        {/* Notes */}
-        <textarea
-          autoFocus
-          value={value}
-          onChange={(e) => setValue(e.target.value)}
-          placeholder="Écris ici... (titres, specs, liens, brief...)"
-          className="flex-1 resize-none border-0 px-5 py-4 text-sm leading-relaxed outline-none placeholder:text-muted"
-        />
+        {/* Contenu */}
+        <div className="flex-1 overflow-y-auto px-8 pb-8">
+          {onTitleSave ? (
+            <input
+              value={titleVal}
+              onChange={(e) => setTitleVal(e.target.value)}
+              className="w-full bg-transparent text-2xl font-semibold tracking-tight outline-none placeholder:text-muted"
+              placeholder="Titre"
+            />
+          ) : (
+            <h2 className="text-2xl font-semibold tracking-tight">{title}</h2>
+          )}
 
-        {/* Footer (actions) */}
+          {meta && <div className="mt-4 space-y-2 text-sm">{meta}</div>}
+
+          <div className="my-5 border-t border-gray-100" />
+
+          <textarea
+            value={value}
+            onChange={(e) => setValue(e.target.value)}
+            placeholder="Écris ici... (titres, specs, liens, brief...)"
+            className="min-h-[45vh] w-full resize-none border-0 p-0 text-sm leading-relaxed outline-none placeholder:text-muted"
+          />
+        </div>
+
         {footer && (
-          <div className="border-t border-gray-100 px-5 py-3">{footer}</div>
+          <div className="border-t border-gray-100 px-8 py-3">{footer}</div>
         )}
       </div>
     </div>

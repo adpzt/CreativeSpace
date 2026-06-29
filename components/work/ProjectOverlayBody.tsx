@@ -4,7 +4,19 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { format, parseISO } from "date-fns";
 import { fr } from "date-fns/locale";
-import { Pencil, Trash2, Eye, FileText, Check } from "lucide-react";
+import {
+  Pencil,
+  Trash2,
+  Eye,
+  FileText,
+  Check,
+  User,
+  Compass,
+  CalendarDays,
+  Wallet,
+  ChevronDown,
+} from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import AutoSaveField from "@/components/ui/AutoSaveField";
 import StatusBadge from "@/components/ui/StatusBadge";
 import ProgressBar from "@/components/ui/ProgressBar";
@@ -12,6 +24,7 @@ import NotePanel from "@/components/ui/NotePanel";
 import Overlay from "@/components/ui/Overlay";
 import { Button } from "@/components/ui/Button";
 import DeliverablesEditor from "./DeliverablesEditor";
+import ColorPicker from "./ColorPicker";
 import {
   PROJECT_STATUS,
   PROJECT_STATUS_ORDER,
@@ -71,6 +84,7 @@ export default function ProjectOverlayBody({
   );
   const [noteDeliverableId, setNoteDeliverableId] = useState<string | null>(null);
   const [askPaid, setAskPaid] = useState(false);
+  const [showDetail, setShowDetail] = useState(project.gross_amount != null);
   const [isDeleting, startDelete] = useTransition();
 
   const client = clients.find((c) => c.id === clientId) ?? null;
@@ -181,6 +195,19 @@ export default function ProjectOverlayBody({
   }
 
   const noteDeliverable = deliverables.find((d) => d.id === noteDeliverableId);
+  const delivMeta = noteDeliverable ? (
+    <>
+      <p className="text-muted">
+        {project.name}
+        {clientLabel ? ` · ${clientLabel}` : ""}
+      </p>
+      <p>
+        <span className="text-muted">Progression : </span>
+        {noteDeliverable.completed ? 100 : noteDeliverable.progress ?? 0}% ·{" "}
+        {noteDeliverable.duration_days}j
+      </p>
+    </>
+  ) : null;
 
   const dates =
     project.start_date && project.end_date
@@ -251,49 +278,43 @@ export default function ProjectOverlayBody({
             ))}
           </div>
 
-          <div className="mt-5 space-y-1.5 text-sm">
-            {clientLabel && (
-              <p>
-                <span className="text-muted">Client : </span>
-                {clientLabel}
-              </p>
-            )}
+          <div className="mt-5 space-y-2.5 text-sm">
+            {clientLabel && <InfoRow icon={User}>{clientLabel}</InfoRow>}
             {project.source && (
-              <p>
-                <span className="text-muted">Provenance : </span>
+              <InfoRow icon={Compass}>
                 {paymentSourceLabel(project.source)}
-              </p>
+              </InfoRow>
             )}
-            {dates && (
-              <p>
-                <span className="text-muted">Planning : </span>
-                {dates}
-              </p>
-            )}
-            {(project.gross_amount != null || project.net_amount != null) && (
-              <p>
+            {dates && <InfoRow icon={CalendarDays}>{dates}</InfoRow>}
+            {project.net_amount != null && (
+              <InfoRow icon={Wallet}>
+                <span className="font-medium">
+                  {formatEuro(project.net_amount)}
+                </span>{" "}
+                gagné
                 {project.gross_amount != null && (
-                  <>
-                    <span className="text-muted">Devis : </span>
+                  <span className="text-muted">
+                    {"  ·  devis "}
                     {formatEuro(project.gross_amount)}
-                  </>
+                  </span>
                 )}
-                {project.net_amount != null && (
-                  <>
-                    <span className="text-muted">
-                      {project.gross_amount != null ? "  ·  Perçu : " : "Perçu : "}
-                    </span>
-                    {formatEuro(project.net_amount)}
-                  </>
-                )}
-              </p>
+              </InfoRow>
+            )}
+            {project.net_amount == null && project.gross_amount != null && (
+              <InfoRow icon={Wallet}>
+                <span className="text-muted">Devis </span>
+                {formatEuro(project.gross_amount)}
+              </InfoRow>
             )}
             {(project.devis_number || project.invoice_number) && (
-              <p className="text-muted">
-                {project.devis_number && `Devis n° ${project.devis_number}`}
-                {project.devis_number && project.invoice_number && " · "}
-                {project.invoice_number && `Facture n° ${project.invoice_number}`}
-              </p>
+              <InfoRow icon={FileText}>
+                <span className="text-muted">
+                  {project.devis_number && `Devis n° ${project.devis_number}`}
+                  {project.devis_number && project.invoice_number && " · "}
+                  {project.invoice_number &&
+                    `Facture n° ${project.invoice_number}`}
+                </span>
+              </InfoRow>
             )}
           </div>
 
@@ -402,22 +423,8 @@ export default function ProjectOverlayBody({
                 );
               })}
             </div>
-            <div className="ml-auto flex items-center gap-2">
-              <input
-                type="color"
-                value={colorVal || "#2563EB"}
-                onChange={(e) => changeColor(e.target.value)}
-                aria-label="Couleur du projet"
-                className="h-7 w-9 cursor-pointer rounded border border-gray-200 bg-white p-0.5"
-              />
-              {colorVal && (
-                <button
-                  onClick={() => changeColor("")}
-                  className="text-xs text-muted transition-colors hover:text-ink"
-                >
-                  Sans
-                </button>
-              )}
+            <div className="ml-auto">
+              <ColorPicker value={colorVal} onChange={changeColor} />
             </div>
           </div>
         </div>
@@ -504,34 +511,54 @@ export default function ProjectOverlayBody({
           </div>
         </div>
 
-        {/* Montants */}
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        {/* Argent gagné + détail */}
+        <div>
           <AutoSaveField
-            label="Montant devis (€)"
-            type="number"
-            initialValue={
-              project.gross_amount != null ? String(project.gross_amount) : ""
-            }
-            placeholder="695"
-            save={(v) =>
-              updateProject(project.id, {
-                gross_amount: v ? parseFloat(v) : null,
-              })
-            }
-          />
-          <AutoSaveField
-            label="Montant perçu (€)"
+            label="Argent gagné (€)"
             type="number"
             initialValue={
               project.net_amount != null ? String(project.net_amount) : ""
             }
             placeholder="600"
             save={(v) =>
-              updateProject(project.id, {
-                net_amount: v ? parseFloat(v) : null,
-              })
+              updateProject(project.id, { net_amount: v ? parseFloat(v) : null })
             }
           />
+          <button
+            type="button"
+            onClick={() => setShowDetail((d) => !d)}
+            className="mt-2 inline-flex items-center gap-1 text-xs font-medium text-muted transition-colors hover:text-ink"
+          >
+            <ChevronDown
+              className={`h-3.5 w-3.5 transition-transform ${
+                showDetail ? "rotate-180" : ""
+              }`}
+            />
+            + de détail
+          </button>
+          {showDetail && (
+            <div className="mt-3 space-y-2">
+              <AutoSaveField
+                label="Prix sur le devis (€)"
+                type="number"
+                initialValue={
+                  project.gross_amount != null
+                    ? String(project.gross_amount)
+                    : ""
+                }
+                placeholder="695"
+                save={(v) =>
+                  updateProject(project.id, {
+                    gross_amount: v ? parseFloat(v) : null,
+                  })
+                }
+              />
+              <p className="text-xs text-muted">
+                Les dépenses de la mission (avec justificatif) seront ajoutées
+                avec la Finance.
+              </p>
+            </div>
+          )}
         </div>
 
         {/* Dates */}
@@ -602,6 +629,7 @@ export default function ProjectOverlayBody({
       {noteDeliverable && (
         <NotePanel
           title={noteDeliverable.name}
+          meta={delivMeta}
           initialValue={noteDeliverable.notes ?? ""}
           onSave={(v) => noteDeliv(noteDeliverable.id, v)}
           onClose={() => setNoteDeliverableId(null)}
@@ -609,6 +637,22 @@ export default function ProjectOverlayBody({
       )}
       {paidPopup}
     </>
+  );
+}
+
+// Ligne d'info du récap : icône + valeur
+function InfoRow({
+  icon: Icon,
+  children,
+}: {
+  icon: LucideIcon;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="flex items-center gap-2">
+      <Icon className="h-4 w-4 shrink-0 text-muted" />
+      <span>{children}</span>
+    </div>
   );
 }
 

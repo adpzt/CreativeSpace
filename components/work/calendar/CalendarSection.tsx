@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
 import {
   startOfWeek,
   endOfWeek,
@@ -34,11 +33,11 @@ import { CSS } from "@dnd-kit/utilities";
 import {
   ChevronLeft,
   ChevronRight,
+  ChevronsLeft,
+  ChevronsRight,
   Plus,
   Check,
   Trash2,
-  Maximize2,
-  Minimize2,
   FileText,
   CornerDownLeft,
 } from "lucide-react";
@@ -68,16 +67,15 @@ export default function CalendarSection({
   initial,
   projects,
   clients,
-  standalone = false,
 }: {
   initial: CalendarBlock[];
   projects: ProjectWithDeliverables[];
   clients: Client[];
-  standalone?: boolean;
 }) {
   const [blocks, setBlocks] = useState<CalendarBlock[]>(initial);
   const [refDate, setRefDate] = useState<Date>(new Date());
   const [view, setView] = useState<"week" | "month">("week");
+  const [showWeekend, setShowWeekend] = useState(false);
   const [activeId, setActiveId] = useState<string | null>(null);
   const [addCtx, setAddCtx] = useState<AddCtx | null>(null);
   const [noteBlockId, setNoteBlockId] = useState<string | null>(null);
@@ -90,7 +88,12 @@ export default function CalendarSection({
   );
 
   const weekStart = startOfWeek(refDate, { weekStartsOn: 1 });
-  const days = eachDayOfInterval({ start: weekStart, end: addDays(weekStart, 6) });
+  const allDays = eachDayOfInterval({
+    start: weekStart,
+    end: addDays(weekStart, 6),
+  });
+  // 5 jours par défaut (Lun-Ven), week-end dépliable
+  const days = showWeekend ? allDays : allDays.slice(0, 5);
   const isCurrentWeek = isSameWeek(refDate, new Date(), { weekStartsOn: 1 });
 
   const cellBlocks = (dayIso: string, cat: CalendarCategory) =>
@@ -324,18 +327,6 @@ export default function CalendarSection({
               Mois
             </button>
           </div>
-          {/* Agrandir = page dédiée ; sur la page dédiée = revenir à Work */}
-          <Link
-            href={standalone ? "/work" : "/calendar"}
-            aria-label={standalone ? "Réduire" : "Agrandir"}
-            className="rounded-lg p-2 text-muted hover:bg-gray-100 hover:text-ink"
-          >
-            {standalone ? (
-              <Minimize2 className="h-4 w-4" />
-            ) : (
-              <Maximize2 className="h-4 w-4" />
-            )}
-          </Link>
         </div>
       </div>
 
@@ -346,15 +337,16 @@ export default function CalendarSection({
           onDragStart={onDragStart}
           onDragEnd={onDragEnd}
         >
-          <div className="overflow-x-auto">
-            <div
-              className="grid border-l border-t border-gray-100"
-              style={{
-                gridTemplateColumns: "100px repeat(7, minmax(0, 1fr))",
-                minWidth: 920,
-              }}
-            >
-              <div className="border-b border-r border-gray-100 bg-gray-50" />
+          <div className="flex items-stretch gap-1.5">
+            <div className="flex-1 overflow-x-auto">
+              <div
+                className="grid border-l border-t border-gray-100"
+                style={{
+                  gridTemplateColumns: `100px repeat(${days.length}, minmax(0, 1fr))`,
+                  minWidth: showWeekend ? 920 : undefined,
+                }}
+              >
+                <div className="border-b border-r border-gray-100 bg-gray-50" />
               {days.map((d) => (
                 <div
                   key={iso(d)}
@@ -396,7 +388,19 @@ export default function CalendarSection({
                   ))}
                 </div>
               ))}
+              </div>
             </div>
+            <button
+              onClick={() => setShowWeekend((s) => !s)}
+              aria-label={showWeekend ? "Masquer le week-end" : "Voir le week-end"}
+              className="flex w-7 shrink-0 items-center justify-center rounded-lg border border-gray-100 text-muted transition-colors hover:bg-gray-50 hover:text-ink"
+            >
+              {showWeekend ? (
+                <ChevronsLeft className="h-4 w-4" />
+              ) : (
+                <ChevronsRight className="h-4 w-4" />
+              )}
+            </button>
           </div>
 
           <DragOverlay>

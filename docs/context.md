@@ -267,6 +267,12 @@ Les détails (fiche client, et à terme fiche projet) s'ouvrent en **overlay** :
 - Livrables : à la création, présenter comme en édition (une ligne vide + "+ livrable" discret). Le compteur de jours avec "j" seul est moche -> à revoir. En édition : remplacer la poubelle par une **croix rouge** à droite du cadre, l'icône note la plus à droite DANS le cadre.
 - **% de progression par livrable** (utile pour 1-2 gros livrables type site web), visible au clic sur le projet en mode normal.
 
+**Retours v4 projets (juin 2026) :**
+- Modèle d'argent : un seul champ principal **"Argent gagné"** (le net réellement perçu, ex : Malt prend une commission), puis un bouton **"+ de détail"** qui révèle le **prix sur le devis** et (à venir avec la Finance) les **dépenses de la mission** avec justificatif (qui alimenteront les diagrammes/historique bancaires).
+- Sélecteur de **couleur en pastilles rondes** (palette + couleur libre), qui s'applique vraiment (le gros carré natif était buggé/moche).
+- Récap projet : à rendre **visuellement attrayant** (icônes par info, mise en page aérée).
+- Note de livrable (panneau Notion) : **grand titre** + propriétés (projet, client, %), avec des marges correctes.
+
 **Fiche projet :**
 - Nom du projet + client associé (lié à la fiche client)
 - Numéro de devis et numéro de facture (champs texte, saisis manuellement par Adrien selon le client et la chronologie : date du devis/facture = ordre chronologique des clients). Ces numéros sont réutilisés dans la page Finance pour relier une entrée d'argent (tag freelance) au devis/facture correspondant.
@@ -332,6 +338,10 @@ Les détails (fiche client, et à terme fiche projet) s'ouvrent en **overlay** :
 - Plein écran overlay PAS aimé (perd la nav, dur d'en sortir). À la place : une **page dédiée /calendar** (onglet dans la sidebar gauche), bien visible en grand. (Test, on avisera.)
 - Clic sur une tâche : ouvrir **directement la page façon Notion** (titre en haut, barre de séparation, notes en dessous, et en bas : Terminé + Supprimer).
 - La note d'un bloc lié à un livrable doit être **connectée** à la note de ce livrable (même note).
+
+**Retours v4 calendrier (juin 2026) :**
+- Pas d'onglet calendrier dédié dans la sidebar, pas de plein écran : le calendrier reste DANS la page Work.
+- Semainier sur **5 jours (Lun-Ven)** par défaut pour des cases bien lisibles. Un bouton **flèche à droite** déplie le **week-end** (Sam/Dim) ; une flèche gauche revient à 5 jours.
 
 **Nature du calendrier (validé avec Adrien) :** ce n'est pas un agenda avec des horaires. C'est une to-do hebdomadaire pour s'organiser : "tel jour je dois faire ça". Tout ce qui a besoin d'un horaire précis (calls pro, événements, activités entre amis) reste sur le calendrier natif du téléphone, volontairement séparé. Ici les blocs occupent un ou plusieurs jours entiers (granularité = la journée, jamais l'heure). Plusieurs blocs peuvent coexister dans une même case jour x catégorie, empilés verticalement.
 

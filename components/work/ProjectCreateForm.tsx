@@ -2,9 +2,10 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { X, FileText, Plus } from "lucide-react";
+import { X, FileText, Plus, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import NotePanel from "@/components/ui/NotePanel";
+import ColorPicker from "./ColorPicker";
 import {
   PROJECT_STATUS,
   PROJECT_STATUS_ORDER,
@@ -62,6 +63,7 @@ export default function ProjectCreateForm({
   const [source, setSource] = useState("");
   const [gross, setGross] = useState("");
   const [net, setNet] = useState("");
+  const [showDetail, setShowDetail] = useState(false);
   const [devis, setDevis] = useState("");
   const [invoice, setInvoice] = useState("");
   const [startDate, setStartDate] = useState("");
@@ -242,24 +244,7 @@ export default function ProjectCreateForm({
                 </option>
               ))}
             </select>
-            <div className="flex items-center gap-2">
-              <input
-                type="color"
-                value={color || "#2563EB"}
-                onChange={(e) => setColor(e.target.value)}
-                aria-label="Couleur du projet"
-                className="h-9 w-10 cursor-pointer rounded border border-gray-200 bg-white p-0.5"
-              />
-              {color && (
-                <button
-                  type="button"
-                  onClick={() => setColor("")}
-                  className="text-xs text-muted hover:text-ink"
-                >
-                  Sans
-                </button>
-              )}
-            </div>
+            <ColorPicker value={color} onChange={setColor} />
           </div>
         </div>
 
@@ -320,30 +305,42 @@ export default function ProjectCreateForm({
           </div>
         </div>
 
-        {/* Montants */}
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <div>
-            <label className={labelClass}>Montant devis (€)</label>
-            <input
-              value={gross}
-              onChange={(e) => setGross(e.target.value)}
-              type="number"
-              min={0}
-              placeholder="695"
-              className={inputClass}
+        {/* Argent gagné + détail */}
+        <div>
+          <label className={labelClass}>Argent gagné (€)</label>
+          <input
+            value={net}
+            onChange={(e) => setNet(e.target.value)}
+            type="number"
+            min={0}
+            placeholder="600"
+            className={inputClass}
+          />
+          <button
+            type="button"
+            onClick={() => setShowDetail((d) => !d)}
+            className="mt-2 inline-flex items-center gap-1 text-xs font-medium text-muted transition-colors hover:text-ink"
+          >
+            <ChevronDown
+              className={`h-3.5 w-3.5 transition-transform ${
+                showDetail ? "rotate-180" : ""
+              }`}
             />
-          </div>
-          <div>
-            <label className={labelClass}>Montant perçu (€)</label>
-            <input
-              value={net}
-              onChange={(e) => setNet(e.target.value)}
-              type="number"
-              min={0}
-              placeholder="600"
-              className={inputClass}
-            />
-          </div>
+            + de détail
+          </button>
+          {showDetail && (
+            <div className="mt-3">
+              <label className={labelClass}>Prix sur le devis (€)</label>
+              <input
+                value={gross}
+                onChange={(e) => setGross(e.target.value)}
+                type="number"
+                min={0}
+                placeholder="695"
+                className={inputClass}
+              />
+            </div>
+          )}
         </div>
 
         {/* Dates */}
