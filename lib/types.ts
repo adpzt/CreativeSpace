@@ -23,6 +23,15 @@ export type Expense = {
   created_at: string;
 };
 
+export type Urssaf = {
+  id: string;
+  year: number;
+  month: number;
+  amount: number | null; // CA déclaré du mois
+  declared_at: string | null;
+  completed: boolean;
+};
+
 export type PaymentStatus = "pending" | "paid" | "late";
 
 export type Payment = {

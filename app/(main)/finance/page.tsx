@@ -1,15 +1,17 @@
-import { getPayments, getExpenses } from "./actions";
+import { getPayments, getExpenses, getUrssaf } from "./actions";
 import { getProjects, getClients } from "../work/actions";
 import RevenusSection from "@/components/finance/RevenusSection";
 import DepensesSection from "@/components/finance/DepensesSection";
+import UrssafSection from "@/components/finance/UrssafSection";
 import { formatEuro } from "@/lib/work";
 
 export const dynamic = "force-dynamic";
 
 export default async function FinancePage() {
-  const [payments, expenses, projects, clients] = await Promise.all([
+  const [payments, expenses, urssaf, projects, clients] = await Promise.all([
     getPayments(),
     getExpenses(),
+    getUrssaf(),
     getProjects(),
     getClients(),
   ]);
@@ -45,8 +47,9 @@ export default async function FinancePage() {
 
       <DepensesSection expenses={expenses} projects={projects} />
 
+      <UrssafSection rows={urssaf} payments={payments} />
+
       {/* Sections à venir */}
-      <Stub title="URSSAF" detail="12 mois, calcul auto 21,2%, tuto de déclaration" />
       <Stub title="Salarié" detail="Revenus d'alternance + estimation d'impôt globale" />
     </div>
   );

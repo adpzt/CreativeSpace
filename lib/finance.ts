@@ -24,6 +24,14 @@ export const PAYMENT_STATUS: Record<
 
 export const PAYMENT_STATUS_ORDER: PaymentStatus[] = ["pending", "paid", "late"];
 
+// Taux de cotisation URSSAF (BNC).
+// 24% normalement, mais 12% par mois tant que l'ACRE s'applique
+// (jusqu'au 31 mars 2027 inclus).
+export function urssafRate(year: number, month: number): number {
+  const acre = year < 2027 || (year === 2027 && month <= 3);
+  return acre ? 0.12 : 0.24;
+}
+
 // Catégories de dépenses (modifiables par Adrien)
 export const EXPENSE_CATEGORIES = [
   "Logiciels & abonnements",

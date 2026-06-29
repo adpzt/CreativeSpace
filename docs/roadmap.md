@@ -314,10 +314,12 @@ Le calendrier étant le composant le plus critique, il est livré en DEUX temps 
 - Retour attendu : les catégories prédéfinies sont-elles les bonnes ? en manque-t-il ?
 
 ### Étape 3.3 — URSSAF
-- [ ] 12 cases mensuelles avec statut
-- [ ] Montant estimé URSSAF (calcul auto 21,2% du CA)
-- [ ] Tuto "Comment déclarer" dépliable (étapes détaillées)
-- [ ] Alerte si case non cochée au 1er du mois
+- [x] 12 mois avec CA déclaré éditable + case "déclaré"
+- [x] Montant estimé URSSAF auto. TAUX : 24%, mais 12%/mois tant que l'ACRE s'applique (jusqu'au 31 mars 2027 inclus)
+- [x] Suggestion du CA encaissé du mois (remplissage rapide)
+- [x] Tuto "Comment déclarer" dépliable
+- [x] Navigation par année + total annuel estimé
+- [ ] Alerte si case non cochée au 1er du mois (Home, Phase 5)
 
 >>> POINT DE RETOUR 7 - URSSAF
 - Livré : 12 mois avec statut, montant estimé auto (21,2%), tuto "Comment déclarer".

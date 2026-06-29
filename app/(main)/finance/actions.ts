@@ -7,6 +7,7 @@ import type {
   Payment,
   PaymentStatus,
   PaymentSource,
+  Urssaf,
 } from "@/lib/types";
 
 // Liste des revenus / encaissements (plus récents d'abord)
@@ -111,6 +112,29 @@ export async function updateExpense(
 export async function deleteExpense(id: string): Promise<void> {
   const supabase = createServerSupabase();
   const { error } = await supabase.from("expenses").delete().eq("id", id);
+  if (error) throw new Error(error.message);
+  revalidatePath("/finance");
+}
+
+// =================== URSSAF ===================
+
+export async function getUrssaf(): Promise<Urssaf[]> {
+  const supabase = createServerSupabase();
+  const { data, error } = await supabase.from("urssaf_declarations").select("*");
+  if (error) throw new Error(error.message);
+  return (data ?? []) as Urssaf[];
+}
+
+// Crée ou met à jour la ligne d'un mois (clé unique year+month)
+export async function upsertUrssaf(
+  year: number,
+  month: number,
+  patch: { amount?: number | null; completed?: boolean; declared_at?: string | null }
+): Promise<void> {
+  const supabase = createServerSupabase();
+  const { error } = await supabase
+    .from("urssaf_declarations")
+    .upsert({ year, month, ...patch }, { onConflict: "year,month" });
   if (error) throw new Error(error.message);
   revalidatePath("/finance");
 }
