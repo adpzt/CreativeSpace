@@ -303,10 +303,10 @@ Le calendrier étant le composant le plus critique, il est livré en DEUX temps 
 - Retour attendu : la distinction brut / net est-elle claire et utile ? manque-t-il une info par revenu ? comprends-tu d'un coup d'oeil ce que tu as vraiment gagné ?
 
 ### Étape 3.2 — Dépenses
-- [ ] Liste des dépenses avec filtres par catégorie
-- [ ] Ajouter une dépense (date, montant, description, catégorie)
-- [ ] Tags catégories prédéfinis (modifiables)
-- [ ] Total par catégorie
+- [x] Liste des dépenses (manuelles, éditables) + dépenses de mission des projets (auto, lecture seule)
+- [x] Ajouter / modifier / supprimer une dépense (date, montant, catégorie, description)
+- [x] Catégories prédéfinies
+- [x] Total des dépenses
 
 >>> POINT DE RETOUR 6 - Dépenses
 - Livré : liste des dépenses + catégories + total par catégorie.
@@ -337,6 +337,14 @@ Le calendrier étant le composant le plus critique, il est livré en DEUX temps 
 - [ ] Saisie manuelle des salaires (mois, brut, net, net imposable, employeur)
 - [ ] Revenu total = CA freelance + salaire, jamais mélangé à la base URSSAF
 - [ ] Le salaire alimente uniquement l'estimation d'impôt global et la vision revenu total
+
+### Étape 3.6 — Diagrammes & mise en valeur (fin de Finance)
+- [ ] Section diagrammes dans de jolis encadrés (l'espace ne doit pas être "plat")
+- [ ] Camembert CA par provenance (Malt / Instagram / Direct / The Source / Autres)
+- [ ] Camembert CA par type de mission
+- [ ] Barres : CA gagné par mois sur l'année
+- [ ] Sur chaque bloc de stats, un icône "liste" pour basculer en vue ligne par ligne
+- [ ] (Librairie : Recharts)
 
 >>> POINT DE RETOUR 8 - Dashboard financier + Salarié
 - Livré : métriques (CA encaissé, dû, dépenses, bénéfice net), objectif de CA, alertes seuils, vue Salarié, impôt estimé sur le revenu total.

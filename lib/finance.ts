@@ -23,3 +23,18 @@ export const PAYMENT_STATUS: Record<
 };
 
 export const PAYMENT_STATUS_ORDER: PaymentStatus[] = ["pending", "paid", "late"];
+
+// Catégories de dépenses (modifiables par Adrien)
+export const EXPENSE_CATEGORIES = [
+  "Logiciels & abonnements",
+  "Matériel & équipement",
+  "Formation & livres",
+  "Déplacements",
+  "Communication & marketing",
+  "Sous-traitance",
+  "Commission plateforme",
+  "Frais bancaires",
+  "URSSAF",
+  "Impôt",
+  "Divers",
+];

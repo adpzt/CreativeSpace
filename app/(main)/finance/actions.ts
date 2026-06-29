@@ -2,7 +2,12 @@
 
 import { revalidatePath } from "next/cache";
 import { createServerSupabase } from "@/lib/supabase/server";
-import type { Payment, PaymentStatus, PaymentSource } from "@/lib/types";
+import type {
+  Expense,
+  Payment,
+  PaymentStatus,
+  PaymentSource,
+} from "@/lib/types";
 
 // Liste des revenus / encaissements (plus récents d'abord)
 export async function getPayments(): Promise<Payment[]> {
@@ -59,6 +64,53 @@ export async function deletePayment(id: string): Promise<void> {
   const supabase = createServerSupabase();
   const { error } = await supabase.from("payments").delete().eq("id", id);
 
+  if (error) throw new Error(error.message);
+  revalidatePath("/finance");
+}
+
+// =================== DÉPENSES ===================
+
+export async function getExpenses(): Promise<Expense[]> {
+  const supabase = createServerSupabase();
+  const { data, error } = await supabase
+    .from("expenses")
+    .select("*")
+    .order("date", { ascending: false });
+
+  if (error) throw new Error(error.message);
+  return (data ?? []) as Expense[];
+}
+
+export async function createExpense(input: {
+  date: string;
+  amount: number;
+  description?: string | null;
+  category?: string | null;
+}): Promise<void> {
+  const supabase = createServerSupabase();
+  const { error } = await supabase.from("expenses").insert({
+    date: input.date,
+    amount: input.amount,
+    description: input.description || null,
+    category: input.category || null,
+  });
+  if (error) throw new Error(error.message);
+  revalidatePath("/finance");
+}
+
+export async function updateExpense(
+  id: string,
+  patch: Partial<Omit<Expense, "id" | "created_at">>
+): Promise<void> {
+  const supabase = createServerSupabase();
+  const { error } = await supabase.from("expenses").update(patch).eq("id", id);
+  if (error) throw new Error(error.message);
+  revalidatePath("/finance");
+}
+
+export async function deleteExpense(id: string): Promise<void> {
+  const supabase = createServerSupabase();
+  const { error } = await supabase.from("expenses").delete().eq("id", id);
   if (error) throw new Error(error.message);
   revalidatePath("/finance");
 }

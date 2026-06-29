@@ -14,6 +14,15 @@ export type Client = {
 
 export type MissionExpense = { label: string; amount: number };
 
+export type Expense = {
+  id: string;
+  date: string;
+  amount: number;
+  description: string | null;
+  category: string | null;
+  created_at: string;
+};
+
 export type PaymentStatus = "pending" | "paid" | "late";
 
 export type Payment = {
