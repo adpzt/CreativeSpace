@@ -26,6 +26,7 @@ import NotePanel from "@/components/ui/NotePanel";
 import Overlay from "@/components/ui/Overlay";
 import { Button } from "@/components/ui/Button";
 import DeliverablesEditor from "./DeliverablesEditor";
+import DeliverableNoteMeta from "./DeliverableNoteMeta";
 import ColorPicker from "./ColorPicker";
 import {
   PROJECT_STATUS,
@@ -215,17 +216,15 @@ export default function ProjectOverlayBody({
 
   const noteDeliverable = deliverables.find((d) => d.id === noteDeliverableId);
   const delivMeta = noteDeliverable ? (
-    <>
-      <p className="text-muted">
-        {project.name}
-        {clientLabel ? ` · ${clientLabel}` : ""}
-      </p>
-      <p>
-        <span className="text-muted">Progression : </span>
-        {noteDeliverable.completed ? 100 : noteDeliverable.progress ?? 0}% ·{" "}
-        {noteDeliverable.duration_days}j
-      </p>
-    </>
+    <DeliverableNoteMeta
+      key={noteDeliverable.id}
+      projectName={project.name}
+      clientLabel={clientLabel}
+      duration={noteDeliverable.duration_days}
+      completed={noteDeliverable.completed}
+      progress={noteDeliverable.progress ?? 0}
+      onProgress={(p) => progressDeliv(noteDeliverable.id, p)}
+    />
   ) : null;
 
   const dates =
@@ -662,7 +661,6 @@ export default function ProjectOverlayBody({
             onToggle={toggleDeliv}
             onRename={renameDeliv}
             onDuration={durationDeliv}
-            onProgress={progressDeliv}
             onOpenNote={(id) => setNoteDeliverableId(id)}
             onAdd={addDeliv}
             onDelete={deleteDeliv}

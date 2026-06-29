@@ -271,7 +271,14 @@ Les détails (fiche client, et à terme fiche projet) s'ouvrent en **overlay** :
 - Modèle d'argent : un seul champ principal **"Argent gagné"** (le net réellement perçu, ex : Malt prend une commission), puis un bouton **"+ de détail"** qui révèle le **prix sur le devis** et (à venir avec la Finance) les **dépenses de la mission** avec justificatif (qui alimenteront les diagrammes/historique bancaires).
 - Sélecteur de **couleur en pastilles rondes** (palette + couleur libre), qui s'applique vraiment (le gros carré natif était buggé/moche).
 - Récap projet : à rendre **visuellement attrayant** (icônes par info, mise en page aérée).
-- Note de livrable (panneau Notion) : **grand titre** + propriétés (projet, client, %), avec des marges correctes.
+- Note de livrable (panneau Notion) : **grand titre** + propriétés (projet, client, **% modifiable** relié au livrable), avec des marges correctes.
+
+**Retours v5 projets/calendrier (juin 2026) :**
+- Le % d'un livrable se règle au clic sur le projet (récap) et dans sa note Notion (pas dans l'édition). Les deux sont reliés au même livrable.
+- Renommer un livrable renomme aussi le bloc de calendrier lié (et inversement). Le calendrier resynchronise son état quand les données serveur changent.
+- Un même livrable peut être placé sur plusieurs jours du calendrier (pas d'exclusion une fois placé).
+- Dépenses de mission disponibles dans le "+ de détail" aussi à la création.
+- **Bannière image façon Notion** en haut de Work (Supabase Storage, bucket "banners" public). Upload côté serveur (clé secrète), URL publique stockée dans profile (clé work_banner).
 
 **Fiche projet :**
 - Nom du projet + client associé (lié à la fiche client)

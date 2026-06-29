@@ -1,21 +1,30 @@
-import { getClients, getProjects, getCalendarBlocks } from "./actions";
+import {
+  getClients,
+  getProjects,
+  getCalendarBlocks,
+  getWorkBanner,
+} from "./actions";
 import ProjectsSection from "@/components/work/ProjectsSection";
 import CalendarSection from "@/components/work/calendar/CalendarSection";
 import ClientsSection from "@/components/work/ClientsSection";
+import BannerHeader from "@/components/work/BannerHeader";
 
 // Work = une seule page qui scrolle :
 // Projets (en grand) -> Calendrier -> Clients (résumé secondaire).
 export const dynamic = "force-dynamic";
 
 export default async function WorkPage() {
-  const [clients, projects, blocks] = await Promise.all([
+  const [clients, projects, blocks, banner] = await Promise.all([
     getClients(),
     getProjects(),
     getCalendarBlocks(),
+    getWorkBanner(),
   ]);
 
   return (
     <div className="space-y-12">
+      <BannerHeader initialUrl={banner} />
+
       {/* PROJETS - section principale */}
       <ProjectsSection projects={projects} clients={clients} />
 

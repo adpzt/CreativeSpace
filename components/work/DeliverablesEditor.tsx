@@ -27,7 +27,6 @@ type Props = {
   onToggle: (id: string) => void;
   onRename: (id: string, name: string) => void;
   onDuration: (id: string, days: number) => void;
-  onProgress: (id: string, progress: number) => void;
   onOpenNote: (id: string) => void;
   onAdd: (name: string, days: number) => void;
   onDelete: (id: string) => void;
@@ -148,7 +147,6 @@ function SortableDeliverable({
   onToggle,
   onRename,
   onDuration,
-  onProgress,
   onOpenNote,
   onDelete,
 }: { item: Deliverable } & Omit<Props, "items" | "onAdd" | "onReorder">) {
@@ -161,7 +159,6 @@ function SortableDeliverable({
   };
   const [name, setName] = useState(item.name);
   const [days, setDays] = useState(String(item.duration_days));
-  const [prog, setProg] = useState(String(item.progress ?? 0));
 
   return (
     <li ref={setNodeRef} style={style} className="flex items-center gap-1.5">
@@ -208,25 +205,6 @@ function SortableDeliverable({
             if (d !== item.duration_days) onDuration(item.id, d);
           }}
         />
-
-        {/* % de progression du livrable */}
-        <div className="flex shrink-0 items-center rounded-lg border border-gray-200 pr-1.5 focus-within:border-ink">
-          <input
-            value={prog}
-            onChange={(e) => setProg(e.target.value)}
-            onBlur={() => {
-              const p = Math.max(0, Math.min(100, parseInt(prog, 10) || 0));
-              setProg(String(p));
-              if (p !== (item.progress ?? 0)) onProgress(item.id, p);
-            }}
-            type="number"
-            min={0}
-            max={100}
-            aria-label="Progression en %"
-            className="w-9 rounded-lg border-0 py-1.5 pl-2 text-center text-sm outline-none"
-          />
-          <span className="text-[11px] text-muted">%</span>
-        </div>
 
         {/* Note (panneau Notion) - rightmost INSIDE the frame, en bleu */}
         <button

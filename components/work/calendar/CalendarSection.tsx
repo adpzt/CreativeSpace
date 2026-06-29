@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   startOfWeek,
   endOfWeek,
@@ -42,6 +42,7 @@ import {
 } from "lucide-react";
 import Overlay from "@/components/ui/Overlay";
 import NotePanel from "@/components/ui/NotePanel";
+import DeliverableNoteMeta from "@/components/work/DeliverableNoteMeta";
 import { CALENDAR_CATEGORIES } from "@/lib/work";
 import {
   addCalendarBlock,
@@ -72,14 +73,20 @@ export default function CalendarSection({
   clients: Client[];
 }) {
   const [blocks, setBlocks] = useState<CalendarBlock[]>(initial);
+  // Resynchronise avec les données serveur quand elles changent (ex : un
+  // livrable renommé depuis un projet doit renommer le bloc lié ici aussi).
+  useEffect(() => {
+    setBlocks(initial);
+  }, [initial]);
   const [refDate, setRefDate] = useState<Date>(new Date());
   const [view, setView] = useState<"week" | "month">("week");
   const [showWeekend, setShowWeekend] = useState(false);
   const [activeId, setActiveId] = useState<string | null>(null);
   const [addCtx, setAddCtx] = useState<AddCtx | null>(null);
   const [noteBlockId, setNoteBlockId] = useState<string | null>(null);
-  // Notes de livrables éditées depuis le calendrier (affichage immédiat)
+  // Notes / progression de livrables éditées depuis le calendrier (affichage immédiat)
   const [delivNotes, setDelivNotes] = useState<Record<string, string>>({});
+  const [delivProgress, setDelivProgress] = useState<Record<string, number>>({});
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
@@ -124,16 +131,16 @@ export default function CalendarSection({
     return c?.company || c?.name || p.name;
   }
 
-  const placedDeliverableIds = new Set(
-    blocks.map((b) => b.deliverable_id).filter(Boolean)
-  );
+  // On propose tous les livrables non terminés des projets actifs de la
+  // catégorie. On n'exclut PAS ceux déjà placés : un livrable (ex : un site)
+  // peut s'étaler sur plusieurs jours.
   function suggestionsFor(cat: CalendarCategory): Suggestion[] {
     const out: Suggestion[] = [];
     for (const p of projects) {
       if (p.category !== cat || p.status === "closed" || p.status === "cancelled")
         continue;
       for (const d of p.deliverables) {
-        if (d.completed || placedDeliverableIds.has(d.id)) continue;
+        if (d.completed) continue;
         out.push({ project: p, deliverable: d });
       }
     }
@@ -275,19 +282,28 @@ export default function CalendarSection({
     const d = noteBlock.deliverable_id
       ? deliverableById.get(noteBlock.deliverable_id)
       : null;
+    if (d) {
+      const delivId = d.id;
+      return (
+        <DeliverableNoteMeta
+          key={delivId}
+          projectName={p.name}
+          clientLabel={company}
+          duration={d.duration_days}
+          completed={d.completed}
+          progress={delivProgress[delivId] ?? d.progress ?? 0}
+          onProgress={(prog) => {
+            setDelivProgress((m) => ({ ...m, [delivId]: prog }));
+            updateDeliverable(delivId, { progress: prog });
+          }}
+        />
+      );
+    }
     return (
-      <>
-        <p className="text-muted">
-          {p.name}
-          {company ? ` · ${company}` : ""}
-        </p>
-        {d && (
-          <p>
-            <span className="text-muted">Progression : </span>
-            {d.completed ? 100 : d.progress ?? 0}%
-          </p>
-        )}
-      </>
+      <p className="text-muted">
+        {p.name}
+        {company ? ` · ${company}` : ""}
+      </p>
     );
   })();
 

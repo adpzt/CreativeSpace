@@ -64,6 +64,9 @@ export default function ProjectCreateForm({
   const [gross, setGross] = useState("");
   const [net, setNet] = useState("");
   const [showDetail, setShowDetail] = useState(false);
+  const [expenses, setExpenses] = useState<
+    { label: string; amount: number }[]
+  >([]);
   const [devis, setDevis] = useState("");
   const [invoice, setInvoice] = useState("");
   const [startDate, setStartDate] = useState("");
@@ -103,6 +106,7 @@ export default function ProjectCreateForm({
     setSource("");
     setGross("");
     setNet("");
+    setExpenses([]);
     setDevis("");
     setInvoice("");
     setStartDate("");
@@ -139,11 +143,18 @@ export default function ProjectCreateForm({
         start_date: startDate || null,
         end_date: endDate || null,
       });
-      if (notes.trim() || devis.trim() || invoice.trim()) {
+      const cleanExpenses = expenses.filter((e) => e.label.trim() || e.amount);
+      if (
+        notes.trim() ||
+        devis.trim() ||
+        invoice.trim() ||
+        cleanExpenses.length
+      ) {
         await updateProject(id, {
           notes: notes.trim() || null,
           devis_number: devis.trim() || null,
           invoice_number: invoice.trim() || null,
+          mission_expenses: cleanExpenses,
         });
       }
       const rows = delivs.filter((r) => r.name.trim());
@@ -329,16 +340,85 @@ export default function ProjectCreateForm({
             + de détail
           </button>
           {showDetail && (
-            <div className="mt-3">
-              <label className={labelClass}>Prix sur le devis (€)</label>
-              <input
-                value={gross}
-                onChange={(e) => setGross(e.target.value)}
-                type="number"
-                min={0}
-                placeholder="695"
-                className={inputClass}
-              />
+            <div className="mt-3 space-y-4">
+              <div>
+                <label className={labelClass}>Prix sur le devis (€)</label>
+                <input
+                  value={gross}
+                  onChange={(e) => setGross(e.target.value)}
+                  type="number"
+                  min={0}
+                  placeholder="695"
+                  className={inputClass}
+                />
+              </div>
+              <div>
+                <label className={labelClass}>Dépenses de la mission</label>
+                {expenses.length > 0 && (
+                  <ul className="mb-1.5 space-y-1.5">
+                    {expenses.map((ex, i) => (
+                      <li key={i} className="flex items-center gap-1.5">
+                        <input
+                          value={ex.label}
+                          onChange={(e) =>
+                            setExpenses((p) =>
+                              p.map((x, idx) =>
+                                idx === i
+                                  ? { ...x, label: e.target.value }
+                                  : x
+                              )
+                            )
+                          }
+                          placeholder="Justificatif (ex : impression)"
+                          className="min-w-0 flex-1 rounded-xl border border-gray-200 px-3 py-2 text-sm outline-none focus:border-ink"
+                        />
+                        <div className="flex shrink-0 items-center rounded-lg border border-gray-200 pr-1.5 focus-within:border-ink">
+                          <input
+                            value={ex.amount || ""}
+                            onChange={(e) =>
+                              setExpenses((p) =>
+                                p.map((x, idx) =>
+                                  idx === i
+                                    ? {
+                                        ...x,
+                                        amount:
+                                          parseFloat(e.target.value) || 0,
+                                      }
+                                    : x
+                                )
+                              )
+                            }
+                            type="number"
+                            min={0}
+                            className="w-16 rounded-lg border-0 py-1.5 pl-2 text-right text-sm outline-none"
+                          />
+                          <span className="text-[11px] text-muted">€</span>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setExpenses((p) => p.filter((_, idx) => idx !== i))
+                          }
+                          aria-label="Retirer la dépense"
+                          className="shrink-0 rounded-lg p-1.5 text-urgent hover:bg-red-50"
+                        >
+                          <X className="h-4 w-4" />
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+                <button
+                  type="button"
+                  onClick={() =>
+                    setExpenses((p) => [...p, { label: "", amount: 0 }])
+                  }
+                  className="inline-flex items-center gap-1 rounded-lg px-2 py-1 text-xs font-medium text-muted transition-colors hover:bg-gray-100 hover:text-ink"
+                >
+                  <Plus className="h-3.5 w-3.5" />
+                  Dépense
+                </button>
+              </div>
             </div>
           )}
         </div>

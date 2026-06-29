@@ -217,6 +217,50 @@ export async function deleteDeliverable(id: string): Promise<void> {
   revalidatePath("/work");
 }
 
+// =================== BANNIÈRE (Supabase Storage) ===================
+
+// Récupère l'URL de la bannière de la page Work
+export async function getWorkBanner(): Promise<string | null> {
+  const supabase = createServerSupabase();
+  const { data } = await supabase
+    .from("profile")
+    .select("value")
+    .eq("key", "work_banner")
+    .maybeSingle();
+  return data?.value ?? null;
+}
+
+// Upload d'une bannière (image) et mémorisation de son URL publique
+export async function uploadWorkBanner(formData: FormData): Promise<string> {
+  const file = formData.get("file") as File | null;
+  if (!file) throw new Error("Aucun fichier");
+  const supabase = createServerSupabase();
+
+  const ext = (file.name.split(".").pop() || "jpg").toLowerCase();
+  const path = `work-banner.${ext}`;
+  const buffer = Buffer.from(await file.arrayBuffer());
+
+  const { error: upErr } = await supabase.storage
+    .from("banners")
+    .upload(path, buffer, {
+      upsert: true,
+      contentType: file.type || "image/jpeg",
+    });
+  if (upErr) throw new Error(upErr.message);
+
+  const { data } = supabase.storage.from("banners").getPublicUrl(path);
+  // Paramètre anti-cache pour voir la nouvelle image tout de suite
+  const url = `${data.publicUrl}?v=${Date.now()}`;
+
+  const { error: pErr } = await supabase
+    .from("profile")
+    .upsert({ key: "work_banner", value: url }, { onConflict: "key" });
+  if (pErr) throw new Error(pErr.message);
+
+  revalidatePath("/work");
+  return url;
+}
+
 // =================== CALENDRIER ===================
 
 // Tous les blocs du calendrier (filtrés par semaine cote client)
