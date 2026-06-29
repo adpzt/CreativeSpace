@@ -290,11 +290,12 @@ Le calendrier étant le composant le plus critique, il est livré en DEUX temps 
 ## PHASE 3 — Finance
 
 ### Étape 3.1 — Revenus & encaissements
-- [ ] Tableau des revenus (provenance, type mission, brut, net, statut, échéance, date encaissement)
-- [ ] Créer / modifier un revenu (saisie manuelle)
-- [ ] Distinction montant facturé (brut) / montant perçu (net après commission plateforme)
-- [ ] Statut "En retard" si échéance dépassée et non encaissé (automatique)
-- [ ] Tri par échéance
+- [x] Liste des revenus (client/projet, provenance, montant gagné, statut, date)
+- [x] Créer / modifier / supprimer un revenu (manuel)
+- [x] Argent gagné (net) + "+ de détail" (prix devis)
+- [x] Statuts : En attente / Encaissé / En retard
+- [x] Hybride : un projet clôturé est proposé "à valider" (pré-rempli) avant de compter
+- [x] Résumé : CA encaissé année / mois, total en attente
 
 >>> POINT DE RETOUR 5 - Revenus
 - Livré : tableau des revenus avec brut / net / provenance / type de mission / statut / dates.

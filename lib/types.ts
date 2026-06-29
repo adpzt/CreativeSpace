@@ -14,6 +14,26 @@ export type Client = {
 
 export type MissionExpense = { label: string; amount: number };
 
+export type PaymentStatus = "pending" | "paid" | "late";
+
+export type Payment = {
+  id: string;
+  client_id: string | null;
+  project_id: string | null;
+  invoice_ref: string | null;
+  source: PaymentSource | null;
+  mission_type: string | null;
+  gross_amount: number | null;
+  net_amount: number | null;
+  deposit_paid: boolean;
+  deposit_amount: number | null;
+  status: PaymentStatus;
+  due_date: string | null;
+  received_date: string | null;
+  notes: string | null;
+  created_at: string;
+};
+
 export type PaymentSource =
   | "malt"
   | "instagram"
