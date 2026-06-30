@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { format } from "date-fns";
 import { ChevronDown, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
-import { PAYMENT_SOURCES } from "@/lib/work";
+import { PAYMENT_SOURCES, MISSION_TYPES } from "@/lib/work";
 import { PAYMENT_STATUS, PAYMENT_STATUS_ORDER } from "@/lib/finance";
 import { createPayment, updatePayment, deletePayment } from "@/app/(main)/finance/actions";
 import type {
@@ -42,6 +42,7 @@ export default function RevenuForm({
   const [clientId, setClientId] = useState(base.client_id ?? "");
   const [projectId, setProjectId] = useState(base.project_id ?? "");
   const [source, setSource] = useState<string>(base.source ?? "");
+  const [missionType, setMissionType] = useState<string>(base.mission_type ?? "");
   const [net, setNet] = useState(
     base.net_amount != null ? String(base.net_amount) : ""
   );
@@ -60,6 +61,7 @@ export default function RevenuForm({
       client_id: clientId || null,
       project_id: projectId || null,
       source: (source as PaymentSource) || null,
+      mission_type: missionType || null,
       net_amount: net ? parseFloat(net) : null,
       gross_amount: gross ? parseFloat(gross) : null,
       status,
@@ -156,6 +158,22 @@ export default function RevenuForm({
             ))}
           </select>
         </div>
+      </div>
+
+      <div>
+        <label className={labelClass}>Type de mission</label>
+        <select
+          value={missionType}
+          onChange={(e) => setMissionType(e.target.value)}
+          className={inputClass}
+        >
+          <option value="">Selon le projet lié</option>
+          {MISSION_TYPES.map((t) => (
+            <option key={t} value={t}>
+              {t}
+            </option>
+          ))}
+        </select>
       </div>
 
       <div>

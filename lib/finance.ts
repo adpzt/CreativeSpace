@@ -48,6 +48,17 @@ export const TVA_FRANCHISE_MAJORE = 41_250;
 // Le revenu imposable = CA x 66%.
 export const MICRO_BNC_ABATTEMENT = 0.34;
 
+// Exonération apprenti : le salaire d'un contrat d'apprentissage est exonéré
+// d'impôt sur le revenu jusqu'au SMIC annuel ; seule la part au-dessus est
+// imposable. Adrien est en apprentissage (Poppins puis The Source).
+// Valeur de référence ≈ SMIC annuel (à actualiser chaque année).
+export const SMIC_ANNUEL = 21_273;
+
+// Part imposable d'un salaire d'apprenti sur l'année (0 tant qu'on reste sous le SMIC annuel).
+export function apprentiTaxableSalary(annualSalary: number): number {
+  return Math.max(0, annualSalary - SMIC_ANNUEL);
+}
+
 // Barème progressif de l'impôt sur le revenu, par part (revenus 2025).
 // Estimation indicative sur 1 part (quotient familial non pris en compte).
 export const INCOME_TAX_BRACKETS: { upTo: number; rate: number }[] = [

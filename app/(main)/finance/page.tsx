@@ -13,6 +13,7 @@ import UrssafSection from "@/components/finance/UrssafSection";
 import SalaireSection from "@/components/finance/SalaireSection";
 import DiagrammesSection from "@/components/finance/DiagrammesSection";
 import PrevisionnelSection from "@/components/finance/PrevisionnelSection";
+import { apprentiTaxableSalary } from "@/lib/finance";
 
 export const dynamic = "force-dynamic";
 
@@ -34,10 +35,13 @@ export default async function FinancePage() {
   const caYear = payments
     .filter((p) => p.status === "paid" && p.received_date?.startsWith(y))
     .reduce((s, p) => s + (p.net_amount ?? 0), 0);
-  // Net imposable cumulé des salaires de l'année (base impôt, jamais URSSAF)
-  const salaryTaxable = salaires
+  // Salaire imposable de l'année. Contrat d'apprentissage : exonéré jusqu'au
+  // SMIC annuel, seule la part au-dessus est imposable (souvent 0 pour Adrien).
+  // On prend le net imposable saisi, sinon le net versé.
+  const salaryAnnual = salaires
     .filter((s) => s.year === year)
-    .reduce((s, x) => s + (x.net_taxable ?? 0), 0);
+    .reduce((s, x) => s + (x.net_taxable ?? x.net_salary ?? 0), 0);
+  const salaryTaxable = apprentiTaxableSalary(salaryAnnual);
 
   return (
     <div className="space-y-10">

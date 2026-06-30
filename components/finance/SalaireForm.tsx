@@ -166,10 +166,12 @@ export default function SalaireForm({
       </div>
       <p className="text-xs text-muted">
         Le <strong>net imposable</strong> est une ligne en bas de ta fiche de paie
-        (parfois « net fiscal » / « net imposable »), un peu au-dessus du net
-        versé. C&apos;est la base de l&apos;impôt. Si tu ne l&apos;as pas mois par
-        mois, crée une seule ligne avec le cumul depuis janvier. Le salaire
-        n&apos;entre jamais dans le CA freelance ni dans l&apos;URSSAF.
+        (parfois « net fiscal »), un peu au-dessus du net versé. Si tu ne l&apos;as
+        pas mois par mois, crée une seule ligne avec le cumul depuis janvier. En
+        <strong> apprentissage</strong>, ce salaire est exonéré d&apos;impôt
+        jusqu&apos;au SMIC annuel (~21 273 €), donc il ne pèse souvent rien sur
+        l&apos;impôt. Il n&apos;entre jamais dans le CA freelance ni dans
+        l&apos;URSSAF.
       </p>
 
       <div className="flex items-center justify-between pt-1">

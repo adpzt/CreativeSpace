@@ -27,6 +27,7 @@ export async function createPayment(input: {
   client_id?: string | null;
   project_id?: string | null;
   source?: PaymentSource | null;
+  mission_type?: string | null;
   gross_amount?: number | null;
   net_amount?: number | null;
   status?: PaymentStatus;
@@ -39,6 +40,7 @@ export async function createPayment(input: {
     client_id: input.client_id || null,
     project_id: input.project_id || null,
     source: input.source ?? null,
+    mission_type: input.mission_type || null,
     gross_amount: input.gross_amount ?? null,
     net_amount: input.net_amount ?? null,
     status: input.status ?? "pending",

@@ -176,15 +176,19 @@ export default function PrevisionnelSection({
             )}%)`}
             value={formatEuro(revenuImposableFreelance)}
           />
-          <Line label="Salaire net imposable" value={formatEuro(salaryTaxable)} />
+          <Line
+            label="Salaire imposable (après exonération apprenti)"
+            value={formatEuro(salaryTaxable)}
+          />
           <Line
             label="Revenu imposable total"
             value={formatEuro(revenuImposableTotal)}
           />
         </dl>
         <p className="mt-3 text-xs text-muted">
-          Estimation sur 1 part, sans quotient familial ni réductions. Le salaire
-          d&apos;alternance s&apos;ajoute dès que tu remplis la vue Salarié.
+          Estimation sur 1 part, sans quotient familial ni réductions. Ton salaire
+          d&apos;alternance (apprentissage) est exonéré d&apos;impôt jusqu&apos;au
+          SMIC annuel : seule la part au-dessus compte ici.
         </p>
       </div>
     </section>

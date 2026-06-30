@@ -59,9 +59,15 @@ export default function DiagrammesSection({
     .reduce((a, p) => a + net(p), 0);
   if (noSource > 0) bySource.push({ name: "Non précisée", value: noSource });
 
-  // --- CA par type de mission (dérivé des projets liés, réparti à parts égales) ---
+  // --- CA par type de mission ---
+  // Priorité au type saisi sur le revenu ; sinon dérivé du projet lié
+  // (réparti à parts égales si plusieurs types) ; sinon "Non précisé".
   const typeTotals: Record<string, number> = {};
   for (const p of paid) {
+    if (p.mission_type) {
+      typeTotals[p.mission_type] = (typeTotals[p.mission_type] ?? 0) + net(p);
+      continue;
+    }
     const proj = projects.find((x) => x.id === p.project_id);
     const types =
       proj && proj.mission_types?.length ? proj.mission_types : ["Non précisé"];
