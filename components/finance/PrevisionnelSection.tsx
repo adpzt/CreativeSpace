@@ -5,6 +5,7 @@ import { Target, ShieldAlert, AlertTriangle } from "lucide-react";
 import { formatEuro } from "@/lib/work";
 import {
   estimateIncomeTax,
+  currentBracket,
   INCOME_TAX_BRACKETS,
   MICRO_BNC_CEILING,
   MICRO_BNC_ABATTEMENT,
@@ -46,13 +47,22 @@ export default function PrevisionnelSection({
   const impot = estimateIncomeTax(revenuImposableTotal);
 
   // Seuil du barème en dessous duquel on ne paie pas d'impôt (1 part)
-  const seuilNonImposable = INCOME_TAX_BRACKETS[0].upTo; // 11 497 €
+  const seuilNonImposable = INCOME_TAX_BRACKETS[0].upTo;
   // CA freelance max pour rester non imposable, compte tenu du salaire imposable
   const caMaxNonImposable = Math.max(
     0,
     (seuilNonImposable - salaryTaxable) / (1 - MICRO_BNC_ABATTEMENT)
   );
   const dejaImposable = revenuImposableTotal > seuilNonImposable;
+
+  // Tranche marginale actuelle + marge de CA avant la tranche suivante
+  const bracket = currentBracket(revenuImposableTotal);
+  const margeImposable =
+    bracket.upTo === Infinity ? Infinity : bracket.upTo - revenuImposableTotal;
+  const caMargeAvantTranche =
+    margeImposable === Infinity
+      ? Infinity
+      : margeImposable / (1 - MICRO_BNC_ABATTEMENT);
 
   return (
     <section className="space-y-6">
@@ -148,11 +158,18 @@ export default function PrevisionnelSection({
           />
           {dejaImposable ? (
             <p>
-              Tu dépasses déjà le seuil non imposable ({formatEuro(
-                seuilNonImposable
-              )}{" "}
-              de revenu imposable). Au-delà, seul le surplus est imposé (11 % puis
-              30 %).
+              Tranche marginale : <strong>{Math.round(bracket.rate * 100)} %</strong>.
+              {margeImposable !== Infinity ? (
+                <>
+                  {" "}
+                  Il te reste{" "}
+                  <strong>{formatEuro(caMargeAvantTranche)}</strong> de CA freelance
+                  avant de passer à la tranche supérieure. Seule la part au-dessus
+                  de chaque seuil est imposée.
+                </>
+              ) : (
+                " Tu es dans la tranche la plus haute."
+              )}
             </p>
           ) : (
             <p>

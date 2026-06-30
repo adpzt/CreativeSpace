@@ -36,12 +36,12 @@ export default async function FinancePage() {
     .filter((p) => p.status === "paid" && p.received_date?.startsWith(y))
     .reduce((s, p) => s + (p.net_amount ?? 0), 0);
   // Salaire imposable de l'année. Contrat d'apprentissage : exonéré jusqu'au
-  // SMIC annuel, seule la part au-dessus est imposable (souvent 0 pour Adrien).
-  // On prend le net imposable saisi, sinon le net versé.
-  const salaryAnnual = salaires
+  // SMIC annuel (sur le BRUT), seule la part au-dessus est imposable (souvent 0
+  // pour Adrien). On prend le brut, sinon le net versé en secours.
+  const salaryAnnualGross = salaires
     .filter((s) => s.year === year)
-    .reduce((s, x) => s + (x.net_taxable ?? x.net_salary ?? 0), 0);
-  const salaryTaxable = apprentiTaxableSalary(salaryAnnual);
+    .reduce((s, x) => s + (x.gross_salary ?? x.net_salary ?? 0), 0);
+  const salaryTaxable = apprentiTaxableSalary(salaryAnnualGross);
 
   return (
     <div className="space-y-10">
