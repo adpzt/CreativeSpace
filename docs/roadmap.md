@@ -313,12 +313,12 @@ Le calendrier étant le composant le plus critique, il est livré en DEUX temps 
 - À tester : ajouter un abonnement (Adobe), une commission Malt, vérifier les totaux.
 - Retour attendu : les catégories prédéfinies sont-elles les bonnes ? en manque-t-il ?
 
-### Étape 3.3 — URSSAF
-- [x] 12 mois avec CA déclaré éditable + case "déclaré"
-- [x] Montant estimé URSSAF auto. TAUX : 24%, mais 12%/mois tant que l'ACRE s'applique (jusqu'au 31 mars 2027 inclus)
-- [x] Suggestion du CA encaissé du mois (remplissage rapide)
-- [x] Tuto "Comment déclarer" dépliable
-- [x] Navigation par année + total annuel estimé
+### Étape 3.3 — URSSAF  [FAIT, refondu session 2]
+- [x] CA à déclarer PRÉ-CALCULÉ (net encaissé freelance du mois), non éditable
+- [x] Montant estimé URSSAF auto. TAUX réels : cotisations BNC 25,6% + CFP 0,2%, ACRE = -50% sur cotisations -> 13,0% jusqu'au 31/03/2027 puis 25,8%
+- [x] Bouton "déclaré" + rappel orange sur les mois passés encaissés non déclarés
+- [x] Tuto "Comment déclarer" + explication "c'est quoi le CA à déclarer"
+- [x] 3 vues : Mois (carrousel à flèches), 12 derniers mois (grille), Depuis le début (recap) - PLUS de navigation par année (cotisation mensuelle)
 - [ ] Alerte si case non cochée au 1er du mois (Home, Phase 5)
 
 >>> POINT DE RETOUR 7 - URSSAF
@@ -326,19 +326,22 @@ Le calendrier étant le composant le plus critique, il est livré en DEUX temps 
 - À tester : cocher un mois, saisir un CA et vérifier le calcul de la cotisation.
 - Retour attendu : le calcul te semble-t-il juste par rapport à ce que tu paies réellement ? le tuto est-il clair et complet ?
 
-### Étape 3.4 — Dashboard financier  [FAIT]
-- [x] CA encaissé total année / mois
-- [x] Montant total dû
-- [x] Dépenses totales
-- [x] Bénéfice estimé net (CA encaissé - dépenses - URSSAF estimée)
-- [x] Objectif de CA mensuel / annuel (modifiable, stocké dans profile) + barre de progression
-- [x] Alertes seuils (plafond micro-BNC 77 700€, franchise TVA 37 500€/41 250€)
-- [x] Impôt estimé indicatif sur le revenu total (CA freelance x 66% + salaire net imposable, barème 1 part). Salaire = 0 tant que la vue Salarié n'est pas remplie.
+### Étape 3.4 — Dashboard financier  [FAIT, refondu session 2]
+- [x] Tableau de bord = recap par MOIS (flèches) + bascule Mois/Année : CA encaissé, dépenses, URSSAF estimée, bénéfice net de la période
+- [x] "En attente / dû" = indicateur GLOBAL séparé (jamais rattaché à un mois car compté à l'encaissement) + note explicative (date de réception)
+- [x] Bénéfice net = CA encaissé - dépenses VALIDÉES - URSSAF estimée
+- [x] Seuils micro-BNC (77 700€) + franchise TVA (37 500€/41 250€) -> section "Seuils à surveiller" (côté Freelance)
+- [x] "CA freelance à ne pas dépasser avant impôt" (annuel + mensuel), NON modifiable -> section Impôt
+- [x] Impôt estimé sur le revenu total (bénéfice freelance CA x 66% + net imposable salarié, barème 2026 1 part) + tranche marginale + marge avant tranche
+- [x] Note : l'ancien "objectif de CA modifiable" a été remplacé par la progression non modifiable ci-dessus (retour Adrien)
+- [x] Page Finance scindée en 2 sections distinctes : FREELANCE / SALAIRE & IMPÔT
 
 ### Étape 3.5 — Vue Salarié  [FAIT]
 - [x] Saisie manuelle des salaires (mois, brut, net, net imposable, employeur) en overlay
 - [x] Revenu total = CA freelance + salaire net versé, jamais mélangé à la base URSSAF
-- [x] Le salaire (net imposable) alimente l'estimation d'impôt du Dashboard et la vision revenu total
+- [x] Le salaire (net imposable) alimente l'estimation d'impôt et la vision revenu total
+- [x] Base fiscale = cumul annuel du NET IMPOSABLE saisi (jamais le net à payer ni le brut). Net à payer = trésorerie. Apprentissage : exonéré jusqu'au SMIC annuel
+- [x] Années sélectionnables (archiver les stages 2025) + liste groupée par année
 
 ### Étape 3.6 — Diagrammes & mise en valeur (fin de Finance)  [FAIT]
 - [x] Section diagrammes dans de jolis encadrés
