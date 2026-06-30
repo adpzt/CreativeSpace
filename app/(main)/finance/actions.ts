@@ -138,3 +138,30 @@ export async function upsertUrssaf(
   if (error) throw new Error(error.message);
   revalidatePath("/finance");
 }
+
+// =================== RÉGLAGES FINANCE (objectif de CA, etc.) ===================
+// Stockés dans la table profile (clé/valeur), pas de table dédiée.
+
+const FINANCE_SETTING_KEYS = ["ca_goal_year", "ca_goal_month"] as const;
+
+export async function getFinanceSettings(): Promise<Record<string, string>> {
+  const supabase = createServerSupabase();
+  const { data } = await supabase
+    .from("profile")
+    .select("key,value")
+    .in("key", FINANCE_SETTING_KEYS as unknown as string[]);
+  const out: Record<string, string> = {};
+  (data ?? []).forEach((r: { key: string; value: string | null }) => {
+    if (r.value != null) out[r.key] = r.value;
+  });
+  return out;
+}
+
+export async function setFinanceSetting(key: string, value: string): Promise<void> {
+  const supabase = createServerSupabase();
+  const { error } = await supabase
+    .from("profile")
+    .upsert({ key, value }, { onConflict: "key" });
+  if (error) throw new Error(error.message);
+  revalidatePath("/finance");
+}

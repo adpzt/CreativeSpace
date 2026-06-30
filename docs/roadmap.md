@@ -326,14 +326,14 @@ Le calendrier étant le composant le plus critique, il est livré en DEUX temps 
 - À tester : cocher un mois, saisir un CA et vérifier le calcul de la cotisation.
 - Retour attendu : le calcul te semble-t-il juste par rapport à ce que tu paies réellement ? le tuto est-il clair et complet ?
 
-### Étape 3.4 — Dashboard financier
-- [ ] CA encaissé total année / mois
-- [ ] Montant total dû
-- [ ] Dépenses totales
-- [ ] Bénéfice estimé net
-- [ ] Objectif de CA mensuel / annuel (modifiable) + barre de progression
-- [ ] Alertes seuils (plafond micro-BNC, franchise TVA, seuil avant impôt)
-- [ ] Impôt estimé indicatif sur le revenu total (CA freelance x 66% + salaire net imposable, barème)
+### Étape 3.4 — Dashboard financier  [FAIT]
+- [x] CA encaissé total année / mois
+- [x] Montant total dû
+- [x] Dépenses totales
+- [x] Bénéfice estimé net (CA encaissé - dépenses - URSSAF estimée)
+- [x] Objectif de CA mensuel / annuel (modifiable, stocké dans profile) + barre de progression
+- [x] Alertes seuils (plafond micro-BNC 77 700€, franchise TVA 37 500€/41 250€)
+- [x] Impôt estimé indicatif sur le revenu total (CA freelance x 66% + salaire net imposable, barème 1 part). Salaire = 0 tant que la vue Salarié n'est pas remplie.
 
 ### Étape 3.5 — Vue Salarié
 - [ ] Saisie manuelle des salaires (mois, brut, net, net imposable, employeur)

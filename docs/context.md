@@ -19,8 +19,8 @@
   - Bannière image façon Notion en haut de Work (Supabase Storage).
 
 **En cours - PHASE 3 (Finance)** = page unique : résumé (CA encaissé an/mois, en attente) + sections.
-- FAIT : Revenus (hybride : projets clôturés "à valider" pré-remplis + revenus manuels ; statut Encaissé/Attente/Retard). Dépenses (manuelles + dépenses de mission des projets auto, lecture seule). URSSAF (12 mois, CA déclaré, **taux 24% mais 12%/mois avec ACRE jusqu'au 31 mars 2027**, tuto, total annuel).
-- RESTE : Dashboard (bénéfice net = CA - dépenses - URSSAF, objectif CA + barre, seuils micro-BNC/TVA/impôt, impôt estimé), Salarié (salaires alternance + impôt sur revenu total), **Diagrammes** (camemberts provenance/type + CA par mois en jolis encadrés + icône "liste" pour vue ligne par ligne).
+- FAIT : Revenus (hybride : projets clôturés "à valider" pré-remplis + revenus manuels ; statut Encaissé/Attente/Retard). Dépenses (manuelles + dépenses de mission des projets auto, lecture seule). URSSAF (12 mois, CA déclaré, **taux 24% mais 12%/mois avec ACRE jusqu'au 31 mars 2027**, tuto, total annuel). Dashboard (en haut de la page Finance) : 6 métriques (CA an/mois, dû, dépenses, URSSAF estimée, bénéfice net), objectif de CA annuel+mensuel modifiable (stocké dans table profile, clés `ca_goal_year`/`ca_goal_month`) avec barres, seuils micro-BNC (77 700€) + franchise TVA (37 500€/41 250€) avec alertes colorées, impôt estimé indicatif (CA x 66% + salaire net imposable, barème 1 part). Calculs dans lib/finance.ts (`estimateIncomeTax`, seuils, abattement).
+- RESTE : Salarié (salaires alternance + impôt sur revenu total ; alimentera `salaryTaxable` passé à DashboardSection, actuellement 0), **Diagrammes** (camemberts provenance/type + CA par mois en jolis encadrés + icône "liste" pour vue ligne par ligne).
 
 **À faire ensuite :** Phase 4 (Freelance), Phase 5 (Home/dashboard alertes), Phase 6 (Moi), Phase 7 (bonus : PWA, dark mode, etc.).
 
