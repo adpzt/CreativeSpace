@@ -1,43 +1,36 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import { Target, ShieldAlert, AlertTriangle } from "lucide-react";
+import { useState } from "react";
+import { Target, ShieldAlert, AlertTriangle, Landmark } from "lucide-react";
 import { formatEuro } from "@/lib/work";
 import {
   estimateIncomeTax,
   currentBracket,
-  urssafRate,
-  isAcre,
-  URSSAF_COTISATION_BNC,
-  CFP_RATE,
   INCOME_TAX_BRACKETS,
   MICRO_BNC_CEILING,
   MICRO_BNC_ABATTEMENT,
   TVA_FRANCHISE_BASE,
   TVA_FRANCHISE_MAJORE,
 } from "@/lib/finance";
+import type { Payment } from "@/lib/types";
 
-// Affiche un taux (0.13 -> "13,0 %"), sans décimale inutile si entier
+// Affiche un taux (0.34 -> "34 %", 0.13 -> "13,0 %")
 function pct(rate: number): string {
   const v = rate * 100;
   const s = Number.isInteger(v) ? String(v) : v.toFixed(1);
   return `${s.replace(".", ",")} %`;
 }
-import { setFinanceSetting } from "@/app/(main)/finance/actions";
-import type { Payment } from "@/lib/types";
 
-// Bloc bas de la page Finance : prévisionnel (objectif / seuils) + impôt estimé.
+// Bloc bas de la page Finance : prévisionnel (CA avant impôt / seuils) + impôt.
 export default function PrevisionnelSection({
   payments,
-  goals,
   salaryTaxable = 0,
 }: {
   payments: Payment[];
-  goals: Record<string, string>;
-  // Net imposable cumulé des salaires de l'année (0 si vue Salarié vide)
+  // Salaire imposable cumulé de l'année (0 si vue Salarié vide / apprenti exonéré)
   salaryTaxable?: number;
 }) {
-  const [view, setView] = useState<"objectif" | "seuils">("objectif");
+  const [view, setView] = useState<"avant" | "seuils">("avant");
 
   const now = new Date();
   const year = now.getFullYear();
@@ -57,22 +50,16 @@ export default function PrevisionnelSection({
   const revenuImposableTotal = revenuImposableFreelance + salaryTaxable;
   const impot = estimateIncomeTax(revenuImposableTotal);
 
-  // Seuil du barème en dessous duquel on ne paie pas d'impôt (1 part)
+  // Seuil non imposable (1 part) -> CA freelance max avant impôt, annuel + mensuel
   const seuilNonImposable = INCOME_TAX_BRACKETS[0].upTo;
-  // CA freelance max pour rester non imposable, compte tenu du salaire imposable
-  const caMaxNonImposable = Math.max(
+  const caMaxAnnuel = Math.max(
     0,
     (seuilNonImposable - salaryTaxable) / (1 - MICRO_BNC_ABATTEMENT)
   );
+  const caMaxMensuel = caMaxAnnuel / 12;
   const dejaImposable = revenuImposableTotal > seuilNonImposable;
 
-  // Taux URSSAF du mois en cours + taux après la fin de l'ACRE
-  const moisActuel = now.getMonth() + 1;
-  const urssafActuel = urssafRate(year, moisActuel);
-  const urssafApresAcre = URSSAF_COTISATION_BNC + CFP_RATE;
-  const acreActif = isAcre(year, moisActuel);
-
-  // Tranche marginale actuelle + marge de CA avant la tranche suivante
+  // Tranche marginale + marge de CA avant la tranche suivante
   const bracket = currentBracket(revenuImposableTotal);
   const margeImposable =
     bracket.upTo === Infinity ? Infinity : bracket.upTo - revenuImposableTotal;
@@ -83,60 +70,16 @@ export default function PrevisionnelSection({
 
   return (
     <section className="space-y-6">
-      <h2 className="text-xl font-semibold tracking-tight">
-        Prévisionnel &amp; repères
-      </h2>
+      <h2 className="text-xl font-semibold tracking-tight">Prévisionnel</h2>
 
-      {/* ---------- Repères fiscaux (toujours visibles) ---------- */}
-      <div className="rounded-2xl border border-gray-100 p-5">
-        <h3 className="mb-4 text-sm font-semibold">Repères fiscaux 2026</h3>
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-          <Repere
-            label="Taux URSSAF actuel"
-            value={pct(urssafActuel)}
-            sub={
-              acreActif
-                ? `ACRE jusqu'à mars 2027, puis ${pct(urssafApresAcre)}`
-                : "ACRE terminée"
-            }
-            accent="active"
-          />
-          <Repere
-            label="Abattement impôt"
-            value={pct(MICRO_BNC_ABATTEMENT)}
-            sub="Revenu imposable = CA x 66 %"
-          />
-          <Repere
-            label="Tranche marginale"
-            value={pct(bracket.rate)}
-            sub="impôt sur le revenu"
-          />
-          <Repere
-            label="Seuil non imposable"
-            value={formatEuro(seuilNonImposable)}
-            sub="barème 1 part"
-          />
-          <Repere
-            label="Plafond micro-BNC"
-            value={formatEuro(MICRO_BNC_CEILING)}
-            sub="au-delà : régime réel"
-          />
-          <Repere
-            label="Franchise TVA"
-            value={formatEuro(TVA_FRANCHISE_BASE)}
-            sub={`tolérance ${formatEuro(TVA_FRANCHISE_MAJORE)}`}
-          />
-        </div>
-      </div>
-
-      {/* ---------- Objectif / Seuils (un seul bloc, bascule) ---------- */}
+      {/* ---------- CA avant impôt / Seuils (bascule) ---------- */}
       <div className="rounded-2xl border border-gray-100 p-5">
         <div className="mb-5 flex items-center gap-1 rounded-xl bg-gray-100 p-1">
           <TabButton
-            active={view === "objectif"}
-            onClick={() => setView("objectif")}
+            active={view === "avant"}
+            onClick={() => setView("avant")}
             icon={Target}
-            label="Objectif de CA"
+            label="CA avant impôt"
           />
           <TabButton
             active={view === "seuils"}
@@ -146,19 +89,23 @@ export default function PrevisionnelSection({
           />
         </div>
 
-        {view === "objectif" ? (
+        {view === "avant" ? (
           <div className="space-y-5">
-            <GoalRow
-              label="Objectif annuel"
-              settingKey="ca_goal_year"
-              initial={goals.ca_goal_year}
+            <p className="text-xs text-muted">
+              CA freelance à ne pas dépasser pour rester non imposable cette année
+              (calculé, non modifiable).
+            </p>
+            <ProgressRow
+              label="Plafond annuel avant impôt"
               current={caYear}
+              target={caMaxAnnuel}
+              already={dejaImposable}
             />
-            <GoalRow
-              label="Objectif mensuel"
-              settingKey="ca_goal_month"
-              initial={goals.ca_goal_month}
+            <ProgressRow
+              label="Rythme mensuel conseillé"
               current={caMonth}
+              target={caMaxMensuel}
+              already={dejaImposable}
             />
           </div>
         ) : (
@@ -184,126 +131,103 @@ export default function PrevisionnelSection({
         )}
       </div>
 
-      {/* ---------- Impôt estimé ---------- */}
-      <div className="rounded-2xl border border-gray-100 p-5">
-        <div className="mb-4 flex items-center gap-2">
+      {/* ---------- Impôt estimé (section mise en avant) ---------- */}
+      <div className="overflow-hidden rounded-2xl border-2 border-active/30">
+        <div className="flex items-center gap-2 border-b border-active/20 bg-blue-50/50 px-5 py-3">
+          <Landmark className="h-4 w-4 text-active" />
           <h3 className="text-sm font-semibold">Impôt sur le revenu estimé</h3>
-          <span className="rounded-full bg-gray-100 px-2 py-0.5 text-[11px] font-medium text-gray-500">
+          <span className="rounded-full bg-white px-2 py-0.5 text-[11px] font-medium text-gray-500">
             indicatif
           </span>
         </div>
 
-        {/* La somme à payer, mise en avant */}
-        <div className="rounded-xl bg-gray-50 p-4 text-center">
-          <p className="text-xs font-medium uppercase tracking-wide text-muted">
-            Impôt estimé à payer
-          </p>
-          <p className="mt-1 text-3xl font-bold tracking-tight">
-            {formatEuro(impot)}
-          </p>
-          <p className="mt-1 text-xs text-muted">
-            sur un revenu imposable de {formatEuro(revenuImposableTotal)}
-          </p>
-        </div>
+        <div className="p-5">
+          {/* La somme à payer, mise en avant */}
+          <div className="rounded-xl bg-gray-50 p-5 text-center">
+            <p className="text-xs font-medium uppercase tracking-wide text-muted">
+              Impôt estimé à payer
+            </p>
+            <p className="mt-1 text-4xl font-bold tracking-tight">
+              {formatEuro(impot)}
+            </p>
+            <p className="mt-1 text-xs text-muted">
+              sur un revenu imposable de {formatEuro(revenuImposableTotal)}
+            </p>
+          </div>
 
-        {/* CA à ne pas dépasser pour rester non imposable */}
-        <div
-          className={`mt-3 flex items-start gap-2 rounded-xl border p-3.5 text-sm ${
-            dejaImposable
-              ? "border-pending/30 bg-orange-50/60"
-              : "border-success/30 bg-green-50/50"
-          }`}
-        >
-          <AlertTriangle
-            className={`mt-0.5 h-4 w-4 shrink-0 ${
-              dejaImposable ? "text-pending" : "text-success"
+          {/* À ne pas dépasser / tranche marginale */}
+          <div
+            className={`mt-3 flex items-start gap-2 rounded-xl border p-3.5 text-sm ${
+              dejaImposable
+                ? "border-pending/30 bg-orange-50/60"
+                : "border-success/30 bg-green-50/50"
             }`}
-          />
-          {dejaImposable ? (
-            <p>
-              Tranche marginale : <strong>{Math.round(bracket.rate * 100)} %</strong>.
-              {margeImposable !== Infinity ? (
-                <>
-                  {" "}
-                  Il te reste{" "}
-                  <strong>{formatEuro(caMargeAvantTranche)}</strong> de CA freelance
-                  avant de passer à la tranche supérieure. Seule la part au-dessus
-                  de chaque seuil est imposée.
-                </>
-              ) : (
-                " Tu es dans la tranche la plus haute."
-              )}
-            </p>
-          ) : (
-            <p>
-              Pour ne pas payer d&apos;impôt cette année, ne dépasse pas{" "}
-              <strong>{formatEuro(caMaxNonImposable)}</strong> de CA freelance
-              {salaryTaxable > 0
-                ? ` (compte tenu de ${formatEuro(
-                    salaryTaxable
-                  )} de salaire imposable)`
-                : ""}
-              . L&apos;impôt ne s&apos;applique qu&apos;au-delà.
-            </p>
-          )}
-        </div>
+          >
+            <AlertTriangle
+              className={`mt-0.5 h-4 w-4 shrink-0 ${
+                dejaImposable ? "text-pending" : "text-success"
+              }`}
+            />
+            {dejaImposable ? (
+              <p>
+                Tranche marginale : <strong>{pct(bracket.rate)}</strong>.
+                {margeImposable !== Infinity ? (
+                  <>
+                    {" "}
+                    Il te reste <strong>{formatEuro(caMargeAvantTranche)}</strong> de
+                    CA freelance avant de passer à la tranche supérieure. Seule la
+                    part au-dessus de chaque seuil est imposée.
+                  </>
+                ) : (
+                  " Tu es dans la tranche la plus haute."
+                )}
+              </p>
+            ) : (
+              <p>
+                Pour ne pas payer d&apos;impôt cette année, ne dépasse pas{" "}
+                <strong>{formatEuro(caMaxAnnuel)}</strong> de CA freelance
+                {salaryTaxable > 0
+                  ? ` (compte tenu de ${formatEuro(salaryTaxable)} de salaire imposable)`
+                  : ""}
+                . L&apos;impôt ne s&apos;applique qu&apos;au-delà.
+              </p>
+            )}
+          </div>
 
-        {/* Détail du calcul, plus discret */}
-        <dl className="mt-4 space-y-1.5 text-xs text-muted">
-          <Line
-            label={`Revenu imposable freelance (CA x ${Math.round(
-              (1 - MICRO_BNC_ABATTEMENT) * 100
-            )}%)`}
-            value={formatEuro(revenuImposableFreelance)}
-          />
-          <Line
-            label="Salaire imposable (après exonération apprenti)"
-            value={formatEuro(salaryTaxable)}
-          />
-          <Line
-            label="Revenu imposable total"
-            value={formatEuro(revenuImposableTotal)}
-          />
-        </dl>
-        <p className="mt-3 text-xs text-muted">
-          Estimation sur 1 part, sans quotient familial ni réductions. Ton salaire
-          d&apos;alternance (apprentissage) est exonéré d&apos;impôt jusqu&apos;au
-          SMIC annuel : seule la part au-dessus compte ici.
-        </p>
+          {/* Détail du calcul */}
+          <dl className="mt-4 space-y-1.5 text-xs text-muted">
+            <Line
+              label="Abattement micro-BNC"
+              value={pct(MICRO_BNC_ABATTEMENT)}
+            />
+            <Line
+              label={`Revenu imposable freelance (CA x ${Math.round(
+                (1 - MICRO_BNC_ABATTEMENT) * 100
+              )}%)`}
+              value={formatEuro(revenuImposableFreelance)}
+            />
+            <Line
+              label="Salaire imposable (après exonération apprenti)"
+              value={formatEuro(salaryTaxable)}
+            />
+            <Line
+              label="Revenu imposable total"
+              value={formatEuro(revenuImposableTotal)}
+            />
+            <Line label="Tranche marginale" value={pct(bracket.rate)} />
+          </dl>
+          <p className="mt-3 text-xs text-muted">
+            Estimation sur 1 part, sans quotient familial ni réductions. Ton salaire
+            d&apos;alternance (apprentissage) est exonéré d&apos;impôt jusqu&apos;au
+            SMIC annuel : seule la part au-dessus compte ici.
+          </p>
+        </div>
       </div>
     </section>
   );
 }
 
 // ---------- Sous-composants ----------
-
-function Repere({
-  label,
-  value,
-  sub,
-  accent,
-}: {
-  label: string;
-  value: string;
-  sub?: string;
-  accent?: "active";
-}) {
-  return (
-    <div className="rounded-xl bg-gray-50 p-3">
-      <p className="text-[11px] font-medium uppercase tracking-wide text-muted">
-        {label}
-      </p>
-      <p
-        className={`mt-0.5 text-lg font-semibold tracking-tight ${
-          accent === "active" ? "text-active" : ""
-        }`}
-      >
-        {value}
-      </p>
-      {sub && <p className="mt-0.5 text-[11px] leading-tight text-muted">{sub}</p>}
-    </div>
-  );
-}
 
 function TabButton({
   active,
@@ -329,69 +253,47 @@ function TabButton({
   );
 }
 
-function GoalRow({
+// Barre de progression NON modifiable vers une cible calculée
+function ProgressRow({
   label,
-  settingKey,
-  initial,
   current,
+  target,
+  already,
 }: {
   label: string;
-  settingKey: string;
-  initial?: string;
   current: number;
+  target: number;
+  already: boolean; // déjà imposable (cible nulle / dépassée par le salaire)
 }) {
-  const [goal, setGoal] = useState(initial ?? "");
-  const lastSaved = useRef(goal);
-
-  useEffect(() => {
-    if (goal === lastSaved.current) return;
-    const t = setTimeout(() => {
-      setFinanceSetting(settingKey, goal);
-      lastSaved.current = goal;
-    }, 600);
-    return () => clearTimeout(t);
-  }, [goal, settingKey]);
-
-  const target = parseFloat(goal) || 0;
-  const percent = target > 0 ? Math.round((current / target) * 100) : 0;
+  const percent = target > 0 ? Math.round((current / target) * 100) : 100;
   const reste = Math.max(0, target - current);
-  const atteint = target > 0 && current >= target;
+  const depasse = target > 0 && current > target;
 
   return (
     <div>
       <div className="mb-1.5 flex items-center justify-between gap-3">
         <span className="text-sm font-medium">{label}</span>
-        <div className="flex items-center gap-1.5">
-          <input
-            value={goal}
-            onChange={(e) => setGoal(e.target.value)}
-            type="number"
-            min={0}
-            step="any"
-            placeholder="0"
-            className="w-28 rounded-lg border border-gray-200 px-2.5 py-1 text-right text-sm outline-none focus:border-ink"
-          />
-          <span className="text-sm text-muted">€</span>
-        </div>
+        <span className="text-sm font-semibold">{formatEuro(target)}</span>
       </div>
       <div className="h-2 w-full overflow-hidden rounded-full bg-gray-100">
         <div
           className={`h-full rounded-full transition-all ${
-            atteint ? "bg-success" : "bg-active"
+            depasse || already ? "bg-urgent" : "bg-active"
           }`}
           style={{ width: `${Math.min(100, percent)}%` }}
         />
       </div>
       <div className="mt-1 flex items-center justify-between text-xs text-muted">
         <span>{formatEuro(current)} encaissé</span>
-        {target > 0 &&
-          (atteint ? (
-            <span className="font-medium text-success">Objectif atteint 🎉</span>
-          ) : (
-            <span>
-              {percent}% · reste {formatEuro(reste)}
-            </span>
-          ))}
+        {already ? (
+          <span className="font-medium text-urgent">Déjà imposable</span>
+        ) : depasse ? (
+          <span className="font-medium text-urgent">Plafond dépassé</span>
+        ) : (
+          <span>
+            {percent}% · reste {formatEuro(reste)}
+          </span>
+        )}
       </div>
     </div>
   );
@@ -415,11 +317,7 @@ function ThresholdBar({
   const exceeded = current >= max;
   const warning = !exceeded && current >= limit * 0.8;
 
-  const barColor = exceeded
-    ? "bg-urgent"
-    : warning
-      ? "bg-pending"
-      : "bg-success";
+  const barColor = exceeded ? "bg-urgent" : warning ? "bg-pending" : "bg-success";
 
   return (
     <div>

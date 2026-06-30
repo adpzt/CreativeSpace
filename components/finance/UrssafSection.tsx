@@ -1,13 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import {
-  ChevronLeft,
-  ChevronRight,
-  Check,
-  ChevronDown,
-  HelpCircle,
-} from "lucide-react";
+import { ChevronLeft, ChevronRight, Check, ChevronDown, HelpCircle } from "lucide-react";
 import { urssafRate } from "@/lib/finance";
 import { formatEuro } from "@/lib/work";
 import { upsertUrssaf } from "@/app/(main)/finance/actions";
@@ -27,6 +21,28 @@ const MONTHS = [
   "Novembre",
   "Décembre",
 ];
+const MONTHS_SHORT = [
+  "Janv.",
+  "Févr.",
+  "Mars",
+  "Avr.",
+  "Mai",
+  "Juin",
+  "Juil.",
+  "Août",
+  "Sept.",
+  "Oct.",
+  "Nov.",
+  "Déc.",
+];
+
+type View = "mois" | "douze" | "debut";
+
+// Décale un couple (année, mois 1-12) de delta mois
+function shift(y: number, m: number, delta: number): { y: number; m: number } {
+  const idx = (y * 12 + (m - 1)) + delta;
+  return { y: Math.floor(idx / 12), m: (idx % 12) + 1 };
+}
 
 export default function UrssafSection({
   rows,
@@ -36,113 +52,200 @@ export default function UrssafSection({
   payments: Payment[];
 }) {
   const now = new Date();
-  const [year, setYear] = useState(now.getFullYear());
-  const [showTuto, setShowTuto] = useState(false);
+  const curY = now.getFullYear();
+  const curM = now.getMonth() + 1;
 
-  // CA encaissé (net, en freelance) du mois = base à déclarer
-  const encaisseByMonth = (m: number) => {
-    const ym = `${year}-${String(m).padStart(2, "0")}`;
+  const [view, setView] = useState<View>("mois");
+  const [focus, setFocus] = useState({ y: curY, m: curM });
+
+  // CA encaissé (net, freelance) d'un mois donné = base à déclarer
+  const encaisseOf = (y: number, m: number) => {
+    const ym = `${y}-${String(m).padStart(2, "0")}`;
     return payments
       .filter((p) => p.status === "paid" && p.received_date?.startsWith(ym))
       .reduce((s, p) => s + (p.net_amount ?? 0), 0);
   };
+  const rowOf = (y: number, m: number) =>
+    rows.find((r) => r.year === y && r.month === m);
+  const isPast = (y: number, m: number) =>
+    y < curY || (y === curY && m <= curM);
+  const isCurrent = (y: number, m: number) => y === curY && m === curM;
 
-  const rowFor = (m: number) => rows.find((r) => r.year === year && r.month === m);
+  const tauxActuel = urssafRate(curY, curM);
+  const tauxLabel =
+    tauxActuel < 0.2
+      ? "13,0 % (ACRE jusqu'à mars 2027, puis 25,8 %)"
+      : "25,8 %";
 
-  // Total URSSAF estimée de l'année = somme(encaissé du mois x taux du mois)
-  const totalUrssaf = Array.from({ length: 12 }, (_, i) => i + 1).reduce(
-    (s, m) => s + encaisseByMonth(m) * urssafRate(year, m),
+  // Total estimé sur tous les mois encaissés (depuis le début)
+  const allMonths = new Map<string, { y: number; m: number; enc: number }>();
+  for (const p of payments) {
+    if (p.status !== "paid" || !p.received_date) continue;
+    const y = Number(p.received_date.slice(0, 4));
+    const m = Number(p.received_date.slice(5, 7));
+    const key = `${y}-${m}`;
+    const cur = allMonths.get(key) ?? { y, m, enc: 0 };
+    cur.enc += p.net_amount ?? 0;
+    allMonths.set(key, cur);
+  }
+  const monthsList = Array.from(allMonths.values());
+  const totalEncaisse = monthsList.reduce((s, x) => s + x.enc, 0);
+  const totalUrssaf = monthsList.reduce(
+    (s, x) => s + x.enc * urssafRate(x.y, x.m),
     0
   );
+  const declaredCount = rows.filter((r) => r.completed).length;
 
-  // Un mois est "à déclarer" s'il est passé (déclaration le mois suivant)
-  const isPast = (m: number) =>
-    year < now.getFullYear() ||
-    (year === now.getFullYear() && m <= now.getMonth()); // m index 1-12, getMonth 0-11
+  // 12 derniers mois (du plus ancien au plus récent)
+  const douzeMois = Array.from({ length: 12 }, (_, i) =>
+    shift(curY, curM, -(11 - i))
+  );
+  // Vue Mois : mois précédent (grisé), mois en cours/focus, 2 mois suivants
+  const fenetre = [
+    { ...shift(focus.y, focus.m, -1), dim: true },
+    { ...focus, dim: false },
+    { ...shift(focus.y, focus.m, 1), dim: false },
+    { ...shift(focus.y, focus.m, 2), dim: true },
+  ];
 
   return (
     <section>
-      <div className="mb-4 flex items-center justify-between">
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
         <div>
           <h2 className="text-xl font-semibold tracking-tight">URSSAF</h2>
-          <p className="text-sm text-muted">
-            Cotisations estimées {year} : {formatEuro(totalUrssaf)} · taux{" "}
-            {urssafRate(year, now.getMonth() + 1) < 0.2
-              ? "13,0 % (ACRE)"
-              : "25,8 %"}
-          </p>
+          <p className="text-sm text-muted">Taux actuel : {tauxLabel}</p>
         </div>
-        <div className="flex items-center gap-1">
-          <button
-            onClick={() => setYear((y) => y - 1)}
-            aria-label="Année précédente"
-            className="rounded-lg p-2 text-muted hover:bg-gray-100 hover:text-ink"
-          >
-            <ChevronLeft className="h-4 w-4" />
-          </button>
-          <span className="w-12 text-center text-sm font-medium">{year}</span>
-          <button
-            onClick={() => setYear((y) => y + 1)}
-            aria-label="Année suivante"
-            className="rounded-lg p-2 text-muted hover:bg-gray-100 hover:text-ink"
-          >
-            <ChevronRight className="h-4 w-4" />
-          </button>
+        {/* Bascule de vue */}
+        <div className="flex items-center gap-1 rounded-xl bg-gray-100 p-1 text-sm">
+          {(
+            [
+              ["mois", "Mois"],
+              ["douze", "12 derniers mois"],
+              ["debut", "Depuis le début"],
+            ] as [View, string][]
+          ).map(([v, label]) => (
+            <button
+              key={v}
+              onClick={() => setView(v)}
+              className={`rounded-lg px-3 py-1.5 font-medium transition-colors ${
+                view === v ? "bg-white text-ink shadow-sm" : "text-muted hover:text-ink"
+              }`}
+            >
+              {label}
+            </button>
+          ))}
         </div>
       </div>
 
       {/* Tuto déclaration */}
-      <div className="mb-4 overflow-hidden rounded-2xl border border-gray-100">
-        <button
-          onClick={() => setShowTuto((s) => !s)}
-          className="flex w-full items-center gap-2 px-4 py-3 text-left text-sm font-medium hover:bg-gray-50"
-        >
-          <HelpCircle className="h-4 w-4 text-muted" />
-          Comment déclarer ? (et c&apos;est quoi le CA à déclarer)
-          <ChevronDown
-            className={`ml-auto h-4 w-4 text-muted transition-transform ${
-              showTuto ? "rotate-180" : ""
-            }`}
-          />
-        </button>
-        {showTuto && (
-          <div className="space-y-3 border-t border-gray-100 px-4 py-3 text-sm text-gray-600">
-            <p>
-              Le <strong>CA à déclarer</strong> = les sommes effectivement
-              encaissées dans le mois pour ton activité freelance (ce qui est
-              tombé sur ton compte). Pas le salaire, pas les devis non payés.
-              Comme tu es en franchise de TVA, c&apos;est un montant sans TVA.
-              On te le pré-calcule à partir de tes revenus encaissés.
-            </p>
-            <ol className="list-inside list-decimal space-y-1">
-              <li>Aller sur autoentrepreneur.urssaf.fr</li>
-              <li>Se connecter avec son numéro d&apos;affilié</li>
-              <li>Déclarer le CA du mois (le montant indiqué ici)</li>
-              <li>Valider le paiement</li>
-              <li>Revenir ici et cocher « déclaré »</li>
-            </ol>
-          </div>
-        )}
-      </div>
+      <Tuto />
 
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-        {MONTHS.map((label, i) => {
-          const month = i + 1;
-          return (
+      {view === "mois" && (
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setFocus((f) => shift(f.y, f.m, -1))}
+            aria-label="Mois précédent"
+            className="shrink-0 rounded-lg p-2 text-muted hover:bg-gray-100 hover:text-ink"
+          >
+            <ChevronLeft className="h-5 w-5" />
+          </button>
+          <div className="flex flex-1 gap-3 overflow-x-auto pb-1">
+            {fenetre.map((c) => (
+              <MonthCard
+                key={`${c.y}-${c.m}`}
+                year={c.y}
+                month={c.m}
+                label={`${MONTHS[c.m - 1]} ${c.y}`}
+                rate={urssafRate(c.y, c.m)}
+                row={rowOf(c.y, c.m)}
+                encaisse={encaisseOf(c.y, c.m)}
+                past={isPast(c.y, c.m)}
+                current={isCurrent(c.y, c.m)}
+                dim={c.dim}
+              />
+            ))}
+          </div>
+          <button
+            onClick={() => setFocus((f) => shift(f.y, f.m, 1))}
+            aria-label="Mois suivant"
+            className="shrink-0 rounded-lg p-2 text-muted hover:bg-gray-100 hover:text-ink"
+          >
+            <ChevronRight className="h-5 w-5" />
+          </button>
+        </div>
+      )}
+
+      {view === "douze" && (
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          {douzeMois.map((c) => (
             <MonthCard
-              key={`${year}-${month}`}
-              year={year}
-              month={month}
-              label={label}
-              rate={urssafRate(year, month)}
-              row={rowFor(month)}
-              encaisse={encaisseByMonth(month)}
-              past={isPast(month)}
+              key={`${c.y}-${c.m}`}
+              year={c.y}
+              month={c.m}
+              label={`${MONTHS_SHORT[c.m - 1]} ${c.y}`}
+              rate={urssafRate(c.y, c.m)}
+              row={rowOf(c.y, c.m)}
+              encaisse={encaisseOf(c.y, c.m)}
+              past={isPast(c.y, c.m)}
+              current={isCurrent(c.y, c.m)}
             />
-          );
-        })}
-      </div>
+          ))}
+        </div>
+      )}
+
+      {view === "debut" && (
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+          <RecapCard label="CA encaissé (total)" value={formatEuro(totalEncaisse)} />
+          <RecapCard
+            label="URSSAF estimée (total)"
+            value={formatEuro(totalUrssaf)}
+            accent
+          />
+          <RecapCard
+            label="Mois déclarés"
+            value={`${declaredCount} / ${allMonths.size || 0}`}
+            sub="mois cochés / mois encaissés"
+          />
+        </div>
+      )}
     </section>
+  );
+}
+
+function Tuto() {
+  const [show, setShow] = useState(false);
+  return (
+    <div className="mb-4 overflow-hidden rounded-2xl border border-gray-100">
+      <button
+        onClick={() => setShow((s) => !s)}
+        className="flex w-full items-center gap-2 px-4 py-3 text-left text-sm font-medium hover:bg-gray-50"
+      >
+        <HelpCircle className="h-4 w-4 text-muted" />
+        Comment déclarer ? (et c&apos;est quoi le CA à déclarer)
+        <ChevronDown
+          className={`ml-auto h-4 w-4 text-muted transition-transform ${
+            show ? "rotate-180" : ""
+          }`}
+        />
+      </button>
+      {show && (
+        <div className="space-y-3 border-t border-gray-100 px-4 py-3 text-sm text-gray-600">
+          <p>
+            Le <strong>CA à déclarer</strong> = les sommes effectivement encaissées
+            dans le mois pour ton activité freelance (ce qui est tombé sur ton
+            compte). Pas le salaire, pas les devis non payés. Comme tu es en
+            franchise de TVA, c&apos;est un montant sans TVA. On te le pré-calcule.
+          </p>
+          <ol className="list-inside list-decimal space-y-1">
+            <li>Aller sur autoentrepreneur.urssaf.fr</li>
+            <li>Se connecter avec son numéro d&apos;affilié</li>
+            <li>Déclarer le CA du mois (le montant indiqué ici)</li>
+            <li>Valider le paiement</li>
+            <li>Revenir ici et cocher « déclaré »</li>
+          </ol>
+        </div>
+      )}
+    </div>
   );
 }
 
@@ -154,6 +257,8 @@ function MonthCard({
   row,
   encaisse,
   past,
+  current,
+  dim,
 }: {
   year: number;
   month: number;
@@ -162,10 +267,11 @@ function MonthCard({
   row?: Urssaf;
   encaisse: number;
   past: boolean;
+  current: boolean;
+  dim?: boolean;
 }) {
   const [completed, setCompleted] = useState(row?.completed ?? false);
   const urssaf = encaisse * rate;
-  // Rappel : mois passé, du CA encaissé, mais pas encore marqué déclaré
   const aDeclarer = past && encaisse > 0 && !completed;
 
   function toggle() {
@@ -178,23 +284,26 @@ function MonthCard({
     });
   }
 
+  const border = current
+    ? "border-active/50 bg-blue-50/40"
+    : completed
+      ? "border-success/30 bg-green-50/40"
+      : aDeclarer
+        ? "border-pending/40 bg-orange-50/50"
+        : "border-gray-100";
+
   return (
     <div
-      className={`rounded-2xl border p-4 ${
-        completed
-          ? "border-success/30 bg-green-50/40"
-          : aDeclarer
-            ? "border-pending/40 bg-orange-50/50"
-            : "border-gray-100"
+      className={`min-w-[150px] flex-1 rounded-2xl border p-4 transition-opacity ${border} ${
+        dim ? "opacity-60" : ""
       }`}
     >
-      <div className="mb-2 flex items-center justify-between">
+      <div className="mb-2 flex items-center justify-between gap-2">
         <span className="text-sm font-semibold">{label}</span>
         <span className="rounded-full bg-gray-100 px-2 py-0.5 text-[11px] font-medium text-gray-500">
           {Math.round(rate * 100)}%
         </span>
       </div>
-
       <div className="space-y-0.5 text-sm">
         <p className="flex items-center justify-between">
           <span className="text-muted">CA encaissé</span>
@@ -205,7 +314,6 @@ function MonthCard({
           <span className="font-medium">{formatEuro(urssaf)}</span>
         </p>
       </div>
-
       <button
         onClick={toggle}
         className={`mt-3 flex w-full items-center justify-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition-colors ${
@@ -227,6 +335,34 @@ function MonthCard({
           "Marquer déclaré"
         )}
       </button>
+    </div>
+  );
+}
+
+function RecapCard({
+  label,
+  value,
+  sub,
+  accent,
+}: {
+  label: string;
+  value: string;
+  sub?: string;
+  accent?: boolean;
+}) {
+  return (
+    <div className="rounded-2xl border border-gray-100 p-4">
+      <p className="text-xs font-medium uppercase tracking-wide text-muted">
+        {label}
+      </p>
+      <p
+        className={`mt-1 text-2xl font-semibold tracking-tight ${
+          accent ? "text-active" : ""
+        }`}
+      >
+        {value}
+      </p>
+      {sub && <p className="mt-0.5 text-xs text-muted">{sub}</p>}
     </div>
   );
 }

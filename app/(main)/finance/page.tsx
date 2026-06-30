@@ -3,7 +3,6 @@ import {
   getExpenses,
   getUrssaf,
   getSalaires,
-  getFinanceSettings,
 } from "./actions";
 import { getProjects, getClients } from "../work/actions";
 import DashboardSection from "@/components/finance/DashboardSection";
@@ -18,7 +17,7 @@ import { apprentiTaxableSalary } from "@/lib/finance";
 export const dynamic = "force-dynamic";
 
 export default async function FinancePage() {
-  const [payments, expenses, urssaf, salaires, projects, clients, settings] =
+  const [payments, expenses, urssaf, salaires, projects, clients] =
     await Promise.all([
       getPayments(),
       getExpenses(),
@@ -26,7 +25,6 @@ export default async function FinancePage() {
       getSalaires(),
       getProjects(),
       getClients(),
-      getFinanceSettings(),
     ]);
 
   // Données de l'année en cours partagées entre Dashboard et Salarié
@@ -59,12 +57,8 @@ export default async function FinancePage() {
 
       <DiagrammesSection payments={payments} projects={projects} />
 
-      {/* Prévisionnel (objectif / seuils) + impôt estimé, tout en bas */}
-      <PrevisionnelSection
-        payments={payments}
-        goals={settings}
-        salaryTaxable={salaryTaxable}
-      />
+      {/* Prévisionnel (CA avant impôt / seuils) + impôt estimé, tout en bas */}
+      <PrevisionnelSection payments={payments} salaryTaxable={salaryTaxable} />
     </div>
   );
 }
