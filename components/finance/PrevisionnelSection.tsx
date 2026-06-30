@@ -6,12 +6,23 @@ import { formatEuro } from "@/lib/work";
 import {
   estimateIncomeTax,
   currentBracket,
+  urssafRate,
+  isAcre,
+  URSSAF_COTISATION_BNC,
+  CFP_RATE,
   INCOME_TAX_BRACKETS,
   MICRO_BNC_CEILING,
   MICRO_BNC_ABATTEMENT,
   TVA_FRANCHISE_BASE,
   TVA_FRANCHISE_MAJORE,
 } from "@/lib/finance";
+
+// Affiche un taux (0.13 -> "13,0 %"), sans décimale inutile si entier
+function pct(rate: number): string {
+  const v = rate * 100;
+  const s = Number.isInteger(v) ? String(v) : v.toFixed(1);
+  return `${s.replace(".", ",")} %`;
+}
 import { setFinanceSetting } from "@/app/(main)/finance/actions";
 import type { Payment } from "@/lib/types";
 
@@ -55,6 +66,12 @@ export default function PrevisionnelSection({
   );
   const dejaImposable = revenuImposableTotal > seuilNonImposable;
 
+  // Taux URSSAF du mois en cours + taux après la fin de l'ACRE
+  const moisActuel = now.getMonth() + 1;
+  const urssafActuel = urssafRate(year, moisActuel);
+  const urssafApresAcre = URSSAF_COTISATION_BNC + CFP_RATE;
+  const acreActif = isAcre(year, moisActuel);
+
   // Tranche marginale actuelle + marge de CA avant la tranche suivante
   const bracket = currentBracket(revenuImposableTotal);
   const margeImposable =
@@ -66,6 +83,52 @@ export default function PrevisionnelSection({
 
   return (
     <section className="space-y-6">
+      <h2 className="text-xl font-semibold tracking-tight">
+        Prévisionnel &amp; repères
+      </h2>
+
+      {/* ---------- Repères fiscaux (toujours visibles) ---------- */}
+      <div className="rounded-2xl border border-gray-100 p-5">
+        <h3 className="mb-4 text-sm font-semibold">Repères fiscaux 2026</h3>
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+          <Repere
+            label="Taux URSSAF actuel"
+            value={pct(urssafActuel)}
+            sub={
+              acreActif
+                ? `ACRE jusqu'à mars 2027, puis ${pct(urssafApresAcre)}`
+                : "ACRE terminée"
+            }
+            accent="active"
+          />
+          <Repere
+            label="Abattement impôt"
+            value={pct(MICRO_BNC_ABATTEMENT)}
+            sub="Revenu imposable = CA x 66 %"
+          />
+          <Repere
+            label="Tranche marginale"
+            value={pct(bracket.rate)}
+            sub="impôt sur le revenu"
+          />
+          <Repere
+            label="Seuil non imposable"
+            value={formatEuro(seuilNonImposable)}
+            sub="barème 1 part"
+          />
+          <Repere
+            label="Plafond micro-BNC"
+            value={formatEuro(MICRO_BNC_CEILING)}
+            sub="au-delà : régime réel"
+          />
+          <Repere
+            label="Franchise TVA"
+            value={formatEuro(TVA_FRANCHISE_BASE)}
+            sub={`tolérance ${formatEuro(TVA_FRANCHISE_MAJORE)}`}
+          />
+        </div>
+      </div>
+
       {/* ---------- Objectif / Seuils (un seul bloc, bascule) ---------- */}
       <div className="rounded-2xl border border-gray-100 p-5">
         <div className="mb-5 flex items-center gap-1 rounded-xl bg-gray-100 p-1">
@@ -213,6 +276,34 @@ export default function PrevisionnelSection({
 }
 
 // ---------- Sous-composants ----------
+
+function Repere({
+  label,
+  value,
+  sub,
+  accent,
+}: {
+  label: string;
+  value: string;
+  sub?: string;
+  accent?: "active";
+}) {
+  return (
+    <div className="rounded-xl bg-gray-50 p-3">
+      <p className="text-[11px] font-medium uppercase tracking-wide text-muted">
+        {label}
+      </p>
+      <p
+        className={`mt-0.5 text-lg font-semibold tracking-tight ${
+          accent === "active" ? "text-active" : ""
+        }`}
+      >
+        {value}
+      </p>
+      {sub && <p className="mt-0.5 text-[11px] leading-tight text-muted">{sub}</p>}
+    </div>
+  );
+}
 
 function TabButton({
   active,

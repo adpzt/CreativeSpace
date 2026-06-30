@@ -66,7 +66,10 @@ export default function UrssafSection({
         <div>
           <h2 className="text-xl font-semibold tracking-tight">URSSAF</h2>
           <p className="text-sm text-muted">
-            Cotisations estimées {year} : {formatEuro(totalUrssaf)}
+            Cotisations estimées {year} : {formatEuro(totalUrssaf)} · taux{" "}
+            {urssafRate(year, now.getMonth() + 1) < 0.2
+              ? "13,0 % (ACRE)"
+              : "25,8 %"}
           </p>
         </div>
         <div className="flex items-center gap-1">
