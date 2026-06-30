@@ -78,9 +78,11 @@ export const MICRO_BNC_ABATTEMENT = 0.34;
 // SMIC annuel de référence (à actualiser chaque année).
 export const SMIC_ANNUEL = 21_273;
 
-// Part imposable d'un salaire d'apprenti sur l'année (0 tant qu'on reste sous le SMIC annuel).
-export function apprentiTaxableSalary(annualGrossSalary: number): number {
-  return Math.max(0, annualGrossSalary - SMIC_ANNUEL);
+// Part imposable d'un salaire d'apprenti sur l'année.
+// IMPORTANT : la base est le CUMUL ANNUEL DU NET IMPOSABLE (lu sur le bulletin),
+// jamais le brut ni le net à payer. 0 tant qu'on reste sous le SMIC annuel.
+export function apprentiTaxableSalary(netImposableAnnuel: number): number {
+  return Math.max(0, netImposableAnnuel - SMIC_ANNUEL);
 }
 
 // Barème progressif de l'impôt sur le revenu, par part (revenus 2026).

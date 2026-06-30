@@ -131,14 +131,14 @@ export default function CalendarSection({
     return c?.company || c?.name || p.name;
   }
 
-  // On propose tous les livrables non terminés des projets actifs de la
-  // catégorie. On n'exclut PAS ceux déjà placés : un livrable (ex : un site)
-  // peut s'étaler sur plusieurs jours.
+  // On propose tous les livrables non terminés de la catégorie, y compris ceux
+  // des projets CLÔTURÉS (pour pouvoir réajuster le calendrier, même passé).
+  // On exclut seulement les projets annulés. On n'exclut PAS les livrables déjà
+  // placés : un livrable (ex : un site) peut s'étaler sur plusieurs jours.
   function suggestionsFor(cat: CalendarCategory): Suggestion[] {
     const out: Suggestion[] = [];
     for (const p of projects) {
-      if (p.category !== cat || p.status === "closed" || p.status === "cancelled")
-        continue;
+      if (p.category !== cat || p.status === "cancelled") continue;
       for (const d of p.deliverables) {
         if (d.completed) continue;
         out.push({ project: p, deliverable: d });

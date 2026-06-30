@@ -135,9 +135,47 @@ export default function SalaireForm({
         />
       </div>
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+      {/* Net imposable = LA base fiscale, mise en avant */}
+      <div className="rounded-xl border border-active/40 bg-blue-50/40 p-3.5">
+        <label className={labelClass}>
+          Net imposable (€)
+          <span className="ml-1 normal-case text-active">· base de l&apos;impôt</span>
+        </label>
+        <input
+          value={taxable}
+          onChange={(e) => setTaxable(e.target.value)}
+          type="number"
+          min={0}
+          step="any"
+          placeholder="0"
+          className={`${inputClass} bg-white`}
+        />
+        <p className="mt-1.5 text-xs text-muted">
+          Recopie la ligne <strong>« Net imposable »</strong> du bulletin (à saisir
+          telle quelle, jamais déduite du net à payer). Tu peux aussi entrer le
+          cumul « net imposable depuis janvier » sur une seule ligne.
+        </p>
+      </div>
+
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div>
-          <label className={labelClass}>Brut (€)</label>
+          <label className={labelClass}>Net à payer (€)</label>
+          <input
+            value={net}
+            onChange={(e) => setNet(e.target.value)}
+            type="number"
+            min={0}
+            step="any"
+            placeholder="0"
+            className={inputClass}
+          />
+          <p className="mt-1 text-[11px] text-muted">
+            Ce qui tombe sur ton compte (trésorerie). N&apos;entre PAS dans le calcul
+            fiscal.
+          </p>
+        </div>
+        <div>
+          <label className={labelClass}>Brut (€) — optionnel</label>
           <input
             value={gross}
             onChange={(e) => setGross(e.target.value)}
@@ -148,39 +186,12 @@ export default function SalaireForm({
             className={inputClass}
           />
         </div>
-        <div>
-          <label className={labelClass}>Net versé (€)</label>
-          <input
-            value={net}
-            onChange={(e) => setNet(e.target.value)}
-            type="number"
-            min={0}
-            step="any"
-            placeholder="0"
-            className={inputClass}
-          />
-        </div>
-        <div>
-          <label className={labelClass}>Net imposable (€)</label>
-          <input
-            value={taxable}
-            onChange={(e) => setTaxable(e.target.value)}
-            type="number"
-            min={0}
-            step="any"
-            placeholder="0"
-            className={inputClass}
-          />
-        </div>
       </div>
       <p className="text-xs text-muted">
-        Le <strong>net imposable</strong> est une ligne en bas de ta fiche de paie
-        (parfois « net fiscal »), un peu au-dessus du net versé. Si tu ne l&apos;as
-        pas mois par mois, crée une seule ligne avec le cumul depuis janvier. En
-        <strong> apprentissage</strong>, ce salaire est exonéré d&apos;impôt
-        jusqu&apos;au SMIC annuel (~21 273 €), donc il ne pèse souvent rien sur
-        l&apos;impôt. Il n&apos;entre jamais dans le CA freelance ni dans
-        l&apos;URSSAF.
+        En <strong>apprentissage</strong>, le salaire est exonéré d&apos;impôt
+        jusqu&apos;au SMIC annuel (~21 273 €) : tant que ton cumul net imposable
+        reste en dessous, il ne pèse rien sur l&apos;impôt. Le salaire n&apos;entre
+        jamais dans le CA freelance ni dans l&apos;URSSAF.
       </p>
 
       <div className="flex items-center justify-between pt-1">
