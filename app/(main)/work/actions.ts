@@ -191,9 +191,17 @@ export async function updateDeliverable(
   patch: Partial<Omit<Deliverable, "id" | "project_id">>
 ): Promise<void> {
   const supabase = createServerSupabase();
+
+  // Règle : régler la progression coche/décoche le livrable.
+  // 100% -> coché ; en dessous -> décoché. (Le toggle de la case n'est pas concerné.)
+  const effective: Partial<Omit<Deliverable, "id" | "project_id">> = { ...patch };
+  if (patch.progress !== undefined && patch.completed === undefined) {
+    effective.completed = patch.progress >= 100;
+  }
+
   const { error } = await supabase
     .from("deliverables")
-    .update(patch)
+    .update(effective)
     .eq("id", id);
 
   if (error) throw new Error(error.message);

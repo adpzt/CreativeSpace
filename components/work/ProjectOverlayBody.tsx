@@ -166,8 +166,10 @@ export default function ProjectOverlayBody({
     await updateDeliverable(id, { duration_days: days });
   }
   async function progressDeliv(id: string, progress: number) {
+    // 100% coche le livrable, en dessous le décoche (cohérent avec le serveur)
+    const completed = progress >= 100;
     setDeliverables((p) =>
-      p.map((d) => (d.id === id ? { ...d, progress } : d))
+      p.map((d) => (d.id === id ? { ...d, progress, completed } : d))
     );
     await updateDeliverable(id, { progress });
   }
