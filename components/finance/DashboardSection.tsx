@@ -11,16 +11,14 @@ import {
 import type { LucideIcon } from "lucide-react";
 import { formatEuro } from "@/lib/work";
 import { urssafRate } from "@/lib/finance";
-import type { Payment, Expense, ProjectWithDeliverables } from "@/lib/types";
+import type { Payment, Expense } from "@/lib/types";
 
 export default function DashboardSection({
   payments,
   expenses,
-  projects,
 }: {
   payments: Payment[];
   expenses: Expense[];
-  projects: ProjectWithDeliverables[];
 }) {
   const now = new Date();
   const year = now.getFullYear();
@@ -38,15 +36,13 @@ export default function DashboardSection({
     .filter((p) => p.status !== "paid")
     .reduce((s, p) => s + net(p), 0);
 
-  const depManuelles = expenses
+  // IMPORTANT : on ne compte QUE les dépenses validées (table expenses).
+  // Les dépenses de mission d'un projet ne comptent pas tant qu'elles ne sont
+  // pas validées dans la section Dépenses (sinon double comptage / comptage
+  // avant validation).
+  const depenses = expenses
     .filter((e) => e.date?.startsWith(y))
     .reduce((s, e) => s + (e.amount ?? 0), 0);
-  const depMission = projects.reduce(
-    (s, p) =>
-      s + (p.mission_expenses ?? []).reduce((ss, e) => ss + (e.amount ?? 0), 0),
-    0
-  );
-  const depenses = depManuelles + depMission;
 
   let urssafYear = 0;
   for (let m = 1; m <= 12; m++) {

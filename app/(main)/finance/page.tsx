@@ -47,11 +47,7 @@ export default async function FinancePage() {
     <div className="space-y-10">
       <h1 className="text-xl font-semibold tracking-tight">Finance</h1>
 
-      <DashboardSection
-        payments={payments}
-        expenses={expenses}
-        projects={projects}
-      />
+      <DashboardSection payments={payments} expenses={expenses} />
 
       <RevenusSection payments={payments} projects={projects} clients={clients} />
 
