@@ -1,17 +1,13 @@
-import {
-  getPayments,
-  getExpenses,
-  getUrssaf,
-  getSalaires,
-} from "./actions";
+import { getPayments, getExpenses, getUrssaf, getSalaires } from "./actions";
 import { getProjects, getClients } from "../work/actions";
 import DashboardSection from "@/components/finance/DashboardSection";
 import RevenusSection from "@/components/finance/RevenusSection";
 import DepensesSection from "@/components/finance/DepensesSection";
 import UrssafSection from "@/components/finance/UrssafSection";
+import SeuilsSection from "@/components/finance/SeuilsSection";
 import SalaireSection from "@/components/finance/SalaireSection";
 import DiagrammesSection from "@/components/finance/DiagrammesSection";
-import PrevisionnelSection from "@/components/finance/PrevisionnelSection";
+import ImpotSection from "@/components/finance/ImpotSection";
 import { apprentiTaxableSalary } from "@/lib/finance";
 
 export const dynamic = "force-dynamic";
@@ -27,38 +23,55 @@ export default async function FinancePage() {
       getClients(),
     ]);
 
-  // Données de l'année en cours partagées entre Dashboard et Salarié
+  // Données de l'année en cours
   const year = new Date().getFullYear();
   const y = String(year);
   const caYear = payments
     .filter((p) => p.status === "paid" && p.received_date?.startsWith(y))
     .reduce((s, p) => s + (p.net_amount ?? 0), 0);
-  // Salaire imposable de l'année. Contrat d'apprentissage : exonéré jusqu'au
-  // SMIC annuel (sur le BRUT), seule la part au-dessus est imposable (souvent 0
-  // pour Adrien). On prend le brut, sinon le net versé en secours.
+  // Salaire imposable de l'année (apprentissage : exonéré jusqu'au SMIC annuel,
+  // sur le brut ; net versé en secours). Souvent 0 pour Adrien.
   const salaryAnnualGross = salaires
     .filter((s) => s.year === year)
     .reduce((s, x) => s + (x.gross_salary ?? x.net_salary ?? 0), 0);
   const salaryTaxable = apprentiTaxableSalary(salaryAnnualGross);
 
   return (
-    <div className="space-y-10">
+    <div className="space-y-12">
       <h1 className="text-xl font-semibold tracking-tight">Finance</h1>
 
-      <DashboardSection payments={payments} expenses={expenses} />
+      {/* ============== FREELANCE ============== */}
+      <div className="space-y-10">
+        <SectionBanner
+          title="Freelance"
+          subtitle="Ton activité de micro-entrepreneur : revenus, dépenses, cotisations."
+        />
+        <DashboardSection payments={payments} expenses={expenses} />
+        <RevenusSection payments={payments} projects={projects} clients={clients} />
+        <DepensesSection expenses={expenses} projects={projects} />
+        <DiagrammesSection payments={payments} projects={projects} />
+        <UrssafSection rows={urssaf} payments={payments} />
+        <SeuilsSection payments={payments} />
+      </div>
 
-      <RevenusSection payments={payments} projects={projects} clients={clients} />
+      {/* ============== SALAIRE & IMPÔT ============== */}
+      <div className="space-y-10">
+        <SectionBanner
+          title="Salaire & impôt"
+          subtitle="Tes salaires (alternance, stages) et l'estimation d'impôt sur le revenu global."
+        />
+        <SalaireSection salaires={salaires} caYear={caYear} />
+        <ImpotSection payments={payments} salaryTaxable={salaryTaxable} />
+      </div>
+    </div>
+  );
+}
 
-      <DepensesSection expenses={expenses} projects={projects} />
-
-      <UrssafSection rows={urssaf} payments={payments} />
-
-      <SalaireSection salaires={salaires} caYear={caYear} />
-
-      <DiagrammesSection payments={payments} projects={projects} />
-
-      {/* Prévisionnel (CA avant impôt / seuils) + impôt estimé, tout en bas */}
-      <PrevisionnelSection payments={payments} salaryTaxable={salaryTaxable} />
+function SectionBanner({ title, subtitle }: { title: string; subtitle: string }) {
+  return (
+    <div className="border-t border-gray-200 pt-5">
+      <h2 className="text-2xl font-bold tracking-tight">{title}</h2>
+      <p className="mt-0.5 text-sm text-muted">{subtitle}</p>
     </div>
   );
 }

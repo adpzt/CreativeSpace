@@ -16,6 +16,10 @@ const labelClass =
 const inputClass =
   "w-full rounded-xl border border-gray-200 px-3.5 py-2.5 text-sm outline-none transition-colors focus:border-ink placeholder:text-muted";
 
+// Années sélectionnables : 2024 jusqu'à l'année prochaine (pour archiver les stages 2025, etc.)
+const NOW_YEAR = new Date().getFullYear();
+const YEARS = Array.from({ length: NOW_YEAR + 1 - 2024 + 1 }, (_, i) => 2024 + i);
+
 const MONTHS = [
   "Janvier",
   "Février",
@@ -107,12 +111,17 @@ export default function SalaireForm({
         </div>
         <div>
           <label className={labelClass}>Année</label>
-          <input
-            type="number"
+          <select
             value={year}
             onChange={(e) => setYear(Number(e.target.value))}
             className={inputClass}
-          />
+          >
+            {YEARS.map((yr) => (
+              <option key={yr} value={yr}>
+                {yr}
+              </option>
+            ))}
+          </select>
         </div>
       </div>
 

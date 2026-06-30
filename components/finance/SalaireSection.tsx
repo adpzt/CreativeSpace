@@ -42,6 +42,11 @@ export default function SalaireSection({
   const netVerseYear = thisYear.reduce((s, x) => s + (x.net_salary ?? 0), 0);
   const revenuTotal = caYear + netVerseYear;
 
+  // Années présentes, de la plus récente à la plus ancienne
+  const years = Array.from(new Set(salaires.map((s) => s.year))).sort(
+    (a, b) => b - a
+  );
+
   function close() {
     setCreating(false);
     setEditing(null);
@@ -72,35 +77,51 @@ export default function SalaireSection({
         <EmptyState
           icon={Briefcase}
           title="Aucun salaire"
-          description="Ajoute tes salaires d'alternance (The Source, dès septembre 2026). Ils alimentent le revenu total et l'estimation d'impôt, jamais le CA freelance ni l'URSSAF."
+          description="Ajoute tes salaires (alternance The Source, stages 2025...). Ils alimentent le revenu total et l'estimation d'impôt, jamais le CA freelance ni l'URSSAF."
         />
       ) : (
-        <ul className="divide-y divide-gray-100 overflow-hidden rounded-2xl border border-gray-100">
-          {salaires.map((s) => (
-            <li key={s.id}>
-              <button
-                onClick={() => setEditing(s)}
-                className="flex w-full items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-gray-50"
-              >
-                <div className="min-w-0 flex-1">
-                  <p className="truncate font-medium">
-                    {MONTHS[s.month - 1]} {s.year}
-                    {s.employer ? ` · ${s.employer}` : ""}
-                  </p>
-                  <p className="truncate text-xs text-muted">
-                    Net imposable {formatEuro(s.net_taxable ?? 0)}
-                    {s.gross_salary != null
-                      ? ` · brut ${formatEuro(s.gross_salary)}`
-                      : ""}
-                  </p>
+        <div className="space-y-4">
+          {years.map((yr) => {
+            const rows = salaires.filter((s) => s.year === yr);
+            const totalNet = rows.reduce((s, x) => s + (x.net_salary ?? 0), 0);
+            return (
+              <div key={yr}>
+                <div className="mb-1.5 flex items-center justify-between px-1">
+                  <span className="text-sm font-semibold">{yr}</span>
+                  <span className="text-xs text-muted">
+                    net versé {formatEuro(totalNet)}
+                  </span>
                 </div>
-                <span className="shrink-0 text-sm font-medium">
-                  {formatEuro(s.net_salary ?? 0)}
-                </span>
-              </button>
-            </li>
-          ))}
-        </ul>
+                <ul className="divide-y divide-gray-100 overflow-hidden rounded-2xl border border-gray-100">
+                  {rows.map((s) => (
+                    <li key={s.id}>
+                      <button
+                        onClick={() => setEditing(s)}
+                        className="flex w-full items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-gray-50"
+                      >
+                        <div className="min-w-0 flex-1">
+                          <p className="truncate font-medium">
+                            {MONTHS[s.month - 1]} {s.year}
+                            {s.employer ? ` · ${s.employer}` : ""}
+                          </p>
+                          <p className="truncate text-xs text-muted">
+                            Net imposable {formatEuro(s.net_taxable ?? 0)}
+                            {s.gross_salary != null
+                              ? ` · brut ${formatEuro(s.gross_salary)}`
+                              : ""}
+                          </p>
+                        </div>
+                        <span className="shrink-0 text-sm font-medium">
+                          {formatEuro(s.net_salary ?? 0)}
+                        </span>
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            );
+          })}
+        </div>
       )}
 
       {(creating || editing) && (
