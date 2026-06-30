@@ -335,18 +335,18 @@ Le calendrier étant le composant le plus critique, il est livré en DEUX temps 
 - [x] Alertes seuils (plafond micro-BNC 77 700€, franchise TVA 37 500€/41 250€)
 - [x] Impôt estimé indicatif sur le revenu total (CA freelance x 66% + salaire net imposable, barème 1 part). Salaire = 0 tant que la vue Salarié n'est pas remplie.
 
-### Étape 3.5 — Vue Salarié
-- [ ] Saisie manuelle des salaires (mois, brut, net, net imposable, employeur)
-- [ ] Revenu total = CA freelance + salaire, jamais mélangé à la base URSSAF
-- [ ] Le salaire alimente uniquement l'estimation d'impôt global et la vision revenu total
+### Étape 3.5 — Vue Salarié  [FAIT]
+- [x] Saisie manuelle des salaires (mois, brut, net, net imposable, employeur) en overlay
+- [x] Revenu total = CA freelance + salaire net versé, jamais mélangé à la base URSSAF
+- [x] Le salaire (net imposable) alimente l'estimation d'impôt du Dashboard et la vision revenu total
 
-### Étape 3.6 — Diagrammes & mise en valeur (fin de Finance)
-- [ ] Section diagrammes dans de jolis encadrés (l'espace ne doit pas être "plat")
-- [ ] Camembert CA par provenance (Malt / Instagram / Direct / The Source / Autres)
-- [ ] Camembert CA par type de mission
-- [ ] Barres : CA gagné par mois sur l'année
-- [ ] Sur chaque bloc de stats, un icône "liste" pour basculer en vue ligne par ligne
-- [ ] (Librairie : Recharts)
+### Étape 3.6 — Diagrammes & mise en valeur (fin de Finance)  [FAIT]
+- [x] Section diagrammes dans de jolis encadrés
+- [x] Camembert CA par provenance (Malt / Instagram / Direct / The Source / Autres)
+- [x] Camembert CA par type de mission (dérivé des projets liés, réparti à parts égales)
+- [x] Barres : CA gagné par mois sur l'année
+- [x] Sur chaque bloc, un icône "liste" pour basculer en vue ligne par ligne
+- [x] Librairie : Recharts (installée)
 
 >>> POINT DE RETOUR 8 - Dashboard financier + Salarié
 - Livré : métriques (CA encaissé, dû, dépenses, bénéfice net), objectif de CA, alertes seuils, vue Salarié, impôt estimé sur le revenu total.

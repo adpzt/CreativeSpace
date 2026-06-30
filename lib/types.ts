@@ -23,6 +23,17 @@ export type Expense = {
   created_at: string;
 };
 
+export type Salaire = {
+  id: string;
+  year: number;
+  month: number;
+  employer: string | null;
+  gross_salary: number | null; // brut
+  net_salary: number | null; // net versé
+  net_taxable: number | null; // net imposable (base impôt)
+  created_at: string;
+};
+
 export type Urssaf = {
   id: string;
   year: number;

@@ -8,7 +8,7 @@
 
 **Déployé et en ligne :** https://creative-space-lemon.vercel.app
 **Repo :** git@github.com:adpzt/CreativeSpace.git (auth clé SSH déjà sur la machine)
-**Flux :** modifier le code -> `npm run build` (vérif) -> commit -> push sur main -> Vercel redéploie tout seul (~1-2 min). Vérifier en ligne avec curl le code HTTP 200.
+**Flux :** modifier le code -> `npm run build` (vérif) -> commit -> push sur main -> Vercel redéploie tout seul (~1-2 min). Vérifier en ligne avec curl le code HTTP 200. **Adrien autorise Claude à faire les push sur main lui-même (autorisation permanente, 30/06/2026).**
 
 **Fait et validé par Adrien :**
 - PHASE 1 (fondations) : login (mdp Denis250), nav sidebar/bottom, bouton note rapide flottant, Notes rapides (autosave). 
@@ -18,9 +18,11 @@
   - Calendrier : semainier **5 jours par défaut + bouton week-end** (déplie Sam/Dim), lignes Freelance(bleu)/Entreprise(vert)/Perso(orange) en texte coloré léger, blocs déplaçables (dnd-kit) tout le bloc cliquable+draggable, clic = page note façon Notion (titre + meta projet/client/% + Terminé/Supprimer), le "+" ouvre un overlay (saisie + livrables des projets à planifier, label = client), pastille couleur projet sur bloc lié, vue mois. Note bloc lié = note du livrable (connectées). Renommer un livrable renomme le bloc (et inversement).
   - Bannière image façon Notion en haut de Work (Supabase Storage).
 
-**En cours - PHASE 3 (Finance)** = page unique : résumé (CA encaissé an/mois, en attente) + sections.
+**PHASE 3 (Finance) terminée (à valider)** = page unique : Dashboard en haut + sections.
 - FAIT : Revenus (hybride : projets clôturés "à valider" pré-remplis + revenus manuels ; statut Encaissé/Attente/Retard). Dépenses (manuelles + dépenses de mission des projets auto, lecture seule). URSSAF (12 mois, CA déclaré, **taux 24% mais 12%/mois avec ACRE jusqu'au 31 mars 2027**, tuto, total annuel). Dashboard (en haut de la page Finance) : 6 métriques (CA an/mois, dû, dépenses, URSSAF estimée, bénéfice net), objectif de CA annuel+mensuel modifiable (stocké dans table profile, clés `ca_goal_year`/`ca_goal_month`) avec barres, seuils micro-BNC (77 700€) + franchise TVA (37 500€/41 250€) avec alertes colorées, impôt estimé indicatif (CA x 66% + salaire net imposable, barème 1 part). Calculs dans lib/finance.ts (`estimateIncomeTax`, seuils, abattement).
-- RESTE : Salarié (salaires alternance + impôt sur revenu total ; alimentera `salaryTaxable` passé à DashboardSection, actuellement 0), **Diagrammes** (camemberts provenance/type + CA par mois en jolis encadrés + icône "liste" pour vue ligne par ligne).
+- Salarié : saisie manuelle des salaires (mois/an, employeur, brut/net/net imposable) en overlay (table `salaries`). Revenu total = CA freelance + salaire net versé. Le net imposable cumulé de l'année est passé en prop `salaryTaxable` au DashboardSection (estimation d'impôt). Jamais mélangé au CA freelance ni à l'URSSAF.
+- Diagrammes : Recharts. 3 encadrés avec bascule icône liste/graphique : camembert CA par provenance (depuis `payment.source`), camembert CA par type de mission (dérivé des `mission_types` du projet lié, réparti à parts égales car le type n'est pas saisi sur le revenu lui-même), barres CA par mois. Année en cours.
+- **PHASE 3 (Finance) TERMINÉE.** Reste à valider par Adrien (gros point de retour annoncé).
 
 **À faire ensuite :** Phase 4 (Freelance), Phase 5 (Home/dashboard alertes), Phase 6 (Moi), Phase 7 (bonus : PWA, dark mode, etc.).
 

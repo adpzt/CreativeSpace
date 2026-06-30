@@ -1,22 +1,42 @@
-import { getPayments, getExpenses, getUrssaf, getFinanceSettings } from "./actions";
+import {
+  getPayments,
+  getExpenses,
+  getUrssaf,
+  getSalaires,
+  getFinanceSettings,
+} from "./actions";
 import { getProjects, getClients } from "../work/actions";
 import DashboardSection from "@/components/finance/DashboardSection";
 import RevenusSection from "@/components/finance/RevenusSection";
 import DepensesSection from "@/components/finance/DepensesSection";
 import UrssafSection from "@/components/finance/UrssafSection";
+import SalaireSection from "@/components/finance/SalaireSection";
+import DiagrammesSection from "@/components/finance/DiagrammesSection";
 
 export const dynamic = "force-dynamic";
 
 export default async function FinancePage() {
-  const [payments, expenses, urssaf, projects, clients, settings] =
+  const [payments, expenses, urssaf, salaires, projects, clients, settings] =
     await Promise.all([
       getPayments(),
       getExpenses(),
       getUrssaf(),
+      getSalaires(),
       getProjects(),
       getClients(),
       getFinanceSettings(),
     ]);
+
+  // Données de l'année en cours partagées entre Dashboard et Salarié
+  const year = new Date().getFullYear();
+  const y = String(year);
+  const caYear = payments
+    .filter((p) => p.status === "paid" && p.received_date?.startsWith(y))
+    .reduce((s, p) => s + (p.net_amount ?? 0), 0);
+  // Net imposable cumulé des salaires de l'année (base impôt, jamais URSSAF)
+  const salaryTaxable = salaires
+    .filter((s) => s.year === year)
+    .reduce((s, x) => s + (x.net_taxable ?? 0), 0);
 
   return (
     <div className="space-y-10">
@@ -27,6 +47,7 @@ export default async function FinancePage() {
         expenses={expenses}
         projects={projects}
         goals={settings}
+        salaryTaxable={salaryTaxable}
       />
 
       <RevenusSection payments={payments} projects={projects} clients={clients} />
@@ -35,19 +56,9 @@ export default async function FinancePage() {
 
       <UrssafSection rows={urssaf} payments={payments} />
 
-      {/* Sections à venir */}
-      <Stub title="Salarié" detail="Revenus d'alternance + estimation d'impôt globale" />
-    </div>
-  );
-}
+      <SalaireSection salaires={salaires} caYear={caYear} />
 
-function Stub({ title, detail }: { title: string; detail: string }) {
-  return (
-    <section>
-      <h2 className="mb-4 text-xl font-semibold tracking-tight">{title}</h2>
-      <div className="rounded-2xl border border-dashed border-gray-200 px-6 py-10 text-center text-sm text-muted">
-        {detail} — arrive juste après.
-      </div>
-    </section>
+      <DiagrammesSection payments={payments} projects={projects} />
+    </div>
   );
 }

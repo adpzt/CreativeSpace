@@ -7,6 +7,7 @@ import type {
   Payment,
   PaymentStatus,
   PaymentSource,
+  Salaire,
   Urssaf,
 } from "@/lib/types";
 
@@ -135,6 +136,59 @@ export async function upsertUrssaf(
   const { error } = await supabase
     .from("urssaf_declarations")
     .upsert({ year, month, ...patch }, { onConflict: "year,month" });
+  if (error) throw new Error(error.message);
+  revalidatePath("/finance");
+}
+
+// =================== SALAIRES (vue Salarié) ===================
+// Revenus d'alternance (salaire). Jamais mélangés au CA freelance ni à la base URSSAF :
+// ils servent uniquement à la vision "revenu total" et à l'estimation d'impôt globale.
+
+export async function getSalaires(): Promise<Salaire[]> {
+  const supabase = createServerSupabase();
+  const { data, error } = await supabase
+    .from("salaries")
+    .select("*")
+    .order("year", { ascending: false })
+    .order("month", { ascending: false });
+  if (error) throw new Error(error.message);
+  return (data ?? []) as Salaire[];
+}
+
+export async function createSalaire(input: {
+  year: number;
+  month: number;
+  employer?: string | null;
+  gross_salary?: number | null;
+  net_salary?: number | null;
+  net_taxable?: number | null;
+}): Promise<void> {
+  const supabase = createServerSupabase();
+  const { error } = await supabase.from("salaries").insert({
+    year: input.year,
+    month: input.month,
+    employer: input.employer || null,
+    gross_salary: input.gross_salary ?? null,
+    net_salary: input.net_salary ?? null,
+    net_taxable: input.net_taxable ?? null,
+  });
+  if (error) throw new Error(error.message);
+  revalidatePath("/finance");
+}
+
+export async function updateSalaire(
+  id: string,
+  patch: Partial<Omit<Salaire, "id" | "created_at">>
+): Promise<void> {
+  const supabase = createServerSupabase();
+  const { error } = await supabase.from("salaries").update(patch).eq("id", id);
+  if (error) throw new Error(error.message);
+  revalidatePath("/finance");
+}
+
+export async function deleteSalaire(id: string): Promise<void> {
+  const supabase = createServerSupabase();
+  const { error } = await supabase.from("salaries").delete().eq("id", id);
   if (error) throw new Error(error.message);
   revalidatePath("/finance");
 }
