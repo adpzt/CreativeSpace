@@ -118,6 +118,31 @@ export type ProjectWithDeliverables = Project & {
   deliverables: Deliverable[];
 };
 
+export type ProspectType =
+  | "agence"
+  | "entreprise"
+  | "application"
+  | "twitter"
+  | "instagram"
+  | "autre";
+
+export type ProspectStatus =
+  | "a_contacter"
+  | "contacte"
+  | "en_discussion"
+  | "pas_interesse"
+  | "signe";
+
+export type Prospect = {
+  id: string;
+  name: string;
+  type: ProspectType | null;
+  link: string | null;
+  status: ProspectStatus;
+  notes: string | null;
+  created_at: string;
+};
+
 export type CalendarCategory = "freelance" | "entreprise" | "perso";
 
 export type CalendarBlock = {

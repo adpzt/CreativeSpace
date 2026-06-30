@@ -1,8 +1,9 @@
 import Link from "next/link";
 import { ChevronLeft } from "lucide-react";
-import Placeholder from "@/components/Placeholder";
+import PageHeader from "@/components/ui/PageHeader";
+import ProductionView from "@/components/freelance/ProductionView";
 
-export default function Page() {
+export default function ProductionPage() {
   return (
     <div>
       <Link
@@ -12,7 +13,11 @@ export default function Page() {
         <ChevronLeft className="h-4 w-4" />
         Freelance
       </Link>
-      <Placeholder title="Production" phase="Phase 4.4 : structure dossiers + checklist livraison" />
+      <PageHeader
+        title="Production"
+        subtitle="Organisation des fichiers, règles de travail et checklist de livraison."
+      />
+      <ProductionView />
     </div>
   );
 }

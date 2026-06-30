@@ -1,8 +1,9 @@
 import Link from "next/link";
 import { ChevronLeft } from "lucide-react";
-import Placeholder from "@/components/Placeholder";
+import PageHeader from "@/components/ui/PageHeader";
+import DevisView from "@/components/freelance/DevisView";
 
-export default function Page() {
+export default function DevisPage() {
   return (
     <div>
       <Link
@@ -12,7 +13,11 @@ export default function Page() {
         <ChevronLeft className="h-4 w-4" />
         Freelance
       </Link>
-      <Placeholder title="Devis & Facture" phase="Phase 4.3 : checklist devis + conditions générales" />
+      <PageHeader
+        title="Devis & Facture"
+        subtitle="Checklists, pénalités, conditions générales et liens utiles."
+      />
+      <DevisView />
     </div>
   );
 }

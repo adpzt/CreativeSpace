@@ -1,8 +1,13 @@
 import Link from "next/link";
 import { ChevronLeft } from "lucide-react";
-import Placeholder from "@/components/Placeholder";
+import PageHeader from "@/components/ui/PageHeader";
+import ProspectsBoard from "@/components/freelance/ProspectsBoard";
+import { getProspects } from "../actions";
 
-export default function Page() {
+export const dynamic = "force-dynamic";
+
+export default async function ProspectionPage() {
+  const prospects = await getProspects();
   return (
     <div>
       <Link
@@ -12,7 +17,11 @@ export default function Page() {
         <ChevronLeft className="h-4 w-4" />
         Freelance
       </Link>
-      <Placeholder title="Prospection" phase="Phase 4.5 : liens + board de prospects" />
+      <PageHeader
+        title="Prospection"
+        subtitle="Trouver des clients : liens rapides et board de prospects."
+      />
+      <ProspectsBoard prospects={prospects} />
     </div>
   );
 }

@@ -366,26 +366,26 @@ Le calendrier étant le composant le plus critique, il est livré en DEUX temps 
 - [x] Scripts avec bouton "Copier en 1 clic" (13 scripts, ancres depuis le tunnel)
 - [x] Section red flags avec comportements recommandés (9 lignes)
 
-### Étape 4.2 — Brief
-- [ ] Questions par type de mission (6 types)
-- [ ] Bouton "Ouvrir Google Form" en haut de page
+### Étape 4.2 — Brief  [FAIT]
+- [x] Questions par type de mission (6 types) en sections dépliables
+- [x] Bouton copier les questions d'un type ; bouton "Ouvrir Google Form" prévu (URL à fournir par Adrien, BRIEF_FORM_URL)
 
-### Étape 4.3 — Devis & Facture
-- [ ] Checklist devis (10 points)
-- [ ] Conditions Générales complètes (texte + mise en forme)
-- [ ] Rappel TVA avec alerte date transition (01/09/2026)
-- [ ] Liens Canva + Indy
+### Étape 4.3 — Devis & Facture  [FAIT]
+- [x] Checklist devis (10 points) + checklist facture d'acompte
+- [x] Conditions Générales complètes (11 articles + bouton "Tout copier")
+- [x] Mention pénalités de retard copiable + TVA 293B/CIBS (transition 01/09/2026) dans les CGP
+- [x] Liens utiles (Indy ; Canva à ajouter par Adrien)
 
-### Étape 4.4 — Production
-- [ ] Structure dossiers Drive (code block copier en 1 clic)
-- [ ] Règles de nommage fichiers
-- [ ] Checklist livraison (6 points)
-- [ ] Rappels et règles de production
+### Étape 4.4 — Production  [FAIT]
+- [x] Structure dossiers Drive (bloc copier en 1 clic)
+- [x] Règles de nommage fichiers
+- [x] Checklist livraison (6 points)
+- [x] Règles de production (3 projets max, blocs 90 min) + arnaqueurs à éviter
 
-### Étape 4.5 — Prospection ("Trouver des clients")
-- [ ] Bloc liens rapides (LinkedIn, Welcome to the Jungle, Malt, etc.) modifiables
-- [ ] Liste de prospects (nom, type, lien/handle, statut, notes)
-- [ ] Ajouter / modifier / supprimer un prospect, sauvegarde auto
+### Étape 4.5 — Prospection ("Trouver des clients")  [FAIT]
+- [x] Bloc liens rapides (LinkedIn, WTTJ, Malt, Behance)
+- [x] Liste de prospects (nom, type, lien/handle, statut, notes) - table prospects
+- [x] Ajouter / modifier / supprimer un prospect (overlay, statut en badge coloré)
 
 >>> POINT DE RETOUR 9 - Freelance (les 5 sous-sections)
 - Livré : communication client (tunnel + scripts), brief, devis & CGP, production, prospection.

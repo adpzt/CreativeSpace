@@ -1,8 +1,9 @@
 import Link from "next/link";
 import { ChevronLeft } from "lucide-react";
-import Placeholder from "@/components/Placeholder";
+import PageHeader from "@/components/ui/PageHeader";
+import BriefView from "@/components/freelance/BriefView";
 
-export default function Page() {
+export default function BriefPage() {
   return (
     <div>
       <Link
@@ -12,7 +13,11 @@ export default function Page() {
         <ChevronLeft className="h-4 w-4" />
         Freelance
       </Link>
-      <Placeholder title="Brief" phase="Phase 4.2 : questions de brief par type de mission" />
+      <PageHeader
+        title="Brief"
+        subtitle="Les questions à poser, par type de mission."
+      />
+      <BriefView />
     </div>
   );
 }
