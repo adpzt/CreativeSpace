@@ -38,7 +38,9 @@
 
 **PHASE 5 (Home) TERMINÉE (à valider)** : page d'accueil = bonjour + date, accès rapides (Note, Projet), bloc Alertes (paiements en retard ou échéance dépassée, solde non validé orange<2sem/rouge>=2sem, deadlines projets <7j, URSSAF mois précédent non déclarée, TVA 01/09/2026), bloc Aujourd'hui (tâches du jour cochables = components/home/TodayTasks.tsx via updateCalendarBlock), bloc Projets actifs (statut+%+deadline, lien Work), semainier compact lun-dim (jour courant surligné). app/(main)/page.tsx (force-dynamic), agrège getCalendarBlocks/getProjects/getClients/getPayments/getUrssaf.
 
-**À faire ensuite :** Phase 6 (Moi : infos pro, liens, TJM, missions, inspiration), Phase 7 (bonus : PWA, dark mode, export, portail client, recherche globale, etc.).
+**PHASE 6 (Moi) TERMINÉE (à valider)** : infos pro (SIRET, APE, IBAN, BIC, email, tél, sécu, adresse) + TJM, éditables inline (crayon) + bouton copier, stockées dans profile (clés me_*, actions app/(main)/me/actions.ts, EditableField). Liens pro (chips) + tableau dernières missions (depuis revenus encaissés) + footer Inspiration. Données dans lib/me.ts. Pas de migration.
+
+**Toutes les phases 1-6 sont faites. RESTE :** Phase 7 (bonus : PWA, dark mode, export données, portail client, recherche globale, templates, etc.). À prioriser avec Adrien après qu'il ait utilisé l'app en conditions réelles (POINT DE RETOUR FINAL).
 
 **Migrations SQL exécutées par Adrien (dans Supabase) :** schema.sql initial + 001 (tags clients) + 002 (projet category/color, deliverable notes) + 003 (calendar_blocks.notes) + 004 (statut cancelled, mission_types, cost) + 005 (source, gross/net, paid, deliverable progress) + 006 (mission_expenses jsonb) + 007 (bucket storage banners). **008 (payments.mission_type enum -> text) = À EXÉCUTER par Adrien.** Toujours lui fournir le SQL et lui dire de l'exécuter (il est débutant, le faire pas à pas).
 

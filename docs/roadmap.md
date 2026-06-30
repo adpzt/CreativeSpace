@@ -410,13 +410,13 @@ Le calendrier étant le composant le plus critique, il est livré en DEUX temps 
 
 ---
 
-## PHASE 6 — Page Moi
+## PHASE 6 — Page Moi  [FAIT]
 
-- [ ] Infos pro (SIRET, APE, sécu, adresse, email, tél) — modifiables
-- [ ] Liens pro (Instagram, Behance, LinkedIn, Malt, Taap.it, Indy, INPI, URSSAF)
-- [ ] TJM actuel (modifiable)
-- [ ] Tableau dernières missions (client, mission, montant, date)
-- [ ] Section Inspiration (liens Pinterest, Dribbble, Behance, Are.na, Awwwards, Fonts In Use)
+- [x] Infos pro (SIRET, APE, IBAN, BIC, email, tél, sécu, adresse) modifiables inline (crayon) + copier, stockées dans profile
+- [x] Liens pro (Instagram, Behance, LinkedIn, Malt, Taap.it, Indy, INPI, URSSAF, Guichet entreprises)
+- [x] TJM actuel (modifiable, défaut 170 €/j)
+- [x] Tableau dernières missions (depuis les revenus encaissés : client, type, montant facturé, date)
+- [x] Section Inspiration (Pinterest, Dribbble, Behance, Are.na, Awwwards, Fonts In Use)
 
 >>> POINT DE RETOUR 11 - Page Moi
 - Livré : infos pro modifiables (avec crayon + bouton copier), liens pro, TJM, tableau missions, section inspiration.
