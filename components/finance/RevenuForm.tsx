@@ -165,6 +165,7 @@ export default function RevenuForm({
           onChange={(e) => setNet(e.target.value)}
           type="number"
           min={0}
+          step="any"
           placeholder="790"
           className={inputClass}
         />
@@ -188,6 +189,7 @@ export default function RevenuForm({
               onChange={(e) => setGross(e.target.value)}
               type="number"
               min={0}
+              step="any"
               placeholder="898"
               className={inputClass}
             />
@@ -195,25 +197,42 @@ export default function RevenuForm({
         )}
       </div>
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-        <div>
-          <label className={labelClass}>Échéance</label>
-          <input
-            type="date"
-            value={due}
-            onChange={(e) => setDue(e.target.value)}
-            className={inputClass}
-          />
-        </div>
-        <div>
-          <label className={labelClass}>Date d&apos;encaissement</label>
-          <input
-            type="date"
-            value={received}
-            onChange={(e) => setReceived(e.target.value)}
-            className={inputClass}
-          />
-        </div>
+      {/* Date d'encaissement mise en avant : c'est elle qui compte pour le CA et l'URSSAF */}
+      <div
+        className={`rounded-xl border p-3.5 transition-colors ${
+          status === "paid"
+            ? "border-success/40 bg-green-50/50"
+            : "border-gray-200"
+        }`}
+      >
+        <label className={labelClass}>
+          Date d&apos;encaissement
+          {status === "paid" && (
+            <span className="ml-1 normal-case text-success">
+              · compte pour le CA du mois
+            </span>
+          )}
+        </label>
+        <input
+          type="date"
+          value={received}
+          onChange={(e) => setReceived(e.target.value)}
+          className={`${inputClass} ${status === "paid" ? "bg-white" : ""}`}
+        />
+        <p className="mt-1.5 text-xs text-muted">
+          Laisse vide si pas encore encaissé. Si tu passes en « Encaissé » sans
+          date, on met aujourd&apos;hui.
+        </p>
+      </div>
+
+      <div>
+        <label className={labelClass}>Échéance prévue</label>
+        <input
+          type="date"
+          value={due}
+          onChange={(e) => setDue(e.target.value)}
+          className={inputClass}
+        />
       </div>
 
       <div>

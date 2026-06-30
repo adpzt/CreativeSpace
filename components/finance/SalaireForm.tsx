@@ -134,6 +134,7 @@ export default function SalaireForm({
             onChange={(e) => setGross(e.target.value)}
             type="number"
             min={0}
+            step="any"
             placeholder="0"
             className={inputClass}
           />
@@ -145,6 +146,7 @@ export default function SalaireForm({
             onChange={(e) => setNet(e.target.value)}
             type="number"
             min={0}
+            step="any"
             placeholder="0"
             className={inputClass}
           />
@@ -156,15 +158,18 @@ export default function SalaireForm({
             onChange={(e) => setTaxable(e.target.value)}
             type="number"
             min={0}
+            step="any"
             placeholder="0"
             className={inputClass}
           />
         </div>
       </div>
       <p className="text-xs text-muted">
-        Le net imposable (sur la fiche de paie) sert de base à l&apos;estimation
-        d&apos;impôt. Le salaire n&apos;entre jamais dans le CA freelance ni dans
-        l&apos;URSSAF.
+        Le <strong>net imposable</strong> est une ligne en bas de ta fiche de paie
+        (parfois « net fiscal » / « net imposable »), un peu au-dessus du net
+        versé. C&apos;est la base de l&apos;impôt. Si tu ne l&apos;as pas mois par
+        mois, crée une seule ligne avec le cumul depuis janvier. Le salaire
+        n&apos;entre jamais dans le CA freelance ni dans l&apos;URSSAF.
       </p>
 
       <div className="flex items-center justify-between pt-1">

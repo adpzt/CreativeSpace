@@ -106,12 +106,15 @@ export const PROJECT_STATUS: Record<
 };
 
 // Ordre d'affichage des statuts
+// Note : "waiting_payment" (En attente solde) a été retiré. Le suivi du solde non
+// validé se fait désormais via Finance + une alerte sur le Home (projet clôturé
+// non encore validé en revenu). La définition reste dans PROJECT_STATUS au cas où
+// un ancien projet porterait encore ce statut, mais il n'est plus proposé.
 export const PROJECT_STATUS_ORDER: ProjectStatus[] = [
   "waiting_brief",
   "in_production",
   "waiting_feedback",
   "in_revision",
-  "waiting_payment",
   "closed",
   "cancelled",
 ];

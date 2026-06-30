@@ -396,6 +396,7 @@ Le calendrier étant le composant le plus critique, il est livré en DEUX temps 
 
 - [ ] Bloc "Aujourd'hui" (tâches du calendrier du jour)
 - [ ] Bloc alertes (paiements en retard, deadlines proches, URSSAF)
+- [ ] Alerte "solde non validé" : projet clôturé non encore validé en revenu (Finance) -> ligne ORANGE si < 2 semaines depuis la clôture, ROUGE si > 2 semaines (remplace l'ancien statut "En attente solde" retiré de Work)
 - [ ] Bloc projets actifs (statut coloré, lien vers fiche)
 - [ ] Semainier de la semaine en cours (version compacte)
 - [ ] Boutons accès rapide (Note rapide, Nouveau projet)

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import {
   ChevronLeft,
   ChevronRight,
@@ -35,10 +35,11 @@ export default function UrssafSection({
   rows: Urssaf[];
   payments: Payment[];
 }) {
-  const [year, setYear] = useState(new Date().getFullYear());
+  const now = new Date();
+  const [year, setYear] = useState(now.getFullYear());
   const [showTuto, setShowTuto] = useState(false);
 
-  // Encaissé par mois (pour suggestion de CA à déclarer)
+  // CA encaissé (net, en freelance) du mois = base à déclarer
   const encaisseByMonth = (m: number) => {
     const ym = `${year}-${String(m).padStart(2, "0")}`;
     return payments
@@ -46,14 +47,18 @@ export default function UrssafSection({
       .reduce((s, p) => s + (p.net_amount ?? 0), 0);
   };
 
-  const rowFor = (m: number) =>
-    rows.find((r) => r.year === year && r.month === m);
+  const rowFor = (m: number) => rows.find((r) => r.year === year && r.month === m);
 
-  // Total URSSAF estimée de l'année (d'après les CA déclarés)
+  // Total URSSAF estimée de l'année = somme(encaissé du mois x taux du mois)
   const totalUrssaf = Array.from({ length: 12 }, (_, i) => i + 1).reduce(
-    (s, m) => s + (rowFor(m)?.amount ?? 0) * urssafRate(year, m),
+    (s, m) => s + encaisseByMonth(m) * urssafRate(year, m),
     0
   );
+
+  // Un mois est "à déclarer" s'il est passé (déclaration le mois suivant)
+  const isPast = (m: number) =>
+    year < now.getFullYear() ||
+    (year === now.getFullYear() && m <= now.getMonth()); // m index 1-12, getMonth 0-11
 
   return (
     <section>
@@ -90,7 +95,7 @@ export default function UrssafSection({
           className="flex w-full items-center gap-2 px-4 py-3 text-left text-sm font-medium hover:bg-gray-50"
         >
           <HelpCircle className="h-4 w-4 text-muted" />
-          Comment déclarer ?
+          Comment déclarer ? (et c&apos;est quoi le CA à déclarer)
           <ChevronDown
             className={`ml-auto h-4 w-4 text-muted transition-transform ${
               showTuto ? "rotate-180" : ""
@@ -98,21 +103,30 @@ export default function UrssafSection({
           />
         </button>
         {showTuto && (
-          <ol className="list-inside list-decimal space-y-1 border-t border-gray-100 px-4 py-3 text-sm text-gray-600">
-            <li>Aller sur autoentrepreneur.urssaf.fr</li>
-            <li>Se connecter avec son numéro d&apos;affilié</li>
-            <li>Déclarer le CA du mois précédent</li>
-            <li>Valider le paiement</li>
-            <li>Revenir ici et cocher la case</li>
-          </ol>
+          <div className="space-y-3 border-t border-gray-100 px-4 py-3 text-sm text-gray-600">
+            <p>
+              Le <strong>CA à déclarer</strong> = les sommes effectivement
+              encaissées dans le mois pour ton activité freelance (ce qui est
+              tombé sur ton compte). Pas le salaire, pas les devis non payés.
+              Comme tu es en franchise de TVA, c&apos;est un montant sans TVA.
+              On te le pré-calcule à partir de tes revenus encaissés.
+            </p>
+            <ol className="list-inside list-decimal space-y-1">
+              <li>Aller sur autoentrepreneur.urssaf.fr</li>
+              <li>Se connecter avec son numéro d&apos;affilié</li>
+              <li>Déclarer le CA du mois (le montant indiqué ici)</li>
+              <li>Valider le paiement</li>
+              <li>Revenir ici et cocher « déclaré »</li>
+            </ol>
+          </div>
         )}
       </div>
 
-      <ul className="divide-y divide-gray-100 overflow-hidden rounded-2xl border border-gray-100">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {MONTHS.map((label, i) => {
           const month = i + 1;
           return (
-            <MonthRow
+            <MonthCard
               key={`${year}-${month}`}
               year={year}
               month={month}
@@ -120,21 +134,23 @@ export default function UrssafSection({
               rate={urssafRate(year, month)}
               row={rowFor(month)}
               encaisse={encaisseByMonth(month)}
+              past={isPast(month)}
             />
           );
         })}
-      </ul>
+      </div>
     </section>
   );
 }
 
-function MonthRow({
+function MonthCard({
   year,
   month,
   label,
   rate,
   row,
   encaisse,
+  past,
 }: {
   year: number;
   month: number;
@@ -142,78 +158,72 @@ function MonthRow({
   rate: number;
   row?: Urssaf;
   encaisse: number;
+  past: boolean;
 }) {
-  const [amount, setAmount] = useState(
-    row?.amount != null ? String(row.amount) : ""
-  );
   const [completed, setCompleted] = useState(row?.completed ?? false);
-  const lastSaved = useRef(amount);
-
-  // Sauvegarde différée du CA déclaré
-  useEffect(() => {
-    if (amount === lastSaved.current) return;
-    const t = setTimeout(() => {
-      upsertUrssaf(year, month, { amount: amount ? parseFloat(amount) : null });
-      lastSaved.current = amount;
-    }, 600);
-    return () => clearTimeout(t);
-  }, [amount, year, month]);
+  const urssaf = encaisse * rate;
+  // Rappel : mois passé, du CA encaissé, mais pas encore marqué déclaré
+  const aDeclarer = past && encaisse > 0 && !completed;
 
   function toggle() {
     const next = !completed;
     setCompleted(next);
     upsertUrssaf(year, month, {
+      amount: encaisse,
       completed: next,
       declared_at: next ? new Date().toISOString().slice(0, 10) : null,
     });
   }
 
-  const urssaf = (parseFloat(amount) || 0) * rate;
-
   return (
-    <li className="flex flex-wrap items-center gap-3 px-4 py-3">
-      <button
-        onClick={toggle}
-        aria-label="Déclaré"
-        className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-md border transition-colors ${
-          completed
-            ? "border-success bg-success text-white"
-            : "border-gray-300 hover:border-ink"
-        }`}
-      >
-        {completed && <Check className="h-3.5 w-3.5" />}
-      </button>
-
-      <span className="w-24 shrink-0 text-sm font-medium">{label}</span>
-
-      <span className="shrink-0 rounded-full bg-gray-100 px-2 py-0.5 text-[11px] font-medium text-gray-500">
-        {Math.round(rate * 100)}%
-      </span>
-
-      <div className="flex items-center gap-1.5">
-        <input
-          value={amount}
-          onChange={(e) => setAmount(e.target.value)}
-          type="number"
-          min={0}
-          placeholder="CA déclaré"
-          className="w-28 rounded-lg border border-gray-200 px-2.5 py-1.5 text-sm outline-none focus:border-ink"
-        />
-        {encaisse > 0 && !amount && (
-          <button
-            onClick={() => setAmount(String(encaisse))}
-            className="text-[11px] text-active hover:underline"
-            title="Utiliser l'encaissé du mois"
-          >
-            encaissé {formatEuro(encaisse)}
-          </button>
-        )}
+    <div
+      className={`rounded-2xl border p-4 ${
+        completed
+          ? "border-success/30 bg-green-50/40"
+          : aDeclarer
+            ? "border-pending/40 bg-orange-50/50"
+            : "border-gray-100"
+      }`}
+    >
+      <div className="mb-2 flex items-center justify-between">
+        <span className="text-sm font-semibold">{label}</span>
+        <span className="rounded-full bg-gray-100 px-2 py-0.5 text-[11px] font-medium text-gray-500">
+          {Math.round(rate * 100)}%
+        </span>
       </div>
 
-      <span className="ml-auto text-sm">
-        <span className="text-muted">URSSAF </span>
-        <span className="font-medium">{formatEuro(urssaf)}</span>
-      </span>
-    </li>
+      <div className="space-y-0.5 text-sm">
+        <p className="flex items-center justify-between">
+          <span className="text-muted">CA encaissé</span>
+          <span className="font-medium">{formatEuro(encaisse)}</span>
+        </p>
+        <p className="flex items-center justify-between">
+          <span className="text-muted">URSSAF</span>
+          <span className="font-medium">{formatEuro(urssaf)}</span>
+        </p>
+      </div>
+
+      <button
+        onClick={toggle}
+        className={`mt-3 flex w-full items-center justify-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition-colors ${
+          completed
+            ? "bg-success text-white"
+            : aDeclarer
+              ? "bg-pending text-white hover:opacity-90"
+              : "border border-gray-200 text-muted hover:border-ink hover:text-ink"
+        }`}
+      >
+        {completed ? (
+          <>
+            <Check className="h-3.5 w-3.5" />
+            Déclaré
+          </>
+        ) : aDeclarer ? (
+          "À déclarer · marquer fait"
+        ) : (
+          "Marquer déclaré"
+        )}
+      </button>
+    </div>
   );
 }

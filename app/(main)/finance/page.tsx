@@ -12,6 +12,7 @@ import DepensesSection from "@/components/finance/DepensesSection";
 import UrssafSection from "@/components/finance/UrssafSection";
 import SalaireSection from "@/components/finance/SalaireSection";
 import DiagrammesSection from "@/components/finance/DiagrammesSection";
+import PrevisionnelSection from "@/components/finance/PrevisionnelSection";
 
 export const dynamic = "force-dynamic";
 
@@ -46,8 +47,6 @@ export default async function FinancePage() {
         payments={payments}
         expenses={expenses}
         projects={projects}
-        goals={settings}
-        salaryTaxable={salaryTaxable}
       />
 
       <RevenusSection payments={payments} projects={projects} clients={clients} />
@@ -59,6 +58,13 @@ export default async function FinancePage() {
       <SalaireSection salaires={salaires} caYear={caYear} />
 
       <DiagrammesSection payments={payments} projects={projects} />
+
+      {/* Prévisionnel (objectif / seuils) + impôt estimé, tout en bas */}
+      <PrevisionnelSection
+        payments={payments}
+        goals={settings}
+        salaryTaxable={salaryTaxable}
+      />
     </div>
   );
 }

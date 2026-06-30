@@ -86,7 +86,8 @@ export default function ExpenseForm({
             onChange={(e) => setAmount(e.target.value)}
             type="number"
             min={0}
-            placeholder="59,99"
+            step="any"
+            placeholder="59.99"
             className={inputClass}
           />
         </div>

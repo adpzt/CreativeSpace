@@ -41,6 +41,16 @@ export default function RevenusSection({
   const toValidate = projects.filter(
     (p) => p.status === "closed" && !linkedProjectIds.has(p.id)
   );
+  // Projets en cours (ni clôturés ni annulés), pas encore liés à un revenu :
+  // affichés en gris avec leur budget prévisionnel (ou "à compléter").
+  const inProgress = projects.filter(
+    (p) =>
+      p.status !== "closed" &&
+      p.status !== "cancelled" &&
+      !linkedProjectIds.has(p.id)
+  );
+  const projectBudget = (p: ProjectWithDeliverables) =>
+    p.net_amount ?? p.gross_amount ?? null;
 
   function close() {
     setCreating(false);
@@ -121,6 +131,44 @@ export default function RevenusSection({
             ))}
           </ul>
         </div>
+      )}
+
+      {/* En cours : projets pas encore encaissés, budget prévisionnel grisé */}
+      {inProgress.length > 0 && (
+        <ul className="mb-5 divide-y divide-gray-100 overflow-hidden rounded-2xl border border-dashed border-gray-200 bg-gray-50/40">
+          {inProgress.map((p) => {
+            const budget = projectBudget(p);
+            return (
+              <li
+                key={p.id}
+                className="flex items-center gap-3 px-4 py-3 text-muted"
+              >
+                <span className="h-2 w-2 shrink-0 rounded-full bg-gray-300" />
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-medium text-gray-500">
+                    {p.name}
+                  </p>
+                  <p className="truncate text-xs">
+                    En cours
+                    {clientLabel(p.client_id) ? ` · ${clientLabel(p.client_id)}` : ""}
+                  </p>
+                </div>
+                {budget != null ? (
+                  <span className="shrink-0 text-sm font-medium text-gray-400">
+                    {formatEuro(budget)}
+                  </span>
+                ) : (
+                  <button
+                    onClick={() => openFromProject(p)}
+                    className="shrink-0 rounded-lg border border-dashed border-gray-300 px-2.5 py-1 text-xs font-medium text-gray-400 hover:border-ink hover:text-ink"
+                  >
+                    Argent à compléter
+                  </button>
+                )}
+              </li>
+            );
+          })}
+        </ul>
       )}
 
       {/* Liste des revenus */}
