@@ -360,10 +360,11 @@ Le calendrier étant le composant le plus critique, il est livré en DEUX temps 
 
 ## PHASE 4 — Freelance (contenu statique + interactif)
 
-### Étape 4.1 — Communication client
-- [ ] Tunnel client : 7 étapes avec contenu détaillé
-- [ ] Scripts avec bouton "Copier en 1 clic" (14 scripts)
-- [ ] Section red flags avec comportements recommandés
+### Étape 4.1 — Communication client  [FAIT]
+- [x] Hub Freelance (5 cartes vers les sous-sections, /freelance)
+- [x] Tunnel client : 7 étapes dépliables (à faire / demander / observer / red flags / scripts liés)
+- [x] Scripts avec bouton "Copier en 1 clic" (13 scripts, ancres depuis le tunnel)
+- [x] Section red flags avec comportements recommandés (9 lignes)
 
 ### Étape 4.2 — Brief
 - [ ] Questions par type de mission (6 types)
