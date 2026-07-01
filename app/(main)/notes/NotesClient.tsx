@@ -4,9 +4,8 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { format, parseISO, isPast, isToday } from "date-fns";
 import { fr } from "date-fns/locale";
-import { Plus, Check, Trash2, ChevronDown, CalendarClock, Tag, RotateCcw } from "lucide-react";
+import { Plus, Check, Trash2, ChevronDown, RotateCcw } from "lucide-react";
 import Overlay from "@/components/ui/Overlay";
-import { Button } from "@/components/ui/Button";
 import NoteEditor from "@/components/notes/NoteEditor";
 import {
   createNote,
@@ -16,7 +15,7 @@ import {
   emptyTrash,
   type Note,
 } from "./actions";
-import { PRIORITIES, stripHtml } from "@/lib/notes";
+import { stripHtml } from "@/lib/notes";
 
 const emptyNote = (): Note => ({
   id: "",
@@ -29,6 +28,12 @@ const emptyNote = (): Note => ({
   deleted_at: null,
   created_at: "",
 });
+
+// Couleurs des post-it (cyclées par index), léger désalignement.
+const POSTIT = ["bg-[#FEF3C7]", "bg-[#DBEAFE]", "bg-[#FCE7F3]", "bg-[#DCFCE7]"];
+
+// Un post-it = note sans titre ni échéance (note libre) ; une tâche = titre ou échéance.
+const isPostit = (n: Note) => !n.title?.trim() && !n.due_date;
 
 export default function NotesClient({
   initialNotes,
@@ -48,30 +53,37 @@ export default function NotesClient({
 
   const isNew = editing?.id === "";
 
-  // Tri : échéance la plus proche en haut, puis priorité, puis récence
-  const sortNotes = (list: Note[]) =>
-    [...list].sort((a, b) => {
+  const active = notes.filter((n) => !n.done);
+  const postits = active
+    .filter(isPostit)
+    .sort((a, b) => b.created_at.localeCompare(a.created_at));
+  // Tâches : échéance la plus proche en haut, puis récence
+  const todo = active
+    .filter((n) => !isPostit(n))
+    .sort((a, b) => {
       if (a.due_date && b.due_date && a.due_date !== b.due_date)
         return a.due_date.localeCompare(b.due_date);
       if (a.due_date && !b.due_date) return -1;
       if (!a.due_date && b.due_date) return 1;
-      const pw = PRIORITIES[a.priority].weight - PRIORITIES[b.priority].weight;
-      if (pw !== 0) return pw;
       return b.created_at.localeCompare(a.created_at);
     });
+  const done = notes
+    .filter((n) => n.done)
+    .sort((a, b) => b.created_at.localeCompare(a.created_at));
 
-  const active = sortNotes(notes.filter((n) => !n.done));
-  const done = notes.filter((n) => n.done).sort((a, b) => b.created_at.localeCompare(a.created_at));
-
-  function toggleDone(n: Note, done: boolean) {
-    setNotes((list) => list.map((x) => (x.id === n.id ? { ...x, done } : x)));
-    updateNote(n.id, { done });
+  function toggleDone(n: Note, v: boolean) {
+    setNotes((list) => list.map((x) => (x.id === n.id ? { ...x, done: v } : x)));
+    updateNote(n.id, { done: v });
   }
 
   async function removeNote(id: string) {
     const n = notes.find((x) => x.id === id);
     setNotes((list) => list.filter((x) => x.id !== id));
-    if (n) setDeleted((list) => [{ ...n, deleted_at: new Date().toISOString() }, ...list]);
+    if (n)
+      setDeleted((list) => [
+        { ...n, deleted_at: new Date().toISOString() },
+        ...list,
+      ]);
     setEditing(null);
     await deleteNote(id);
     router.refresh();
@@ -93,8 +105,6 @@ export default function NotesClient({
     router.refresh();
   }
 
-  // Persiste (création si id vide, sinon mise à jour) et renvoie la note à jour.
-  // Ne ferme PAS le panneau : l'éditeur repasse en lecture après.
   async function persist(id: string, fields: Partial<Note>): Promise<Note> {
     if (!id) {
       const created = await createNote(fields.content ?? "");
@@ -113,76 +123,98 @@ export default function NotesClient({
     return full;
   }
 
-  const allDone = notes.length > 0 && active.length === 0;
-
   return (
-    <div>
-      <div className="mb-6 flex items-end justify-between gap-3">
+    <div className="space-y-10">
+      {/* En-tête */}
+      <header className="flex items-start justify-between gap-3">
         <div>
-          <h2 className="text-2xl font-semibold tracking-tight">Notes</h2>
-          <p className="mt-0.5 text-sm text-muted">
-            {active.length === 0
-              ? notes.length === 0
-                ? "Aucune note pour l'instant."
-                : "Tout est fait, bravo 🎉"
-              : `${active.length} à faire${
-                  done.length ? ` · ${done.length} faite${done.length > 1 ? "s" : ""}` : ""
-                }`}
+          <h1 className="text-[27px] font-bold tracking-tight">To do</h1>
+          <p className="mt-1 text-[15px] text-muted">
+            Tes notes rapides en post-it et ta liste de choses à faire.
           </p>
         </div>
-        <div className="flex items-center gap-2">
-          {deleted.length > 0 && (
-            <button
-              onClick={() => setShowTrash(true)}
-              className="inline-flex items-center gap-1.5 rounded-xl border border-gray-200 dark:border-hairline px-3 py-2 text-sm font-medium text-muted hover:border-ink hover:text-ink"
-            >
-              <Trash2 className="h-4 w-4" />
-              {deleted.length}
-            </button>
-          )}
-          <Button onClick={() => setEditing(emptyNote())}>
+        {deleted.length > 0 && (
+          <button
+            onClick={() => setShowTrash(true)}
+            className="inline-flex shrink-0 items-center gap-1.5 rounded-xl border border-black/[0.08] px-3 py-2 text-sm font-medium text-muted transition-colors hover:border-black/20 hover:text-ink"
+          >
+            <Trash2 className="h-4 w-4" />
+            {deleted.length}
+          </button>
+        )}
+      </header>
+
+      {/* Notes rapides (post-it) */}
+      <section>
+        <div className="mb-4 flex items-center justify-between">
+          <h2 className="text-[11px] font-bold uppercase tracking-[0.08em] text-muted">
+            Notes rapides
+          </h2>
+          <button
+            onClick={() => setEditing(emptyNote())}
+            className="inline-flex items-center gap-1.5 rounded-full bg-ink px-3.5 py-1.5 text-sm font-semibold text-white transition-transform duration-150 ease-ios hover:-translate-y-px active:scale-[0.97]"
+          >
             <Plus className="h-4 w-4" />
-            Nouvelle note
-          </Button>
+            Post-it
+          </button>
         </div>
-      </div>
-
-      {active.length > 0 ? (
-        <ul className="space-y-2.5">
-          {active.map((n, i) => (
-            <NoteCard
-              key={n.id}
-              note={n}
-              index={i}
-              onToggle={() => toggleDone(n, true)}
-              onOpen={() => setEditing(n)}
-              onDelete={() => removeNote(n.id)}
-            />
-          ))}
-        </ul>
-      ) : (
-        !allDone && (
-          <div className="rounded-2xl border border-dashed border-gray-200 dark:border-hairline px-6 py-14 text-center">
-            <div className="mx-auto mb-3 flex h-11 w-11 items-center justify-center rounded-2xl bg-gray-100 dark:bg-white/[0.06]">
-              <Check className="h-5 w-5 text-muted" />
-            </div>
-            <p className="font-medium">Commence ta première note</p>
-            <p className="mt-1 text-sm text-muted">
-              Une idée, une tâche, un rappel — avec priorité, thème et échéance.
-            </p>
+        {postits.length === 0 ? (
+          <p className="rounded-2xl border border-dashed border-black/[0.12] px-4 py-8 text-center text-sm text-muted">
+            Aucun post-it. Note une idée rapide.
+          </p>
+        ) : (
+          <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+            {postits.map((n, i) => {
+              const text = stripHtml(n.content || "") || "Note";
+              return (
+                <button
+                  key={n.id}
+                  onClick={() => setEditing(n)}
+                  className={`flex min-h-[150px] flex-col rounded-2xl p-4 text-left shadow-card transition-transform duration-150 ease-ios hover:-translate-y-0.5 ${
+                    POSTIT[i % POSTIT.length]
+                  } ${i % 2 ? "rotate-[0.7deg]" : "-rotate-[0.7deg]"}`}
+                >
+                  <p className="flex-1 whitespace-pre-wrap break-words text-[15px] leading-relaxed text-ink line-clamp-6">
+                    {text}
+                  </p>
+                  {n.created_at && (
+                    <p className="mt-3 text-[12px] text-ink/45">
+                      {format(parseISO(n.created_at), "d MMM", { locale: fr })}
+                    </p>
+                  )}
+                </button>
+              );
+            })}
           </div>
-        )
-      )}
+        )}
+      </section>
 
-      {allDone && (
-        <div className="rounded-2xl border border-success/20 bg-green-50/50 dark:bg-success/15 px-6 py-10 text-center">
-          <p className="text-lg font-semibold text-success">Tout est fait 🎉</p>
-          <p className="mt-1 text-sm text-muted">Profite, tu l'as mérité.</p>
-        </div>
-      )}
+      {/* À faire */}
+      <section>
+        <h2 className="mb-4 text-[11px] font-bold uppercase tracking-[0.08em] text-muted">
+          À faire
+        </h2>
+        {todo.length === 0 ? (
+          <p className="rounded-2xl border border-dashed border-black/[0.12] px-4 py-8 text-center text-sm text-muted">
+            Rien à faire. Ajoute une tâche (avec un titre ou une échéance).
+          </p>
+        ) : (
+          <div className="overflow-hidden rounded-2xl border border-black/[0.06] bg-white shadow-card">
+            {todo.map((n) => (
+              <TaskRow
+                key={n.id}
+                note={n}
+                onToggle={() => toggleDone(n, true)}
+                onOpen={() => setEditing(n)}
+              />
+            ))}
+          </div>
+        )}
+      </section>
 
+      {/* Terminées */}
       {done.length > 0 && (
-        <div className="mt-6">
+        <section>
           <button
             onClick={() => setShowDone((s) => !s)}
             className="flex items-center gap-1.5 text-sm font-medium text-muted hover:text-ink"
@@ -193,19 +225,18 @@ export default function NotesClient({
             Terminées ({done.length})
           </button>
           {showDone && (
-            <ul className="mt-2 space-y-2.5">
+            <div className="mt-3 overflow-hidden rounded-2xl border border-black/[0.06] bg-white">
               {done.map((n) => (
-                <NoteCard
+                <TaskRow
                   key={n.id}
                   note={n}
                   onToggle={() => toggleDone(n, false)}
                   onOpen={() => setEditing(n)}
-                  onDelete={() => removeNote(n.id)}
                 />
               ))}
-            </ul>
+            </div>
           )}
-        </div>
+        </section>
       )}
 
       {editing && (
@@ -243,10 +274,12 @@ export default function NotesClient({
                 {deleted.map((n) => (
                   <li
                     key={n.id}
-                    className="flex items-center gap-3 rounded-xl border border-gray-100 dark:border-hairline px-3 py-2.5"
+                    className="flex items-center gap-3 rounded-xl border border-black/[0.06] px-3 py-2.5"
                   >
                     <span className="min-w-0 flex-1 truncate text-sm text-muted">
-                      {n.title?.trim() || n.content.split("\n")[0] || "Note"}
+                      {n.title?.trim() ||
+                        stripHtml(n.content).split("\n")[0] ||
+                        "Note"}
                     </span>
                     <button
                       onClick={() => restore(n.id)}
@@ -266,104 +299,56 @@ export default function NotesClient({
   );
 }
 
-function NoteCard({
+// Ligne de la checklist "À faire" : case ronde + titre + label d'échéance coloré.
+function TaskRow({
   note,
-  index = 0,
   onToggle,
   onOpen,
-  onDelete,
 }: {
   note: Note;
-  index?: number;
   onToggle: () => void;
   onOpen: () => void;
-  onDelete: () => void;
 }) {
-  const pr = PRIORITIES[note.priority];
-  const plain = stripHtml(note.content || "");
-  const title = note.title?.trim() || plain.split("\n")[0] || "Note";
-  const preview = note.title?.trim()
-    ? plain
-    : plain.split("\n").slice(1).join(" ").trim();
+  const title =
+    note.title?.trim() || stripHtml(note.content).split("\n")[0] || "Tâche";
   const due = note.due_date ? parseISO(note.due_date) : null;
   const overdue = due && !note.done && isPast(due) && !isToday(due);
 
+  let tag: { text: string; cls: string } | null = null;
+  if (due && isToday(due)) tag = { text: "Aujourd'hui", cls: "text-urgent" };
+  else if (overdue) tag = { text: "En retard", cls: "text-urgent" };
+  else if (note.theme?.trim())
+    tag = { text: note.theme.trim(), cls: "text-pending" };
+  else if (due)
+    tag = { text: format(due, "d MMM", { locale: fr }), cls: "text-muted" };
+
   return (
-    <li
-      className={`group animate-rise rounded-[18px] border border-hairline dark:border-white/[0.09] p-[18px] transition duration-200 ease-ios hover:-translate-y-1 ${
-        note.done
-          ? "bg-white/50 dark:bg-white/[0.04] opacity-70"
-          : `bg-gradient-to-b ${pr.grad} to-white/60 dark:from-white/[0.04] dark:to-white/[0.02] shadow-sheen`
-      }`}
-      style={{
-        animationDelay: `${index * 45}ms`,
-        boxShadow: note.done
-          ? undefined
-          : "0 16px 34px -20px rgba(0,0,0,0.22), inset 0 1px 0 rgba(255,255,255,0.75)",
-      }}
-    >
-      <div className="flex items-start gap-3">
-        <button
-          onClick={onToggle}
-          aria-label={note.done ? "Marquer à faire" : "Marquer faite"}
-          className={`mt-0.5 flex h-[22px] w-[22px] shrink-0 items-center justify-center rounded-full border-2 transition-colors ${
-            note.done
-              ? "animate-pop border-success bg-success text-white"
-              : "border-black/[0.16] dark:border-white/22 hover:border-ink"
+    <div className="flex items-center gap-3 border-b border-black/[0.05] px-4 py-3.5 last:border-0">
+      <button
+        onClick={onToggle}
+        aria-label={note.done ? "Marquer à faire" : "Marquer faite"}
+        className={`flex h-[22px] w-[22px] shrink-0 items-center justify-center rounded-full border-2 transition-colors ${
+          note.done
+            ? "animate-pop border-success bg-success text-white"
+            : "border-black/[0.18] hover:border-ink"
+        }`}
+      >
+        {note.done && <Check className="h-3 w-3" strokeWidth={3} />}
+      </button>
+      <button onClick={onOpen} className="min-w-0 flex-1 text-left">
+        <span
+          className={`text-[15px] ${
+            note.done ? "text-muted line-through" : "font-medium"
           }`}
         >
-          {note.done && <Check className="h-3 w-3" strokeWidth={3} />}
-        </button>
-        <button onClick={onOpen} className="min-w-0 flex-1 text-left">
-          <p
-            className={`truncate text-[15px] font-semibold ${
-              note.done ? "text-muted line-through" : ""
-            }`}
-          >
-            {title}
-          </p>
-          {preview && (
-            <p className="mt-0.5 line-clamp-2 text-[13px] text-ink-soft">{preview}</p>
-          )}
-          <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-[12.5px]">
-            {!note.done && (
-              <span
-                className="inline-flex items-center gap-1.5 font-semibold"
-                style={{ color: pr.labelColor }}
-              >
-                <span
-                  className="h-2 w-2 rounded-full"
-                  style={{ backgroundColor: pr.color }}
-                />
-                {pr.label}
-              </span>
-            )}
-            {note.theme && (
-              <span className="inline-flex items-center gap-1 text-ink-soft">
-                <Tag className="h-3 w-3" />
-                {note.theme}
-              </span>
-            )}
-            {due && (
-              <span
-                className={`inline-flex items-center gap-1 ${
-                  overdue ? "text-urgent" : "text-ink-soft"
-                }`}
-              >
-                <CalendarClock className="h-3 w-3" />
-                {format(due, "d MMM", { locale: fr })}
-              </span>
-            )}
-          </div>
-        </button>
-        <button
-          onClick={onDelete}
-          aria-label="Supprimer"
-          className="shrink-0 rounded-lg p-1.5 text-muted opacity-0 transition-opacity hover:bg-red-50 dark:hover:bg-urgent/15 hover:text-urgent group-hover:opacity-100"
-        >
-          <Trash2 className="h-4 w-4" />
-        </button>
-      </div>
-    </li>
+          {title}
+        </span>
+      </button>
+      {tag && !note.done && (
+        <span className={`shrink-0 text-[13px] font-semibold ${tag.cls}`}>
+          {tag.text}
+        </span>
+      )}
+    </div>
   );
 }
