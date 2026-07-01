@@ -24,18 +24,16 @@ export default function QuickNoteButton() {
   const [open, setOpen] = useState(false);
   const router = useRouter();
 
-  async function save(fields: Partial<Note>) {
-    const hasContent =
-      (fields.title && fields.title.trim()) ||
-      (fields.content && fields.content.trim());
-    if (!hasContent) {
-      setOpen(false);
-      return;
+  async function persist(id: string, fields: Partial<Note>): Promise<Note> {
+    if (!id) {
+      const created = await createNote(fields.content ?? "");
+      await updateNote(created.id, fields);
+      router.refresh();
+      return { ...created, ...fields } as Note;
     }
-    const created = await createNote(fields.content ?? "");
-    await updateNote(created.id, fields);
-    setOpen(false);
+    await updateNote(id, fields);
     router.refresh();
+    return { ...emptyNote(), id, ...fields } as Note;
   }
 
   return (
@@ -53,8 +51,8 @@ export default function QuickNoteButton() {
           <NoteEditor
             note={emptyNote()}
             isNew
-            onSave={save}
-            onCancel={() => setOpen(false)}
+            onPersist={persist}
+            onClose={() => setOpen(false)}
           />
         </Overlay>
       )}

@@ -93,28 +93,24 @@ export default function NotesClient({
     router.refresh();
   }
 
-  // Enregistrement explicite (création si nouvelle, sinon mise à jour)
-  async function save(fields: Partial<Note>) {
-    if (isNew) {
-      // On ne persiste QUE si la note a un minimum de contenu
-      const hasContent =
-        (fields.title && fields.title.trim()) ||
-        (fields.content && fields.content.trim());
-      if (!hasContent) {
-        setEditing(null);
-        return;
-      }
+  // Persiste (création si id vide, sinon mise à jour) et renvoie la note à jour.
+  // Ne ferme PAS le panneau : l'éditeur repasse en lecture après.
+  async function persist(id: string, fields: Partial<Note>): Promise<Note> {
+    if (!id) {
       const created = await createNote(fields.content ?? "");
       await updateNote(created.id, fields);
-      setNotes((list) => [{ ...created, ...fields } as Note, ...list]);
-    } else if (editing) {
-      setNotes((list) =>
-        list.map((n) => (n.id === editing.id ? { ...n, ...fields } : n))
-      );
-      await updateNote(editing.id, fields);
+      const full = { ...created, ...fields } as Note;
+      setNotes((list) => [full, ...list]);
+      setEditing(full);
+      router.refresh();
+      return full;
     }
-    setEditing(null);
+    const cur = notes.find((n) => n.id === id) ?? editing!;
+    const full = { ...cur, ...fields } as Note;
+    setNotes((list) => list.map((n) => (n.id === id ? full : n)));
+    await updateNote(id, fields);
     router.refresh();
+    return full;
   }
 
   const allDone = notes.length > 0 && active.length === 0;
@@ -216,9 +212,9 @@ export default function NotesClient({
           <NoteEditor
             note={editing}
             isNew={isNew}
-            onSave={save}
+            onPersist={persist}
             onDelete={isNew ? undefined : () => removeNote(editing.id)}
-            onCancel={() => setEditing(null)}
+            onClose={() => setEditing(null)}
           />
         </Overlay>
       )}
