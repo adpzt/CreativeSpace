@@ -1,13 +1,32 @@
 import type { NotePriority } from "@/app/(main)/notes/actions";
 
-// Couleurs de priorité bien distinctes (rouge / ambre / gris)
+// Couleurs de priorité (design system). `color` = dot ; `labelColor` = texte du
+// libellé ; `grad` = teinte en filigrane de la carte (classe Tailwind littérale).
 export const PRIORITIES: Record<
   NotePriority,
-  { label: string; color: string; weight: number }
+  { label: string; color: string; labelColor: string; grad: string; weight: number }
 > = {
-  haute: { label: "Haute", color: "#DC2626", weight: 0 },
-  moyenne: { label: "Moyenne", color: "#F59E0B", weight: 1 },
-  basse: { label: "Basse", color: "#94A3B8", weight: 2 },
+  haute: {
+    label: "Haute",
+    color: "#DC2626",
+    labelColor: "#B91C1C",
+    grad: "from-[#FFF7F6]/85",
+    weight: 0,
+  },
+  moyenne: {
+    label: "Moyenne",
+    color: "#D97706",
+    labelColor: "#B45309",
+    grad: "from-[#FFFCF3]/85",
+    weight: 1,
+  },
+  basse: {
+    label: "Basse",
+    color: "#94A3B8",
+    labelColor: "#52525B",
+    grad: "from-[#FCFCFD]/85",
+    weight: 2,
+  },
 };
 
 export const PRIORITY_ORDER: NotePriority[] = ["haute", "moyenne", "basse"];

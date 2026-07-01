@@ -149,10 +149,11 @@ export default function NotesClient({
 
       {active.length > 0 ? (
         <ul className="space-y-2.5">
-          {active.map((n) => (
+          {active.map((n, i) => (
             <NoteCard
               key={n.id}
               note={n}
+              index={i}
               onToggle={() => toggleDone(n, true)}
               onOpen={() => setEditing(n)}
               onDelete={() => removeNote(n.id)}
@@ -267,11 +268,13 @@ export default function NotesClient({
 
 function NoteCard({
   note,
+  index = 0,
   onToggle,
   onOpen,
   onDelete,
 }: {
   note: Note;
+  index?: number;
   onToggle: () => void;
   onOpen: () => void;
   onDelete: () => void;
@@ -287,55 +290,76 @@ function NoteCard({
 
   return (
     <li
-      className={`flex items-stretch overflow-hidden rounded-2xl border transition-shadow hover:shadow-md ${
-        note.done ? "border-gray-100 bg-white" : "shadow-sm"
-      }`}
-      style={
+      className={`group animate-rise rounded-[18px] border border-black/[0.05] p-[18px] transition duration-200 ease-ios hover:-translate-y-1 ${
         note.done
+          ? "bg-white/50 opacity-70"
+          : `bg-gradient-to-b ${pr.grad} to-white/60 shadow-sheen`
+      }`}
+      style={{
+        animationDelay: `${index * 45}ms`,
+        boxShadow: note.done
           ? undefined
-          : { backgroundColor: `${pr.color}12`, borderColor: `${pr.color}33` }
-      }
+          : "0 16px 34px -20px rgba(0,0,0,0.22), inset 0 1px 0 rgba(255,255,255,0.75)",
+      }}
     >
-      <div className="flex flex-1 items-start gap-3 p-3.5">
+      <div className="flex items-start gap-3">
         <button
           onClick={onToggle}
           aria-label={note.done ? "Marquer à faire" : "Marquer faite"}
-          className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full border transition-colors ${
+          className={`mt-0.5 flex h-[22px] w-[22px] shrink-0 items-center justify-center rounded-full border-2 transition-colors ${
             note.done
-              ? "border-success bg-success text-white"
-              : "border-gray-300 hover:border-ink"
+              ? "animate-pop border-success bg-success text-white"
+              : "border-black/[0.16] hover:border-ink"
           }`}
         >
-          {note.done && <Check className="h-3 w-3" />}
+          {note.done && <Check className="h-3 w-3" strokeWidth={3} />}
         </button>
         <button onClick={onOpen} className="min-w-0 flex-1 text-left">
-          <p className={`truncate font-medium ${note.done ? "text-muted line-through" : ""}`}>
+          <p
+            className={`truncate text-[15px] font-semibold ${
+              note.done ? "text-muted line-through" : ""
+            }`}
+          >
             {title}
           </p>
           {preview && (
-            <p className="mt-0.5 line-clamp-2 text-sm text-muted">{preview}</p>
+            <p className="mt-0.5 line-clamp-2 text-[13px] text-ink-soft">{preview}</p>
           )}
-          {(note.theme || due) && (
-            <div className="mt-1.5 flex flex-wrap items-center gap-2 text-xs">
-              {note.theme && (
-                <span className="inline-flex items-center gap-1 rounded-full bg-gray-100 px-2 py-0.5 text-gray-500">
-                  <Tag className="h-3 w-3" />
-                  {note.theme}
-                </span>
-              )}
-              {due && (
-                <span className={`inline-flex items-center gap-1 ${overdue ? "text-urgent" : "text-muted"}`}>
-                  <CalendarClock className="h-3 w-3" />
-                  {format(due, "d MMM", { locale: fr })}
-                </span>
-              )}
-            </div>
-          )}
+          <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-[12.5px]">
+            {!note.done && (
+              <span
+                className="inline-flex items-center gap-1.5 font-semibold"
+                style={{ color: pr.labelColor }}
+              >
+                <span
+                  className="h-2 w-2 rounded-full"
+                  style={{ backgroundColor: pr.color }}
+                />
+                {pr.label}
+              </span>
+            )}
+            {note.theme && (
+              <span className="inline-flex items-center gap-1 text-ink-soft">
+                <Tag className="h-3 w-3" />
+                {note.theme}
+              </span>
+            )}
+            {due && (
+              <span
+                className={`inline-flex items-center gap-1 ${
+                  overdue ? "text-urgent" : "text-ink-soft"
+                }`}
+              >
+                <CalendarClock className="h-3 w-3" />
+                {format(due, "d MMM", { locale: fr })}
+              </span>
+            )}
+          </div>
         </button>
         <button
           onClick={onDelete}
           aria-label="Supprimer"
-          className="shrink-0 rounded-lg p-1.5 text-muted hover:bg-red-50 hover:text-urgent"
+          className="shrink-0 rounded-lg p-1.5 text-muted opacity-0 transition-opacity hover:bg-red-50 hover:text-urgent group-hover:opacity-100"
         >
           <Trash2 className="h-4 w-4" />
         </button>

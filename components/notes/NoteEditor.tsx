@@ -21,12 +21,12 @@ function Row({
   children: ReactNode;
 }) {
   return (
-    <div className="flex items-center gap-3 py-1.5">
-      <span className="flex w-28 shrink-0 items-center gap-2 text-sm text-muted">
+    <div className="flex items-center gap-3 py-2">
+      <span className="flex w-28 shrink-0 items-center gap-2 text-[13px] font-medium text-muted">
         <Icon className="h-4 w-4" />
         {label}
       </span>
-      <div className="min-w-0 flex-1 text-sm">{children}</div>
+      <div className="min-w-0 flex-1 text-[14.5px]">{children}</div>
     </div>
   );
 }
@@ -81,18 +81,19 @@ export default function NoteEditor({
     const pr = PRIORITIES[current.priority];
     const dueDate = current.due_date ? parseISO(current.due_date) : null;
     return (
-      <div className="pr-8">
-        <div className="mb-3 flex items-center gap-1">
+      <div className="pr-10">
+        <div className="mb-5 flex items-center justify-end">
           <button
             onClick={() => setMode("edit")}
-            className="inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium text-muted transition-colors hover:bg-gray-100 hover:text-ink"
+            aria-label="Modifier"
+            title="Modifier"
+            className="flex h-8 w-8 items-center justify-center rounded-[9px] bg-[#F4F4F5] text-ink-soft transition-colors hover:bg-black/10 hover:text-ink"
           >
-            <Pencil className="h-3.5 w-3.5" />
-            Modifier
+            <Pencil className="h-4 w-4" />
           </button>
         </div>
 
-        <h2 className="text-3xl font-bold tracking-tight">
+        <h2 className="text-[34px] font-bold leading-tight tracking-tight">
           {current.title?.trim() || (
             <span className="text-muted">Sans titre</span>
           )}
@@ -127,14 +128,14 @@ export default function NoteEditor({
           </Row>
         </div>
 
-        <div className="mt-5 border-t border-gray-100 pt-5">
+        <div className="mt-5 border-t border-black/[0.06] pt-5">
           {current.content?.trim() ? (
             <div
-              className="text-sm leading-relaxed [&_b]:font-semibold"
+              className="text-[15.5px] leading-relaxed text-[#3F3F46] [&_b]:font-semibold"
               dangerouslySetInnerHTML={{ __html: current.content }}
             />
           ) : (
-            <p className="text-sm text-muted">Aucun détail.</p>
+            <p className="text-[15.5px] text-muted">Aucun détail.</p>
           )}
         </div>
 
@@ -156,12 +157,16 @@ export default function NoteEditor({
   // ---------- ÉDITION ----------
   return (
     <div className="space-y-5 pr-8">
+      <span className="inline-flex items-center gap-1.5 rounded-full bg-[#EFF4FF] px-2.5 py-0.5 text-[11px] font-semibold text-[#1D4ED8]">
+        <Pencil className="h-3 w-3" />
+        En cours d&apos;édition
+      </span>
       <input
         autoFocus
         value={title}
         onChange={(e) => setTitle(e.target.value)}
         placeholder="Titre de la note"
-        className="w-full bg-transparent text-3xl font-bold tracking-tight outline-none placeholder:text-muted"
+        className="w-full rounded-lg bg-transparent text-[34px] font-bold leading-tight tracking-tight outline-none placeholder:text-muted focus:outline-2 focus:outline-offset-[6px] focus:outline-active/35"
       />
 
       <div className="space-y-0.5">
