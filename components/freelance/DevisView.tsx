@@ -11,42 +11,46 @@ import {
   CGP_FULL,
 } from "@/lib/freelance";
 
+const CARD = "rounded-2xl border border-black/[0.06] bg-white p-5 shadow-card";
+
 export default function DevisView() {
   return (
-    <div className="space-y-10">
+    <div className="grid gap-4 md:grid-cols-2">
       {/* Checklist devis */}
-      <section>
-        <h2 className="mb-4 text-[17px] font-bold tracking-tight">
+      <div className={CARD}>
+        <h3 className="mb-3 text-[15px] font-bold tracking-tight">
           Checklist avant d&apos;envoyer un devis
-        </h2>
+        </h3>
         <CheckList items={DEVIS_CHECKLIST} />
-      </section>
+      </div>
 
       {/* Facture d'acompte */}
-      <section>
-        <h2 className="mb-4 text-[17px] font-bold tracking-tight">
+      <div className={CARD}>
+        <h3 className="mb-3 text-[15px] font-bold tracking-tight">
           Facture d&apos;acompte
-        </h2>
+        </h3>
         <CheckList items={FACTURE_ACOMPTE_CHECKLIST} />
-      </section>
+      </div>
 
       {/* Pénalités de retard */}
-      <section>
-        <h2 className="mb-1 text-[17px] font-bold tracking-tight">
-          Mention pénalités de retard
-        </h2>
-        <p className="mb-3 text-sm text-muted">À ajouter sur toutes les factures.</p>
-        <div className="rounded-2xl border border-gray-100 dark:border-hairline bg-white dark:bg-surface p-4">
-          <div className="mb-2 flex justify-end">
-            <CopyButton text={PENALITES_TEXT} />
+      <div className={CARD}>
+        <div className="mb-2 flex items-start justify-between gap-3">
+          <div>
+            <h3 className="text-[15px] font-bold tracking-tight">
+              Mention pénalités de retard
+            </h3>
+            <p className="text-[13px] text-muted">
+              À ajouter sur toutes les factures.
+            </p>
           </div>
-          <p className="text-sm leading-relaxed text-gray-600 dark:text-ink-soft">{PENALITES_TEXT}</p>
+          <CopyButton text={PENALITES_TEXT} />
         </div>
-      </section>
+        <p className="text-sm leading-relaxed text-ink-soft">{PENALITES_TEXT}</p>
+      </div>
 
       {/* Liens utiles */}
-      <section>
-        <h2 className="mb-4 text-[17px] font-bold tracking-tight">Liens utiles</h2>
+      <div className={CARD}>
+        <h3 className="mb-3 text-[15px] font-bold tracking-tight">Liens utiles</h3>
         <div className="flex flex-wrap gap-2">
           {DEVIS_LINKS.map((l) => (
             <a
@@ -54,48 +58,50 @@ export default function DevisView() {
               href={l.url}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 rounded-xl border border-gray-200 dark:border-hairline px-3.5 py-2 text-sm font-medium hover:border-ink"
+              className="inline-flex items-center gap-2 rounded-xl border border-black/[0.08] px-3 py-1.5 text-[13px] font-medium transition-colors hover:border-black/20"
             >
-              <ExternalLink className="h-4 w-4 text-muted" />
+              <ExternalLink className="h-3.5 w-3.5 text-muted" />
               {l.label}
               {l.note && <span className="text-xs text-muted">· {l.note}</span>}
             </a>
           ))}
         </div>
-      </section>
+      </div>
 
       {/* Conditions Générales de Prestation */}
-      <section>
+      <div className={`${CARD} md:col-span-2`}>
         <div className="mb-4 flex items-center justify-between gap-3">
-          <h2 className="text-[17px] font-bold tracking-tight">
+          <h3 className="text-[15px] font-bold tracking-tight">
             Conditions Générales de Prestation
-          </h2>
+          </h3>
           <CopyButton text={CGP_FULL} label="Tout copier" />
         </div>
-        <div className="space-y-4 rounded-2xl border border-gray-100 dark:border-hairline bg-white dark:bg-surface p-5">
+        <div className="grid gap-x-8 gap-y-4 sm:grid-cols-2">
           {CGP_ARTICLES.map((a) => (
             <div key={a.n}>
               <p className="text-sm font-semibold">
                 {a.n}. {a.title}
               </p>
-              <p className="mt-0.5 text-sm leading-relaxed text-gray-600 dark:text-ink-soft">{a.text}</p>
+              <p className="mt-0.5 text-sm leading-relaxed text-ink-soft">
+                {a.text}
+              </p>
             </div>
           ))}
         </div>
-      </section>
+      </div>
     </div>
   );
 }
 
 function CheckList({ items }: { items: string[] }) {
   return (
-    <ul className="divide-y divide-gray-100 dark:divide-white/10 overflow-hidden rounded-2xl border border-gray-100 dark:border-hairline bg-white dark:bg-surface">
+    <ul className="space-y-2">
       {items.map((it, i) => (
-        <li key={i} className="flex items-start gap-3 px-4 py-3 text-sm">
-          <span className="mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded border border-gray-300 dark:border-hairline text-muted">
+        <li key={i} className="flex items-start gap-2.5 text-sm">
+          <span className="mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded border border-black/15 text-muted">
             <Check className="h-3 w-3" />
           </span>
-          <span className="text-gray-600 dark:text-ink-soft">{it}</span>
+          <span className="text-ink-soft">{it}</span>
         </li>
       ))}
     </ul>

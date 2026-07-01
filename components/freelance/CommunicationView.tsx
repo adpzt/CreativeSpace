@@ -21,7 +21,7 @@ export default function CommunicationView() {
     });
 
   return (
-    <div className="space-y-10">
+    <div className="space-y-8">
       {/* ---------- Tunnel client ---------- */}
       <section>
         <h2 className="mb-1 text-[17px] font-bold tracking-tight">
@@ -110,21 +110,21 @@ export default function CommunicationView() {
           Copie en un clic, puis remplace les [crochets].
         </p>
 
-        <ul className="space-y-2">
+        <div className="grid gap-3 sm:grid-cols-2">
           {SCRIPTS.map((s) => (
-            <li
+            <div
               key={s.id}
               id={s.id}
-              className="scroll-mt-24 rounded-2xl border border-gray-100 dark:border-hairline bg-white dark:bg-surface p-4"
+              className="scroll-mt-24 rounded-2xl border border-black/[0.06] bg-white p-4 shadow-card"
             >
               <div className="mb-2 flex items-start justify-between gap-3">
                 <p className="text-sm font-semibold">{s.title}</p>
                 <CopyButton text={s.text} />
               </div>
-              <p className="text-sm leading-relaxed text-gray-600 dark:text-ink-soft">{s.text}</p>
-            </li>
+              <p className="text-sm leading-relaxed text-ink-soft">{s.text}</p>
+            </div>
           ))}
-        </ul>
+        </div>
       </section>
 
       {/* ---------- Red flags ---------- */}

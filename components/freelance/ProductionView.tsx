@@ -10,31 +10,47 @@ import {
   ARNAQUEURS,
 } from "@/lib/freelance";
 
+const CARD = "rounded-2xl border border-black/[0.06] bg-white p-5 shadow-card";
+
 export default function ProductionView() {
   return (
-    <div className="space-y-10">
+    <div className="grid gap-4 md:grid-cols-2">
       {/* Structure de dossiers */}
-      <section>
+      <div className={CARD}>
         <div className="mb-3 flex items-center justify-between gap-3">
-          <div>
-            <h2 className="text-[17px] font-bold tracking-tight">
-              Structure de dossiers Drive
-            </h2>
-            <p className="text-sm text-muted">À reproduire pour chaque projet.</p>
-          </div>
+          <h3 className="text-[15px] font-bold tracking-tight">
+            Structure de dossiers Drive
+          </h3>
           <CopyButton text={FOLDER_STRUCTURE} />
         </div>
-        <pre className="overflow-x-auto rounded-2xl border border-gray-100 dark:border-hairline bg-gray-50 dark:bg-white/[0.06] p-4 text-xs leading-relaxed text-gray-700 dark:text-ink-soft">
+        <pre className="overflow-x-auto rounded-xl bg-[#F6F6F7] p-4 text-xs leading-relaxed text-ink-soft">
           {FOLDER_STRUCTURE}
         </pre>
-      </section>
+      </div>
+
+      {/* Checklist livraison */}
+      <div className={CARD}>
+        <h3 className="mb-3 text-[15px] font-bold tracking-tight">
+          Checklist livraison finale
+        </h3>
+        <ul className="space-y-2">
+          {LIVRAISON_CHECKLIST.map((it, i) => (
+            <li key={i} className="flex items-start gap-2.5 text-sm">
+              <span className="mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded border border-black/15 text-muted">
+                <Check className="h-3 w-3" />
+              </span>
+              <span className="text-ink-soft">{it}</span>
+            </li>
+          ))}
+        </ul>
+      </div>
 
       {/* Nommage */}
-      <section>
-        <h2 className="mb-4 text-[17px] font-bold tracking-tight">
+      <div className={CARD}>
+        <h3 className="mb-3 text-[15px] font-bold tracking-tight">
           Règles de nommage
-        </h2>
-        <ul className="space-y-1.5 text-sm text-gray-600 dark:text-ink-soft">
+        </h3>
+        <ul className="space-y-1.5 text-sm text-ink-soft">
           {NAMING_RULES.map((r, i) => (
             <li key={i} className="flex gap-2">
               <span className="text-muted">•</span>
@@ -42,14 +58,14 @@ export default function ProductionView() {
             </li>
           ))}
         </ul>
-      </section>
+      </div>
 
-      {/* Règles de travail */}
-      <section>
-        <h2 className="mb-4 text-[17px] font-bold tracking-tight">
+      {/* Règles de production */}
+      <div className={CARD}>
+        <h3 className="mb-3 text-[15px] font-bold tracking-tight">
           Règles de production
-        </h2>
-        <ul className="space-y-1.5 text-sm text-gray-600 dark:text-ink-soft">
+        </h3>
+        <ul className="space-y-1.5 text-sm text-ink-soft">
           {WORK_RULES.map((r, i) => (
             <li key={i} className="flex gap-2">
               <span className="text-muted">•</span>
@@ -57,32 +73,15 @@ export default function ProductionView() {
             </li>
           ))}
         </ul>
-      </section>
-
-      {/* Checklist livraison */}
-      <section>
-        <h2 className="mb-4 text-[17px] font-bold tracking-tight">
-          Checklist livraison finale
-        </h2>
-        <ul className="divide-y divide-gray-100 dark:divide-white/10 overflow-hidden rounded-2xl border border-gray-100 dark:border-hairline bg-white dark:bg-surface">
-          {LIVRAISON_CHECKLIST.map((it, i) => (
-            <li key={i} className="flex items-start gap-3 px-4 py-3 text-sm">
-              <span className="mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded border border-gray-300 dark:border-hairline text-muted">
-                <Check className="h-3 w-3" />
-              </span>
-              <span className="text-gray-600 dark:text-ink-soft">{it}</span>
-            </li>
-          ))}
-        </ul>
-      </section>
+      </div>
 
       {/* Arnaqueurs */}
-      <section className="rounded-2xl border border-urgent/30 bg-red-50/50 dark:bg-urgent/15 p-4">
+      <div className="rounded-2xl border border-urgent/30 bg-red-50/50 p-5 md:col-span-2">
         <p className="mb-2 flex items-center gap-2 text-sm font-semibold text-urgent">
           <AlertTriangle className="h-4 w-4" />
           Arnaqueurs à éviter
         </p>
-        <p className="mb-2 text-sm text-gray-600 dark:text-ink-soft">
+        <p className="mb-2 text-sm text-ink-soft">
           Ces organismes envoient des courriers frauduleux aux nouveaux
           auto-entrepreneurs. Ne jamais payer, ne jamais rappeler.
         </p>
@@ -90,13 +89,13 @@ export default function ProductionView() {
           {ARNAQUEURS.map((a) => (
             <li
               key={a}
-              className="rounded-full bg-white dark:bg-white/10 px-2.5 py-1 text-xs font-medium text-urgent"
+              className="rounded-full bg-white px-2.5 py-1 text-xs font-medium text-urgent"
             >
               {a}
             </li>
           ))}
         </ul>
-      </section>
+      </div>
     </div>
   );
 }
