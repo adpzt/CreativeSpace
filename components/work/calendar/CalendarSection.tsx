@@ -61,6 +61,13 @@ import { stripHtml } from "@/lib/notes";
 
 const iso = (d: Date) => format(d, "yyyy-MM-dd");
 
+// Boîte de catégorie du semainier : rectangle arrondi TEINTÉ (sans dot).
+const CAT_BOX: Record<CalendarCategory, string> = {
+  freelance: "bg-blue-50 border-blue-600/25 text-blue-700",
+  entreprise: "bg-green-50 border-green-600/25 text-green-700",
+  perso: "bg-orange-50 border-orange-600/25 text-orange-700",
+};
+
 type Suggestion = { project: ProjectWithDeliverables; deliverable: Deliverable };
 type AddCtx = { dayIso: string; cat: CalendarCategory };
 
@@ -544,8 +551,7 @@ export default function CalendarSection({
                   <div key={cat.key} className="contents">
                     <div className="flex items-center">
                       <span
-                        className="flex items-center rounded-xl border border-hairline bg-white dark:bg-surface px-[14px] py-2 text-[13px] font-semibold shadow-card"
-                        style={{ color: cat.color }}
+                        className={`flex items-center rounded-xl border px-[14px] py-2 text-[13px] font-semibold ${CAT_BOX[cat.key]}`}
                       >
                         {cat.label}
                       </span>

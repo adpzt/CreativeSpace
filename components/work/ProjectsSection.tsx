@@ -16,9 +16,21 @@ import {
   HIDDEN_BY_DEFAULT,
   projectProgress,
 } from "@/lib/work";
-import type { Client, ProjectStatus, ProjectWithDeliverables } from "@/lib/types";
+import type {
+  CalendarCategory,
+  Client,
+  ProjectStatus,
+  ProjectWithDeliverables,
+} from "@/lib/types";
 
 type Filter = "active" | ProjectStatus;
+
+// Catégorie du projet en texte coloré (freelance bleu / entreprise vert / perso orange)
+const CATEGORY: Record<CalendarCategory, { label: string; className: string }> = {
+  freelance: { label: "Freelance", className: "text-active" },
+  entreprise: { label: "Entreprise", className: "text-success" },
+  perso: { label: "Perso", className: "text-pending" },
+};
 
 export default function ProjectsSection({
   projects,
@@ -45,8 +57,7 @@ export default function ProjectsSection({
       ? projects.filter((p) => !HIDDEN_BY_DEFAULT.includes(p.status))
       : projects.filter((p) => p.status === filter);
 
-  const filterLabel =
-    filter === "active" ? "Tous" : PROJECT_STATUS[filter].label;
+  const filterLabel = filter === "active" ? "Tous" : PROJECT_STATUS[filter].label;
 
   function close() {
     setOpenId(null);
@@ -56,12 +67,56 @@ export default function ProjectsSection({
 
   return (
     <section>
-      <div className="mb-4 flex items-center justify-between">
-        <h2 className="text-xl font-semibold tracking-tight">Projets</h2>
-        <Button onClick={() => setCreating(true)}>
-          <Plus className="h-4 w-4" />
-          Nouveau projet
-        </Button>
+      <div className="mb-5 flex items-center justify-between gap-3">
+        <h2 className="text-2xl font-semibold tracking-tight">Projets</h2>
+        <div className="flex items-center gap-2">
+          {projects.length > 0 && (
+            <div className="relative">
+              <button
+                onClick={() => setMenuOpen((o) => !o)}
+                className="inline-flex items-center gap-1.5 rounded-xl border border-black/[0.08] bg-white px-3 py-2 text-sm font-medium transition-colors hover:border-black/20"
+              >
+                {filterLabel}
+                <ChevronDown className="h-3.5 w-3.5 text-muted" />
+              </button>
+              {menuOpen && (
+                <>
+                  <button
+                    className="fixed inset-0 z-10 cursor-default"
+                    aria-hidden
+                    onClick={() => setMenuOpen(false)}
+                  />
+                  <div className="absolute right-0 z-20 mt-1 w-48 rounded-xl border border-black/[0.06] bg-white p-1 shadow-lift">
+                    <MenuItem
+                      label="Tous (actifs)"
+                      active={filter === "active"}
+                      onClick={() => {
+                        setFilter("active");
+                        setMenuOpen(false);
+                      }}
+                    />
+                    {PROJECT_STATUS_ORDER.map((s) => (
+                      <MenuItem
+                        key={s}
+                        label={PROJECT_STATUS[s].label}
+                        dot={PROJECT_STATUS[s].dot}
+                        active={filter === s}
+                        onClick={() => {
+                          setFilter(s);
+                          setMenuOpen(false);
+                        }}
+                      />
+                    ))}
+                  </div>
+                </>
+              )}
+            </div>
+          )}
+          <Button onClick={() => setCreating(true)}>
+            <Plus className="h-4 w-4" />
+            Projet
+          </Button>
+        </div>
       </div>
 
       {projects.length === 0 ? (
@@ -76,83 +131,73 @@ export default function ProjectsSection({
             </Button>
           }
         />
+      ) : visible.length === 0 ? (
+        <p className="text-sm text-muted">Aucun projet dans ce tri.</p>
       ) : (
-        <>
-          {/* Tri par menu */}
-          <div className="relative mb-4 inline-block">
-            <button
-              onClick={() => setMenuOpen((o) => !o)}
-              className="inline-flex items-center gap-1.5 rounded-full border border-gray-200 dark:border-hairline px-3 py-1.5 text-xs font-medium transition-colors hover:border-ink"
-            >
-              {filterLabel}
-              <ChevronDown className="h-3.5 w-3.5 text-muted" />
-            </button>
-            {menuOpen && (
-              <>
-                <button
-                  className="fixed inset-0 z-10 cursor-default"
-                  aria-hidden
-                  onClick={() => setMenuOpen(false)}
-                />
-                <div className="absolute left-0 z-20 mt-1 w-48 rounded-xl border border-gray-100 dark:border-hairline bg-white dark:bg-surface p-1 shadow-lg">
-                  <MenuItem
-                    label="Tous (actifs)"
-                    active={filter === "active"}
-                    onClick={() => {
-                      setFilter("active");
-                      setMenuOpen(false);
-                    }}
-                  />
-                  {PROJECT_STATUS_ORDER.map((s) => (
-                    <MenuItem
-                      key={s}
-                      label={PROJECT_STATUS[s].label}
-                      dot={PROJECT_STATUS[s].dot}
-                      active={filter === s}
-                      onClick={() => {
-                        setFilter(s);
-                        setMenuOpen(false);
-                      }}
-                    />
-                  ))}
-                </div>
-              </>
-            )}
-          </div>
-
-          {visible.length === 0 ? (
-            <p className="text-sm text-muted">Aucun projet dans ce tri.</p>
-          ) : (
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-              {visible.map((p) => (
-                <button
-                  key={p.id}
-                  onClick={() => setOpenId(p.id)}
-                  className="rounded-2xl border border-gray-100 dark:border-hairline bg-white dark:bg-surface p-4 text-left transition-colors hover:border-gray-200 hover:bg-gray-50 dark:hover:bg-white/[0.06]"
-                >
-                  <div className="mb-2 flex items-center gap-2">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {visible.map((p) => {
+            const cat = p.category ? CATEGORY[p.category] : null;
+            const company = clientCompany(p.client_id);
+            const closed = p.status === "closed";
+            return (
+              <button
+                key={p.id}
+                onClick={() => setOpenId(p.id)}
+                className={`group flex flex-col rounded-2xl border border-black/[0.06] bg-white p-5 text-left shadow-card transition duration-[180ms] ease-ios hover:-translate-y-1 hover:shadow-lift ${
+                  closed ? "opacity-[0.82] hover:opacity-100" : ""
+                }`}
+              >
+                <div className="mb-1.5 flex items-start justify-between gap-2">
+                  <div className="flex min-w-0 items-center gap-2">
                     {p.color && (
                       <span
                         className="h-2.5 w-2.5 shrink-0 rounded-full"
                         style={{ backgroundColor: p.color }}
                       />
                     )}
-                    <p className="truncate font-medium">{p.name}</p>
+                    <p className="truncate text-[17px] font-semibold">{p.name}</p>
                   </div>
-                  <div className="mb-3 flex items-center gap-2">
-                    <StatusBadge status={p.status} />
-                    {clientCompany(p.client_id) && (
-                      <span className="truncate text-xs text-muted">
-                        {clientCompany(p.client_id)}
+                  <StatusBadge status={p.status} />
+                </div>
+
+                <p className="mb-3 truncate text-[13px] text-muted">
+                  {company}
+                  {company && cat ? " · " : ""}
+                  {cat && (
+                    <span className={`font-medium ${cat.className}`}>
+                      {cat.label}
+                    </span>
+                  )}
+                </p>
+
+                {p.mission_types.length > 0 && (
+                  <div className="mb-4 flex flex-wrap gap-1.5">
+                    {p.mission_types.slice(0, 4).map((t) => (
+                      <span
+                        key={t}
+                        className="rounded-md bg-[#F1F1F4] px-2 py-0.5 text-[11px] font-medium text-ink-soft"
+                      >
+                        {t}
                       </span>
-                    )}
+                    ))}
                   </div>
-                  <ProgressBar percent={projectProgress(p.deliverables)} />
-                </button>
-              ))}
-            </div>
-          )}
-        </>
+                )}
+
+                <div className="mt-auto flex items-center gap-3 pt-1">
+                  <div className="flex-1">
+                    <ProgressBar
+                      percent={projectProgress(p.deliverables)}
+                      showLabel={false}
+                    />
+                  </div>
+                  <span className="text-sm font-semibold text-ink-soft">
+                    {projectProgress(p.deliverables)}%
+                  </span>
+                </div>
+              </button>
+            );
+          })}
+        </div>
       )}
 
       {creating && (
@@ -197,8 +242,8 @@ function MenuItem({
   return (
     <button
       onClick={onClick}
-      className={`flex w-full items-center gap-2 rounded-lg px-3 py-1.5 text-left text-sm transition-colors hover:bg-gray-100 dark:hover:bg-white/[0.06] ${
-        active ? "font-medium text-ink" : "text-gray-600 dark:text-muted"
+      className={`flex w-full items-center gap-2 rounded-lg px-3 py-1.5 text-left text-sm transition-colors hover:bg-black/5 ${
+        active ? "font-medium text-ink" : "text-ink-soft"
       }`}
     >
       {dot ? (

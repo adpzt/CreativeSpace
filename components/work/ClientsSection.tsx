@@ -9,9 +9,19 @@ import ClientCreateForm from "./ClientCreateForm";
 import ClientOverlayBody from "./ClientOverlayBody";
 import type { Client, Project } from "@/lib/types";
 
+// Initiales pour le monogramme (2 premières lettres des mots)
+function initials(label: string): string {
+  return (
+    label
+      .split(/\s+/)
+      .slice(0, 2)
+      .map((w) => w[0] ?? "")
+      .join("")
+      .toUpperCase() || "?"
+  );
+}
+
 // Section Clients : résumé / historique en bas de la page Work.
-// Chaque client s'ouvre en overlay. Le bouton "Nouveau client" ouvre
-// le formulaire de création dans le même overlay.
 export default function ClientsSection({
   clients,
   projects,
@@ -28,17 +38,13 @@ export default function ClientsSection({
   function close() {
     setOpenId(null);
     setCreating(false);
-    // On rafraîchit pour refléter les éventuelles modifications
     router.refresh();
   }
 
   return (
     <section>
-      <div className="mb-4 flex items-center justify-between">
-        <div>
-          <h2 className="text-xl font-semibold tracking-tight">Clients</h2>
-          <p className="text-sm text-muted">Résumé de tes clients</p>
-        </div>
+      <div className="mb-5 flex items-center justify-between gap-3">
+        <h2 className="text-2xl font-semibold tracking-tight">Clients</h2>
         <Button variant="secondary" onClick={() => setCreating(true)}>
           <Plus className="h-4 w-4" />
           Nouveau client
@@ -46,60 +52,73 @@ export default function ClientsSection({
       </div>
 
       {clients.length === 0 ? (
-        <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-gray-200 dark:border-hairline px-6 py-10 text-center">
-          <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-2xl bg-gray-100 dark:bg-white/[0.06]">
+        <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-black/[0.12] px-6 py-10 text-center">
+          <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-2xl bg-[#F1F1F4]">
             <Users className="h-5 w-5 text-muted" />
           </div>
           <p className="text-sm text-muted">
-            Aucun client pour l'instant. Ajoute ton premier client.
+            Aucun client pour l&apos;instant. Ajoute ton premier client.
           </p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {clients.map((client) => (
-            <button
-              key={client.id}
-              onClick={() => setOpenId(client.id)}
-              className="rounded-2xl border border-gray-100 dark:border-hairline bg-white dark:bg-surface p-4 text-left transition-colors hover:border-gray-200 dark:hover:border-hairline-strong hover:bg-gray-50 dark:hover:bg-white/[0.06]"
-            >
-              <div className="flex items-center gap-2">
-                <p className="truncate font-medium">
-                  {client.company || client.name}
-                </p>
-                {!client.company && !client.email && !client.phone && (
-                  <span className="shrink-0 rounded-full bg-orange-50 dark:bg-pending/15 px-2 py-0.5 text-[10px] font-medium text-pending">
-                    à compléter
-                  </span>
-                )}
-              </div>
-              {client.company && (
-                <p className="truncate text-sm text-muted">{client.name}</p>
-              )}
-              {client.tags.length > 0 && (
-                <div className="mt-2 flex flex-wrap gap-1">
-                  {client.tags.slice(0, 3).map((t) => (
-                    <span
-                      key={t}
-                      className="rounded-full bg-gray-100 dark:bg-white/[0.06] px-2 py-0.5 text-[11px] text-gray-600 dark:text-ink-soft"
-                    >
-                      {t}
-                    </span>
-                  ))}
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {clients.map((client) => {
+            const incomplete =
+              !client.company && !client.email && !client.phone;
+            const primary = client.company || client.name;
+            return (
+              <button
+                key={client.id}
+                onClick={() => setOpenId(client.id)}
+                className={`flex items-center gap-3 rounded-2xl border bg-white p-4 text-left shadow-card transition duration-[180ms] ease-ios hover:-translate-y-0.5 hover:shadow-lift ${
+                  incomplete
+                    ? "border-dashed border-black/[0.14]"
+                    : "border-black/[0.06]"
+                }`}
+              >
+                <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[#F1F1F4] text-[13px] font-semibold text-ink-soft">
+                  {initials(primary)}
+                </span>
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-[15px] font-semibold">{primary}</p>
+                  {incomplete ? (
+                    <p className="text-[13px] font-medium text-pending">
+                      Infos à compléter
+                    </p>
+                  ) : (
+                    <>
+                      {client.company && (
+                        <p className="truncate text-[13px] text-muted">
+                          {client.name}
+                        </p>
+                      )}
+                      {client.tags.length > 0 && (
+                        <div className="mt-1.5 flex flex-wrap gap-1">
+                          {client.tags.slice(0, 3).map((t) => (
+                            <span
+                              key={t}
+                              className="rounded-md bg-[#F1F1F4] px-2 py-0.5 text-[11px] font-medium text-ink-soft"
+                            >
+                              {t}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                    </>
+                  )}
                 </div>
-              )}
-            </button>
-          ))}
+              </button>
+            );
+          })}
         </div>
       )}
 
-      {/* Overlay création */}
       {creating && (
         <Overlay onClose={close}>
           <ClientCreateForm onClose={close} />
         </Overlay>
       )}
 
-      {/* Overlay détail / édition (key = id pour réinitialiser l'état par client) */}
       {openClient && (
         <Overlay onClose={close}>
           <ClientOverlayBody

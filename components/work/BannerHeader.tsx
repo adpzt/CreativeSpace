@@ -26,20 +26,17 @@ export default function BannerHeader({
   }
 
   return (
-    <div className="relative mb-8 overflow-hidden rounded-2xl">
+    <div className="group relative h-[132px] overflow-hidden rounded-[20px]">
       {url ? (
         // eslint-disable-next-line @next/next/no-img-element
-        <img src={url} alt="Bannière" className="h-40 w-full object-cover" />
+        <img src={url} alt="Bannière" className="h-full w-full object-cover" />
       ) : (
-        <div className="h-40 w-full bg-gradient-to-r from-gray-100 to-gray-200" />
+        <div className="h-full w-full bg-[linear-gradient(110deg,#DDE7FF_0%,#E7DEFB_45%,#FCE7D6_100%)]" />
       )}
-      <div className="absolute inset-0 flex items-end bg-gradient-to-t from-black/40 to-transparent p-5">
-        <h1 className="text-2xl font-semibold text-white drop-shadow-sm">Work</h1>
-      </div>
       <button
         onClick={() => inputRef.current?.click()}
         disabled={isPending}
-        className="absolute right-3 top-3 inline-flex items-center gap-1.5 rounded-lg bg-white/90 px-2.5 py-1.5 text-xs font-medium transition-colors hover:bg-white disabled:opacity-60"
+        className="absolute right-3 top-3 inline-flex items-center gap-1.5 rounded-lg bg-white/80 px-2.5 py-1.5 text-xs font-medium text-ink opacity-0 backdrop-blur transition-opacity hover:bg-white group-hover:opacity-100 disabled:opacity-60"
       >
         <ImagePlus className="h-3.5 w-3.5" />
         {isPending ? "Envoi..." : url ? "Changer" : "Ajouter une bannière"}

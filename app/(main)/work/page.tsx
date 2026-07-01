@@ -32,7 +32,7 @@ export default async function WorkPage() {
 
       {/* CALENDRIER - semainier (to-do de la semaine) */}
       <div>
-        <h2 className="mb-4 text-xl font-semibold tracking-tight">Calendrier</h2>
+        <h2 className="mb-5 text-2xl font-semibold tracking-tight">Calendrier</h2>
         <CalendarSection
           initial={blocks}
           projects={projects}
