@@ -27,6 +27,13 @@ export default function RichText({
 
   function exec(command: string, arg?: string) {
     ref.current?.focus();
+    // Utilise des spans CSS inline (color/font-weight) plutôt que les balises
+    // <font> dépréciées : rendu et sauvegarde plus fiables.
+    try {
+      document.execCommand("styleWithCSS", false, "true");
+    } catch {
+      // ignoré si non supporté
+    }
     document.execCommand(command, false, arg);
     onChange(ref.current?.innerHTML ?? "");
   }
