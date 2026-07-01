@@ -1,7 +1,6 @@
 import { format, parseISO } from "date-fns";
 import { fr } from "date-fns/locale";
 import { ExternalLink } from "lucide-react";
-import PageHeader from "@/components/ui/PageHeader";
 import EditableField from "@/components/me/EditableField";
 import { getMeSettings } from "./actions";
 import { getPayments } from "../finance/actions";
@@ -34,9 +33,28 @@ export default async function MePage() {
     .filter((p) => p.status === "paid")
     .sort((a, b) => (b.received_date ?? "").localeCompare(a.received_date ?? ""));
 
+  const tjm = settings[TJM_KEY] ?? TJM_DEFAULT;
+
   return (
     <div className="space-y-10">
-      <PageHeader title="Moi" subtitle="Tes infos pro, tes liens, tes missions." />
+      {/* En-tête profil */}
+      <div className="flex items-center gap-4 rounded-3xl border border-gray-100 bg-gradient-to-br from-gray-50 to-white p-6">
+        <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-ink text-xl font-semibold tracking-tight text-white">
+          AP
+        </div>
+        <div className="min-w-0 flex-1">
+          <h2 className="text-2xl font-semibold tracking-tight">Adrien Poizat</h2>
+          <p className="truncate text-sm text-muted">
+            pztdesign · Direction artistique &amp; design graphique
+          </p>
+        </div>
+        <div className="hidden shrink-0 text-right sm:block">
+          <p className="text-xs font-medium uppercase tracking-wide text-muted">
+            TJM
+          </p>
+          <p className="text-2xl font-semibold tracking-tight">{tjm} €</p>
+        </div>
+      </div>
 
       {/* Infos pro */}
       <section>

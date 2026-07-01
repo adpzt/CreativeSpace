@@ -20,6 +20,7 @@ import {
 import { getCalendarBlocks, getProjects, getClients } from "./work/actions";
 import { getPayments, getUrssaf } from "./finance/actions";
 import TodayTasks from "@/components/home/TodayTasks";
+import Greeting from "@/components/home/Greeting";
 import { PROJECT_STATUS, projectProgress, formatEuro, CATEGORY_COLOR } from "@/lib/work";
 import type { ProjectWithDeliverables } from "@/lib/types";
 
@@ -121,27 +122,47 @@ export default async function HomePage() {
     urssafAlert ||
     tvaAlert;
 
+  // Résumé du jour pour le hero
+  const todoToday = todayBlocks.filter((b) => !b.completed).length;
+  const alertCount =
+    latePayments.length + unvalidated.length + soon.length + (urssafAlert ? 1 : 0);
+
   return (
     <div className="space-y-8">
-      <div className="flex flex-wrap items-end justify-between gap-3">
-        <div>
-          <h2 className="text-2xl font-semibold tracking-tight">Bonjour Adrien</h2>
-          <p className="mt-1 text-sm capitalize text-muted">{today}</p>
-        </div>
-        <div className="flex gap-2">
-          <Link
-            href="/notes"
-            className="inline-flex items-center gap-1.5 rounded-xl border border-gray-200 px-3 py-2 text-sm font-medium hover:border-ink"
-          >
-            <StickyNote className="h-4 w-4 text-muted" />
-            Note
-          </Link>
+      {/* Hero */}
+      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#2563EB] to-[#4F46E5] p-6 text-white sm:p-8">
+        <div
+          aria-hidden
+          className="pointer-events-none absolute -right-10 -top-16 h-48 w-48 rounded-full bg-white/10 blur-2xl"
+        />
+        <p className="text-sm capitalize text-white/70">{today}</p>
+        <h2 className="mt-1 text-3xl font-semibold tracking-tight">
+          <Greeting name="Adrien" />
+        </h2>
+        <p className="mt-2 text-sm text-white/80">
+          {todoToday > 0
+            ? `${todoToday} tâche${todoToday > 1 ? "s" : ""} aujourd'hui`
+            : "Rien de prévu aujourd'hui"}
+          {" · "}
+          {activeProjects.length} projet{activeProjects.length > 1 ? "s" : ""} actif
+          {activeProjects.length > 1 ? "s" : ""}
+          {alertCount > 0 &&
+            ` · ${alertCount} alerte${alertCount > 1 ? "s" : ""}`}
+        </p>
+        <div className="mt-5 flex gap-2">
           <Link
             href="/work"
-            className="inline-flex items-center gap-1.5 rounded-xl bg-ink px-3 py-2 text-sm font-medium text-white hover:opacity-90"
+            className="inline-flex items-center gap-1.5 rounded-xl bg-white px-3.5 py-2 text-sm font-medium text-ink transition-opacity hover:opacity-90"
           >
             <Plus className="h-4 w-4" />
             Projet
+          </Link>
+          <Link
+            href="/notes"
+            className="inline-flex items-center gap-1.5 rounded-xl bg-white/15 px-3.5 py-2 text-sm font-medium text-white backdrop-blur transition-colors hover:bg-white/25"
+          >
+            <StickyNote className="h-4 w-4" />
+            Note
           </Link>
         </div>
       </div>

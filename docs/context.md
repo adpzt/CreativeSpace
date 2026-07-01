@@ -42,6 +42,8 @@
 
 **Toutes les phases 1-6 sont faites. RESTE :** Phase 7 (bonus : PWA, dark mode, export données, portail client, recherche globale, templates, etc.). À prioriser avec Adrien après qu'il ait utilisé l'app en conditions réelles (POINT DE RETOUR FINAL).
 
+**Retours design/mobile (01/07/2026)** : (1) Calendrier : la grille jours x catégories était illisible sur mobile -> ajout d'une VUE MOBILE verticale (une carte par jour, 3 catégories empilées, réutilise les Cell donc ajout/complétion/drag conservés) ; grille conservée sur desktop (hidden md:flex / md:hidden). (2) Home : ajout d'un HERO en dégradé bleu->indigo (salutation selon l'heure locale via components/home/Greeting.tsx, date, résumé du jour tâches/projets/alertes, boutons Projet+Note). (3) Moi : en-tête profil (monogramme AP + nom + handle + TJM) au lieu du titre plat. Adrien trouvait Moi "pas dingue" et voulait un Home "plus cool/rafraîchissant". RESTE à surveiller : responsive mobile des autres écrans (Finance tables, MonthView calendrier min-w-700 scroll horizontal) si Adrien remonte d'autres soucis.
+
 **Migrations SQL exécutées par Adrien (dans Supabase) :** schema.sql initial + 001 (tags clients) + 002 (projet category/color, deliverable notes) + 003 (calendar_blocks.notes) + 004 (statut cancelled, mission_types, cost) + 005 (source, gross/net, paid, deliverable progress) + 006 (mission_expenses jsonb) + 007 (bucket storage banners). **008 (payments.mission_type enum -> text) = À EXÉCUTER par Adrien.** Toujours lui fournir le SQL et lui dire de l'exécuter (il est débutant, le faire pas à pas).
 
 ---
