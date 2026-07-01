@@ -39,14 +39,14 @@ export default async function FinancePage() {
 
   return (
     <div className="space-y-12">
-      <h1 className="text-xl font-semibold tracking-tight">Finance</h1>
-
-      {/* ============== FREELANCE ============== */}
+      {/* ============== FREELANCE (titre de page) ============== */}
       <div className="space-y-10">
-        <SectionBanner
-          title="Freelance"
-          subtitle="Ton activité de micro-entrepreneur : revenus, dépenses, cotisations."
-        />
+        <header>
+          <h1 className="text-[27px] font-bold tracking-tight">Freelance</h1>
+          <p className="mt-1 text-[15px] text-muted">
+            Ton activité de micro-entrepreneur : revenus, dépenses, cotisations.
+          </p>
+        </header>
         <DashboardSection payments={payments} expenses={expenses} />
         <RevenusSection payments={payments} projects={projects} clients={clients} />
         <DepensesSection expenses={expenses} projects={projects} />
@@ -57,22 +57,19 @@ export default async function FinancePage() {
 
       {/* ============== SALAIRE & IMPÔT ============== */}
       <div className="space-y-10">
-        <SectionBanner
-          title="Salaire & impôt"
-          subtitle="Tes salaires (alternance, stages) et l'estimation d'impôt sur le revenu global."
-        />
+        <header className="border-t border-black/[0.06] pt-8">
+          <h2 className="flex items-center gap-2.5 text-2xl font-bold tracking-tight">
+            <span className="h-6 w-1 rounded-full bg-[#9333EA]" />
+            Salaire &amp; impôt
+          </h2>
+          <p className="mt-1 pl-[14px] text-[15px] text-muted">
+            Tes salaires (alternance, stages) et l&apos;estimation d&apos;impôt sur
+            le revenu global.
+          </p>
+        </header>
         <SalaireSection salaires={salaires} caYear={caYear} />
         <ImpotSection payments={payments} salaryTaxable={salaryTaxable} />
       </div>
-    </div>
-  );
-}
-
-function SectionBanner({ title, subtitle }: { title: string; subtitle: string }) {
-  return (
-    <div className="border-t border-gray-200 pt-5 dark:border-hairline">
-      <h2 className="text-2xl font-bold tracking-tight">{title}</h2>
-      <p className="mt-0.5 text-sm text-muted">{subtitle}</p>
     </div>
   );
 }
