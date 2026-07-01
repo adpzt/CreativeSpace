@@ -1,7 +1,9 @@
 import type { Config } from "tailwindcss";
 
 const config: Config = {
-  // Bascule clair/sombre par classe `dark` sur <html> (appliquée côté serveur).
+  // Dark mode abandonné. On garde "class" (jamais posée sur <html>) pour NEUTRALISER
+  // les variantes dark: résiduelles : sans ça, Tailwind repasse en "media" et elles
+  // s'activeraient selon l'OS. Elles disparaîtront écran par écran avec la refonte.
   darkMode: "class",
   content: [
     "./pages/**/*.{js,ts,jsx,tsx,mdx}",

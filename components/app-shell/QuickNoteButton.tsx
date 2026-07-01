@@ -41,9 +41,10 @@ export default function QuickNoteButton() {
       <button
         onClick={() => setOpen(true)}
         aria-label="Note rapide"
-        className="fixed bottom-20 right-4 z-40 flex h-14 w-14 items-center justify-center rounded-full bg-ink text-white shadow-lg transition-transform hover:scale-105 md:bottom-6 md:right-6"
+        className="fixed bottom-24 right-4 z-40 inline-flex items-center gap-1.5 rounded-full bg-ink px-4 py-3 text-sm font-semibold text-white shadow-float transition-transform duration-150 ease-ios hover:-translate-y-px hover:scale-[1.02] active:scale-[0.97] md:bottom-6 md:right-6"
       >
-        <Plus className="h-6 w-6" />
+        <Plus className="h-[18px] w-[18px]" />
+        Note
       </button>
 
       {open && (
