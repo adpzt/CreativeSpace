@@ -431,6 +431,9 @@ Le calendrier étant le composant le plus critique, il est livré en DEUX temps 
 
 ## PHASE 7 — Bonus & polish
 
+- [ ] **Refonte design globale via Claude Design** (voir docs/design-brief.md) : système de design iOS/Apple, puis ré-implémentation Tailwind par Claude Code.
+- [ ] **Page note/livrable façon Notion** : ouverture en LECTURE (grand titre, propriétés en lignes, % même hors projet), édition au crayon seulement (logique lecture/édition à implémenter).
+- [ ] **Éditeur de texte riche** (contentEditable, gras/italique/couleur par sélection, live) pour les notes/blocs — remplace l'ancien format "bloc entier" retiré.
 - [ ] Export / sauvegarde des données (JSON ou CSV) - filet de sécurité
 - [ ] PWA config (installable sur iPhone comme une app)
 - [ ] Dark mode

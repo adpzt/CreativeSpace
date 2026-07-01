@@ -12,7 +12,14 @@ import {
   YAxis,
   Tooltip,
 } from "recharts";
-import { List, PieChart as PieIcon, BarChart3 } from "lucide-react";
+import {
+  List,
+  PieChart as PieIcon,
+  BarChart3,
+  ChevronLeft,
+  ChevronRight,
+} from "lucide-react";
+import type { ReactNode } from "react";
 import { PAYMENT_SOURCES, PROJECT_COLORS, formatEuro } from "@/lib/work";
 import type { Payment, ProjectWithDeliverables } from "@/lib/types";
 
@@ -40,12 +47,10 @@ export default function DiagrammesSection({
   payments: Payment[];
   projects: ProjectWithDeliverables[];
 }) {
-  const year = new Date().getFullYear();
-  const y = String(year);
+  const [monthYear, setMonthYear] = useState(new Date().getFullYear());
   const net = (p: Payment) => p.net_amount ?? 0;
-  const paid = payments.filter(
-    (p) => p.status === "paid" && p.received_date?.startsWith(y)
-  );
+  // Provenance & type = DEPUIS LE DÉBUT (tous les encaissements, toutes années)
+  const paid = payments.filter((p) => p.status === "paid" && p.received_date);
 
   // Argent réellement encaissé par revenu = net perçu MOINS les dépenses de la
   // mission liée (déduites une seule fois par projet). Plancher à 0 pour l'affichage.
@@ -98,9 +103,9 @@ export default function DiagrammesSection({
     .filter((d) => d.value > 0)
     .sort((a, b) => b.value - a.value);
 
-  // --- CA par mois ---
+  // --- Argent par mois (année sélectionnable) ---
   const byMonth: Datum[] = MONTHS_SHORT.map((name, i) => {
-    const mym = `${y}-${String(i + 1).padStart(2, "0")}`;
+    const mym = `${monthYear}-${String(i + 1).padStart(2, "0")}`;
     return {
       name,
       value: paid
@@ -116,32 +121,44 @@ export default function DiagrammesSection({
       <div className="mb-4">
         <h2 className="text-xl font-semibold tracking-tight">Diagrammes</h2>
         <p className="text-sm text-muted">
-          Argent réellement encaissé {year} (net des dépenses de mission)
+          Argent réellement encaissé depuis le début (net des dépenses de mission)
         </p>
       </div>
 
       {!hasData ? (
         <div className="rounded-2xl border border-dashed border-gray-200 px-6 py-10 text-center text-sm text-muted">
-          Aucun revenu encaissé cette année. Les graphiques apparaîtront ici dès
-          le premier encaissement.
+          Aucun revenu encaissé pour l&apos;instant. Les graphiques apparaîtront ici
+          dès le premier encaissement.
         </div>
       ) : (
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-          <ChartCard
-            title="Argent par provenance"
-            data={bySource}
-            kind="pie"
-          />
-          <ChartCard
-            title="Argent par type de mission"
-            data={byType}
-            kind="pie"
-          />
+          <ChartCard title="Argent par provenance" data={bySource} kind="pie" />
+          <ChartCard title="Argent par type de mission" data={byType} kind="pie" />
           <ChartCard
             title="Argent par mois"
             data={byMonth}
             kind="bar"
             className="lg:col-span-2"
+            listYear={monthYear}
+            headerExtra={
+              <div className="flex items-center gap-1">
+                <button
+                  onClick={() => setMonthYear((yy) => yy - 1)}
+                  aria-label="Année précédente"
+                  className="rounded-lg p-1.5 text-muted hover:bg-gray-100 hover:text-ink"
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                </button>
+                <span className="w-12 text-center text-sm font-medium">{monthYear}</span>
+                <button
+                  onClick={() => setMonthYear((yy) => yy + 1)}
+                  aria-label="Année suivante"
+                  className="rounded-lg p-1.5 text-muted hover:bg-gray-100 hover:text-ink"
+                >
+                  <ChevronRight className="h-4 w-4" />
+                </button>
+              </div>
+            }
           />
         </div>
       )}
@@ -156,11 +173,15 @@ function ChartCard({
   data,
   kind,
   className = "",
+  listYear,
+  headerExtra,
 }: {
   title: string;
   data: Datum[];
   kind: "pie" | "bar";
   className?: string;
+  listYear?: number; // si défini, la vue liste affiche "Mois année"
+  headerExtra?: ReactNode; // ex : navigation par année
 }) {
   const [asList, setAsList] = useState(false);
   const total = data.reduce((s, d) => s + d.value, 0);
@@ -168,24 +189,27 @@ function ChartCard({
 
   return (
     <div className={`rounded-2xl border border-gray-100 bg-white p-5 ${className}`}>
-      <div className="mb-4 flex items-center justify-between">
+      <div className="mb-4 flex items-center justify-between gap-2">
         <h3 className="text-sm font-semibold">{title}</h3>
-        <button
-          onClick={() => setAsList((v) => !v)}
-          aria-label={asList ? "Vue graphique" : "Vue liste"}
-          title={asList ? "Vue graphique" : "Vue liste"}
-          className="rounded-lg p-1.5 text-muted transition-colors hover:bg-gray-100 hover:text-ink"
-        >
-          {asList ? (
-            kind === "pie" ? (
-              <PieIcon className="h-4 w-4" />
+        <div className="flex items-center gap-1">
+          {headerExtra}
+          <button
+            onClick={() => setAsList((v) => !v)}
+            aria-label={asList ? "Vue graphique" : "Vue liste"}
+            title={asList ? "Vue graphique" : "Vue liste"}
+            className="rounded-lg p-1.5 text-muted transition-colors hover:bg-gray-100 hover:text-ink"
+          >
+            {asList ? (
+              kind === "pie" ? (
+                <PieIcon className="h-4 w-4" />
+              ) : (
+                <BarChart3 className="h-4 w-4" />
+              )
             ) : (
-              <BarChart3 className="h-4 w-4" />
-            )
-          ) : (
-            <List className="h-4 w-4" />
-          )}
-        </button>
+              <List className="h-4 w-4" />
+            )}
+          </button>
+        </div>
       </div>
 
       {asList ? (
@@ -201,7 +225,9 @@ function ChartCard({
                   className="h-2.5 w-2.5 shrink-0 rounded-full"
                   style={{ background: color(i) }}
                 />
-                <span className="flex-1 truncate">{d.name}</span>
+                <span className="flex-1 truncate">
+                  {listYear ? `${d.name} ${listYear}` : d.name}
+                </span>
                 <span className="text-muted">
                   {total > 0 ? Math.round((d.value / total) * 100) : 0}%
                 </span>

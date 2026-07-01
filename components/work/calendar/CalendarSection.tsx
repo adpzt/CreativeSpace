@@ -273,17 +273,6 @@ export default function CalendarSection({
     setBlocks((p) => p.map((x) => (x.id === b.id ? { ...x, time } : x)));
     await updateCalendarBlock(b.id, { time });
   }
-  // Mise en forme du texte du bloc (gras / italique / couleur du texte)
-  async function setFormat(
-    b: CalendarBlock,
-    patch: { bold?: boolean; italic?: boolean; text_color?: string | null }
-  ) {
-    pushUndo(() =>
-      patchBlock(b.id, { bold: b.bold, italic: b.italic, text_color: b.text_color })
-    );
-    setBlocks((p) => p.map((x) => (x.id === b.id ? { ...x, ...patch } : x)));
-    await updateCalendarBlock(b.id, patch);
-  }
   async function createFromDeliverable(
     dayIso: string,
     cat: CalendarCategory,
@@ -540,20 +529,15 @@ export default function CalendarSection({
 
               {CALENDAR_CATEGORIES.map((cat) => (
                 <div key={cat.key} className="contents">
-                  <div className="flex items-center border-b border-r border-gray-100 p-2">
+                  <div
+                    className="flex items-center gap-1.5 border-b border-r border-gray-100 bg-gray-50 px-3 py-2 text-sm font-semibold"
+                    style={{ color: cat.color }}
+                  >
                     <span
-                      className="inline-flex items-center gap-1.5 rounded-xl px-2.5 py-1.5 text-sm font-semibold shadow-sm"
-                      style={{
-                        color: cat.color,
-                        background: `linear-gradient(135deg, ${cat.color}24, ${cat.color}0A)`,
-                      }}
-                    >
-                      <span
-                        className="h-2 w-2 rounded-full"
-                        style={{ backgroundColor: cat.color }}
-                      />
-                      {cat.label}
-                    </span>
+                      className="h-2 w-2 shrink-0 rounded-full"
+                      style={{ backgroundColor: cat.color }}
+                    />
+                    {cat.label}
                   </div>
                   {days.map((d) => (
                     <Cell
@@ -630,14 +614,11 @@ export default function CalendarSection({
                   {CALENDAR_CATEGORIES.map((cat) => (
                     <div key={cat.key} className="flex items-start gap-2 px-2 py-2">
                       <span
-                        className="mt-0.5 inline-flex shrink-0 items-center gap-1 rounded-lg px-2 py-1 text-[11px] font-semibold"
-                        style={{
-                          color: cat.color,
-                          background: `linear-gradient(135deg, ${cat.color}24, ${cat.color}0A)`,
-                        }}
+                        className="mt-1 inline-flex w-20 shrink-0 items-center gap-1 text-[11px] font-semibold"
+                        style={{ color: cat.color }}
                       >
                         <span
-                          className="h-1.5 w-1.5 rounded-full"
+                          className="h-1.5 w-1.5 shrink-0 rounded-full"
                           style={{ backgroundColor: cat.color }}
                         />
                         {cat.label}
@@ -760,18 +741,6 @@ export default function CalendarSection({
                     retirer
                   </button>
                 )}
-              </div>
-              {/* Mise en forme du texte */}
-              <div className="flex items-center gap-3">
-                <span className="text-xs font-medium uppercase tracking-wide text-muted">
-                  Texte
-                </span>
-                <FormatControls
-                  bold={noteBlock.bold}
-                  italic={noteBlock.italic}
-                  textColor={noteBlock.text_color}
-                  onChange={(patch) => setFormat(noteBlock, patch)}
-                />
               </div>
               <div className="flex items-center justify-between">
                 <button
@@ -953,74 +922,6 @@ function ColorDots({
   );
 }
 
-// Contrôles de mise en forme du texte : gras / italique / couleur du texte.
-function FormatControls({
-  bold,
-  italic,
-  textColor,
-  onChange,
-}: {
-  bold: boolean;
-  italic: boolean;
-  textColor: string | null;
-  onChange: (patch: {
-    bold?: boolean;
-    italic?: boolean;
-    text_color?: string | null;
-  }) => void;
-}) {
-  return (
-    <div className="flex flex-wrap items-center gap-1.5">
-      <button
-        type="button"
-        onClick={() => onChange({ bold: !bold })}
-        aria-label="Gras"
-        className={`flex h-7 w-7 items-center justify-center rounded-lg border text-sm font-bold ${
-          bold ? "border-ink bg-gray-100" : "border-gray-200 hover:border-gray-400"
-        }`}
-      >
-        B
-      </button>
-      <button
-        type="button"
-        onClick={() => onChange({ italic: !italic })}
-        aria-label="Italique"
-        className={`flex h-7 w-7 items-center justify-center rounded-lg border text-sm italic ${
-          italic ? "border-ink bg-gray-100" : "border-gray-200 hover:border-gray-400"
-        }`}
-      >
-        i
-      </button>
-      <span className="mx-1 h-5 w-px bg-gray-200" />
-      {/* Couleur du texte : "défaut" (noir) + palette */}
-      <button
-        type="button"
-        onClick={() => onChange({ text_color: null })}
-        aria-label="Couleur par défaut"
-        className={`flex h-7 w-7 items-center justify-center rounded-full border text-[10px] ${
-          textColor === null ? "border-ink" : "border-gray-200 hover:border-gray-400"
-        }`}
-      >
-        A
-      </button>
-      {PROJECT_COLORS.map((c) => (
-        <button
-          key={c}
-          type="button"
-          onClick={() => onChange({ text_color: c })}
-          aria-label={`Texte ${c}`}
-          className={`h-7 w-7 rounded-full text-sm font-bold ${
-            textColor === c ? "ring-2 ring-ink ring-offset-1" : ""
-          }`}
-          style={{ color: c, backgroundColor: `${c}1A` }}
-        >
-          A
-        </button>
-      ))}
-    </div>
-  );
-}
-
 function AddEntry({
   ctx,
   suggestions,
@@ -1037,27 +938,17 @@ function AddEntry({
   onPickNote: (n: Note) => void;
   onCreate: (
     title: string,
-    opts: {
-      color: string | null;
-      time: string | null;
-      bold: boolean;
-      italic: boolean;
-      textColor: string | null;
-    }
+    opts: { color: string | null; time: string | null }
   ) => void;
   onPick: (s: Suggestion) => void;
 }) {
   const [value, setValue] = useState("");
   const [color, setColor] = useState<string | null>(null);
   const [time, setTime] = useState("");
-  const [bold, setBold] = useState(false);
-  const [italic, setItalic] = useState(false);
-  const [textColor, setTextColor] = useState<string | null>(null);
   const catLabel =
     CALENDAR_CATEGORIES.find((c) => c.key === ctx.cat)?.label ?? "";
   const submit = () => {
-    if (value.trim())
-      onCreate(value.trim(), { color, time: time || null, bold, italic, textColor });
+    if (value.trim()) onCreate(value.trim(), { color, time: time || null });
   };
   return (
     <div className="space-y-4 pr-8">
@@ -1106,22 +997,6 @@ function AddEntry({
         </div>
       </div>
 
-      {/* Mise en forme du texte */}
-      <div>
-        <p className="mb-1.5 text-xs font-medium uppercase tracking-wide text-muted">
-          Texte (optionnel)
-        </p>
-        <FormatControls
-          bold={bold}
-          italic={italic}
-          textColor={textColor}
-          onChange={(patch) => {
-            if (patch.bold !== undefined) setBold(patch.bold);
-            if (patch.italic !== undefined) setItalic(patch.italic);
-            if (patch.text_color !== undefined) setTextColor(patch.text_color);
-          }}
-        />
-      </div>
 
       {suggestions.length > 0 && (
         <div>
