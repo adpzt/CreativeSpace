@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #0C0D10; color: #F3F4F6; -webkit-font-smoothing: antialiased; }
+  a { color: inherit; }
+  @keyframes cs-pop { 0% { transform: scale(0.5); opacity: 0; } 60% { transform: scale(1.12); } 100% { transform: scale(1); opacity: 1; } }
+  @keyframes cs-rise { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes cs-sheet { from { opacity: 0; transform: translateY(26px) scale(0.985); } to { opacity: 1; transform: translateY(0) scale(1); } }
+  @keyframes cs-fade { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes cs-drift { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
+  @keyframes cs-glow { 0%,100% { opacity: 0.75; } 50% { opacity: 1; } }
+  @media (prefers-reduced-motion: reduce) { * { animation: none !important; } }
+</style>
+</helmet>
+
+<div style="min-height:100vh;background:#0C0D10;color:#F3F4F6;font-family:'Inter',-apple-system,sans-serif;">
+
+  <!-- ===== BARRE HAUTE (verre dépoli sombre) ===== -->
+  <div style="position:sticky;top:0;z-index:60;background:rgba(14,15,18,0.68);-webkit-backdrop-filter:blur(20px) saturate(180%);backdrop-filter:blur(20px) saturate(180%);border-bottom:1px solid rgba(255,255,255,0.07);">
+    <div style="max-width:1120px;margin:0 auto;padding:13px 24px;display:flex;align-items:center;justify-content:space-between;gap:16px;">
+      <div style="display:flex;align-items:center;gap:10px;">
+        <div style="width:22px;height:22px;border-radius:7px;background:linear-gradient(150deg,#5B9DF9,#A87CFF);"></div>
+        <span style="font-weight:700;font-size:15px;letter-spacing:-0.01em;">Creative Space</span>
+        <span style="color:#71717A;font-size:14px;font-weight:500;">· dark mode</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:18px;font-size:13.5px;font-weight:500;color:#A1A1AA;">
+        <a href="#composants-d" style="text-decoration:none;">Composants</a>
+        <a href="Système de design.dc.html" style="text-decoration:none;padding:6px 12px;border-radius:999px;border:1px solid rgba(255,255,255,0.14);background:rgba(255,255,255,0.04);color:#F3F4F6;font-weight:600;">☼ Version claire</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== HERO (dégradé + halo) ===== -->
+  <header style="position:relative;overflow:hidden;background:radial-gradient(900px 520px at 12% -25%,rgba(91,157,249,0.22),transparent 60%),radial-gradient(820px 460px at 102% -10%,rgba(168,124,255,0.18),transparent 55%),radial-gradient(700px 400px at 80% 120%,rgba(245,146,78,0.10),transparent 60%);">
+    <div style="max-width:1120px;margin:0 auto;padding:76px 24px 44px;">
+      <div style="display:inline-flex;align-items:center;gap:8px;padding:6px 12px;border-radius:999px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.10);font-size:12px;font-weight:600;color:#C7C9CE;margin-bottom:24px;">
+        <span style="width:7px;height:7px;border-radius:999px;background:#5B9DF9;box-shadow:0 0 10px 1px rgba(91,157,249,0.8);animation:cs-glow 3s ease-in-out infinite;"></span>
+        iOS dark 2026 · verre dépoli · dégradés maîtrisés
+      </div>
+      <h1 style="font-size:clamp(38px,6vw,58px);line-height:1.02;font-weight:800;letter-spacing:-0.03em;margin:0 0 20px;max-width:16ch;background:linear-gradient(180deg,#FFFFFF,#B9BEC9);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;">Le même système, version nuit.</h1>
+      <p style="font-size:18px;line-height:1.6;color:#A1A1AA;max-width:56ch;margin:0 0 28px;">Fonds profonds, surfaces qui s'élèvent par la lumière, couleurs fonctionnelles éclaircies pour le contraste, et des dégradés discrets là où ça compte : hero, barres verre, graphes, lueurs de priorité.</p>
+      <div style="display:flex;flex-wrap:wrap;gap:8px;">
+        <span style="padding:7px 13px;border-radius:999px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.10);font-size:13px;font-weight:500;">Fond #0C0D10</span>
+        <span style="padding:7px 13px;border-radius:999px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.10);font-size:13px;font-weight:500;">Interface FR</span>
+        <span style="padding:7px 13px;border-radius:999px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.10);font-size:13px;font-weight:500;">Inter</span>
+        <span style="padding:7px 13px;border-radius:999px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.10);font-size:13px;font-weight:500;">Tailwind (dark:)</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- ===== PALETTE DARK ===== -->
+  <section style="max-width:1120px;margin:0 auto;padding:44px 24px 0;">
+    <h3 style="font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:#71717A;margin:0 0 16px;">Palette · nuit</h3>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:22px;">
+      <div style="border-radius:14px;overflow:hidden;background:#15171B;border:1px solid rgba(255,255,255,0.08);"><div style="height:60px;background:#0C0D10;"></div><div style="padding:11px 13px;"><div style="font-size:13px;font-weight:600;">Fond base</div><div style="font-family:ui-monospace,monospace;font-size:11.5px;color:#71717A;margin-top:3px;">#0C0D10</div></div></div>
+      <div style="border-radius:14px;overflow:hidden;background:#15171B;border:1px solid rgba(255,255,255,0.08);"><div style="height:60px;background:linear-gradient(180deg,#1A1D22,#141519);"></div><div style="padding:11px 13px;"><div style="font-size:13px;font-weight:600;">Surface carte</div><div style="font-family:ui-monospace,monospace;font-size:11.5px;color:#71717A;margin-top:3px;">#15171B → grad</div></div></div>
+      <div style="border-radius:14px;overflow:hidden;background:#15171B;border:1px solid rgba(255,255,255,0.08);"><div style="height:60px;background:#F3F4F6;"></div><div style="padding:11px 13px;"><div style="font-size:13px;font-weight:600;">Texte principal</div><div style="font-family:ui-monospace,monospace;font-size:11.5px;color:#71717A;margin-top:3px;">#F3F4F6</div></div></div>
+      <div style="border-radius:14px;overflow:hidden;background:#15171B;border:1px solid rgba(255,255,255,0.08);"><div style="height:60px;background:#A1A1AA;"></div><div style="padding:11px 13px;"><div style="font-size:13px;font-weight:600;">Secondaire</div><div style="font-family:ui-monospace,monospace;font-size:11.5px;color:#71717A;margin-top:3px;">#A1A1AA</div></div></div>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:14px;">
+      <div style="border-radius:14px;overflow:hidden;background:#15171B;border:1px solid rgba(255,255,255,0.08);"><div style="height:60px;background:#5B9DF9;"></div><div style="padding:11px 13px;"><div style="font-size:13px;font-weight:600;">Bleu · Actif</div><div style="font-family:ui-monospace,monospace;font-size:11.5px;color:#71717A;margin-top:3px;">#5B9DF9</div></div></div>
+      <div style="border-radius:14px;overflow:hidden;background:#15171B;border:1px solid rgba(255,255,255,0.08);"><div style="height:60px;background:#3FCF8E;"></div><div style="padding:11px 13px;"><div style="font-size:13px;font-weight:600;">Vert · Validé</div><div style="font-family:ui-monospace,monospace;font-size:11.5px;color:#71717A;margin-top:3px;">#3FCF8E</div></div></div>
+      <div style="border-radius:14px;overflow:hidden;background:#15171B;border:1px solid rgba(255,255,255,0.08);"><div style="height:60px;background:#F5924E;"></div><div style="padding:11px 13px;"><div style="font-size:13px;font-weight:600;">Orange · Attente</div><div style="font-family:ui-monospace,monospace;font-size:11.5px;color:#71717A;margin-top:3px;">#F5924E</div></div></div>
+      <div style="border-radius:14px;overflow:hidden;background:#15171B;border:1px solid rgba(255,255,255,0.08);"><div style="height:60px;background:#F26D6D;"></div><div style="padding:11px 13px;"><div style="font-size:13px;font-weight:600;">Rouge · Alerte</div><div style="font-family:ui-monospace,monospace;font-size:11.5px;color:#71717A;margin-top:3px;">#F26D6D</div></div></div>
+    </div>
+    <div style="background:#0F1013;border:1px solid rgba(255,255,255,0.07);border-radius:14px;padding:14px 18px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px;line-height:1.9;color:#B4B7BE;">
+      <span style="color:#71717A;">hairline</span> white/8 · <span style="color:#71717A;">tint</span> couleur @ 14-16% sur surface + border couleur @ 30% · <span style="color:#71717A;">texte sur tint</span> version éclaircie (ex #93C0FF)
+    </div>
+  </section>
+
+  <!-- ============================================================= -->
+  <section id="composants-d" style="max-width:1120px;margin:0 auto;padding:52px 24px 96px;">
+    <div style="display:flex;align-items:center;gap:14px;padding-bottom:24px;border-bottom:1px solid rgba(255,255,255,0.08);margin-bottom:44px;">
+      <span style="width:34px;height:34px;border-radius:10px;background:linear-gradient(150deg,#5B9DF9,#A87CFF);color:#0C0D10;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:15px;">◑</span>
+      <div>
+        <h2 style="margin:0;font-size:26px;font-weight:700;letter-spacing:-0.02em;">Composants · dark</h2>
+        <p style="margin:2px 0 0;color:#71717A;font-size:14px;">Mêmes règles, adaptées à la nuit.</p>
+      </div>
+    </div>
+
+    <!-- 1. Cartes (dont une accent dégradé) -->
+    <div style="margin-bottom:52px;">
+      <div style="display:flex;align-items:baseline;gap:12px;margin-bottom:6px;"><span style="font-family:ui-monospace,monospace;font-size:13px;color:#71717A;font-weight:600;">01</span><h3 style="margin:0;font-size:20px;font-weight:700;letter-spacing:-0.01em;">Cartes · surface & accent</h3></div>
+      <p style="margin:0 0 20px;color:#A1A1AA;font-size:14.5px;max-width:62ch;">Surface = léger dégradé haut-bas (éclairage) + hairline claire. Une carte « accent » peut porter un dégradé de marque discret pour les moments forts (hero de section, mise en avant).</p>
+      <div style="background:#111214;border:1px solid rgba(255,255,255,0.06);border-radius:20px;padding:36px;display:grid;grid-template-columns:1fr 1fr;gap:20px;">
+        <!-- carte standard -->
+        <div style="background:linear-gradient(180deg,#1A1D22,#141519);border:1px solid rgba(255,255,255,0.08);border-radius:16px;padding:22px;box-shadow:0 1px 2px rgba(0,0,0,0.4),0 10px 30px -14px rgba(0,0,0,0.6);transition:transform 180ms cubic-bezier(0.2,0.6,0.2,1),box-shadow 180ms ease;cursor:pointer;animation:cs-rise 520ms cubic-bezier(0.2,0.7,0.3,1) both;" style-hover="transform:translateY(-4px);box-shadow:0 2px 4px rgba(0,0,0,0.4),0 20px 40px -14px rgba(0,0,0,0.75);">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;"><span style="display:inline-flex;align-items:center;gap:7px;padding:5px 11px;border-radius:999px;background:rgba(91,157,249,0.16);border:1px solid rgba(91,157,249,0.28);font-size:12px;font-weight:600;color:#93C0FF;"><span style="width:6px;height:6px;border-radius:999px;background:#5B9DF9;"></span>En cours</span><span style="color:#71717A;font-size:12.5px;font-weight:500;">27 juin</span></div>
+          <div style="font-size:17px;font-weight:600;margin-bottom:6px;">PACO Services</div>
+          <div style="font-size:14px;color:#A1A1AA;line-height:1.55;">Identité visuelle complète · logo, palette, flyer A5.</div>
+          <div style="height:1px;background:rgba(255,255,255,0.07);margin:16px 0;"></div>
+          <div style="display:flex;align-items:center;justify-content:space-between;"><span style="font-size:13px;color:#71717A;font-weight:500;">Avancement</span><span style="font-size:13px;font-weight:600;">71%</span></div>
+        </div>
+        <!-- carte accent dégradé -->
+        <div style="position:relative;overflow:hidden;border-radius:16px;padding:22px;background:linear-gradient(145deg,#1B2A4A 0%,#241A3E 55%,#2A1C22 100%);border:1px solid rgba(255,255,255,0.10);box-shadow:0 1px 2px rgba(0,0,0,0.4),0 14px 34px -14px rgba(0,0,0,0.7);animation:cs-rise 520ms cubic-bezier(0.2,0.7,0.3,1) both;animation-delay:90ms;">
+          <div style="position:absolute;inset:0;background:radial-gradient(400px 200px at 100% 0%,rgba(91,157,249,0.28),transparent 60%);pointer-events:none;"></div>
+          <div style="position:relative;">
+            <div style="font-size:12px;font-weight:600;color:#C7C9CE;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:14px;">Mise en avant</div>
+            <div style="font-size:30px;font-weight:800;letter-spacing:-0.02em;line-height:1;">3 240 <span style="font-size:18px;font-weight:600;color:#B9BEC9;">€</span></div>
+            <div style="font-size:14px;color:#A1A1AA;margin-top:10px;line-height:1.5;">CA encaissé cette année · +18% vs mois dernier.</div>
+          </div>
+        </div>
+      </div>
+      <div style="background:#0F1013;border:1px solid rgba(255,255,255,0.07);border-radius:16px;padding:16px 20px;margin-top:16px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px;line-height:1.9;color:#B4B7BE;">
+        <span style="color:#71717A;">surface</span> bg-gradient-to-b from-[#1A1D22] to-[#141519] border-white/8 rounded-2xl · shadow noir profond<br>
+        <span style="color:#71717A;">accent</span> dégradé bleu→violet→cuivré + halo radial · <span style="color:#71717A;">hover</span> -translate-y-1 (réservé aux moments forts, pas partout)
+      </div>
+    </div>
+
+    <!-- 2. Notes dark glass -->
+    <div style="margin-bottom:52px;">
+      <div style="display:flex;align-items:baseline;gap:12px;margin-bottom:6px;"><span style="font-family:ui-monospace,monospace;font-size:13px;color:#71717A;font-weight:600;">02</span><h3 style="margin:0;font-size:20px;font-weight:700;letter-spacing:-0.01em;">Notes · post-it dark glass</h3></div>
+      <p style="margin:0 0 20px;color:#A1A1AA;font-size:14.5px;max-width:64ch;">Verre sombre translucide, lueur de priorité en filigrane (la couleur diffuse depuis le fond), liseré de lumière en haut. Sobre, jamais criard.</p>
+      <div style="background:radial-gradient(600px 300px at 20% 0%,rgba(91,157,249,0.10),transparent 60%),radial-gradient(600px 300px at 90% 100%,rgba(245,146,78,0.08),transparent 60%),#0F1114;border:1px solid rgba(255,255,255,0.06);border-radius:20px;padding:32px;">
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:16px;">
+          <!-- haute -->
+          <div style="background:linear-gradient(158deg,rgba(242,109,109,0.14),rgba(255,255,255,0.02));-webkit-backdrop-filter:blur(18px) saturate(140%);backdrop-filter:blur(18px) saturate(140%);border:1px solid rgba(255,255,255,0.09);border-radius:18px;padding:18px;box-shadow:0 1px 1px rgba(0,0,0,0.4),0 18px 36px -22px rgba(0,0,0,0.7),inset 0 1px 0 rgba(255,255,255,0.07);animation:cs-rise 520ms cubic-bezier(0.2,0.7,0.3,1) both;animation-delay:40ms;transition:transform 200ms cubic-bezier(0.2,0.6,0.2,1);" style-hover="transform:translateY(-4px);">
+            <div style="display:flex;align-items:flex-start;gap:11px;"><span style="width:22px;height:22px;border-radius:999px;border:2px solid rgba(255,255,255,0.22);flex-shrink:0;margin-top:1px;"></span><div style="flex:1;min-width:0;"><div style="font-size:15px;font-weight:600;line-height:1.35;">Relancer PACO devis</div><div style="font-size:13px;color:#A1A1AA;margin-top:4px;line-height:1.45;">Envoyer le devis signé + acompte 35%.</div></div></div>
+            <div style="display:flex;align-items:center;gap:8px;margin-top:14px;"><span style="display:inline-flex;align-items:center;gap:5px;font-size:11.5px;font-weight:600;color:#FCA5A5;"><span style="width:6px;height:6px;border-radius:999px;background:#F26D6D;"></span>Haute</span><span style="color:#4B4B52;">·</span><span style="font-size:11.5px;font-weight:500;color:#FCA5A5;">Échéance aujourd'hui</span></div>
+          </div>
+          <!-- moyenne -->
+          <div style="background:linear-gradient(158deg,rgba(242,178,74,0.13),rgba(255,255,255,0.02));-webkit-backdrop-filter:blur(18px) saturate(140%);backdrop-filter:blur(18px) saturate(140%);border:1px solid rgba(255,255,255,0.09);border-radius:18px;padding:18px;box-shadow:0 1px 1px rgba(0,0,0,0.4),0 18px 36px -22px rgba(0,0,0,0.7),inset 0 1px 0 rgba(255,255,255,0.07);animation:cs-rise 520ms cubic-bezier(0.2,0.7,0.3,1) both;animation-delay:110ms;transition:transform 200ms cubic-bezier(0.2,0.6,0.2,1);" style-hover="transform:translateY(-4px);">
+            <div style="display:flex;align-items:flex-start;gap:11px;"><span style="width:22px;height:22px;border-radius:999px;border:2px solid rgba(255,255,255,0.22);flex-shrink:0;margin-top:1px;"></span><div style="flex:1;min-width:0;"><div style="font-size:15px;font-weight:600;line-height:1.35;">Exports Wali Invest</div><div style="font-size:13px;color:#A1A1AA;margin-top:4px;line-height:1.45;">15 visuels du mois · vérifier formats.</div></div></div>
+            <div style="display:flex;align-items:center;gap:8px;margin-top:14px;"><span style="display:inline-flex;align-items:center;gap:5px;font-size:11.5px;font-weight:600;color:#FCD98A;"><span style="width:6px;height:6px;border-radius:999px;background:#F2B24A;"></span>Moyenne</span><span style="color:#4B4B52;">·</span><span style="font-size:11.5px;font-weight:500;color:#C9B37D;">2 juillet</span></div>
+          </div>
+          <!-- basse -->
+          <div style="background:linear-gradient(158deg,rgba(255,255,255,0.05),rgba(255,255,255,0.015));-webkit-backdrop-filter:blur(18px) saturate(140%);backdrop-filter:blur(18px) saturate(140%);border:1px solid rgba(255,255,255,0.08);border-radius:18px;padding:18px;box-shadow:0 1px 1px rgba(0,0,0,0.4),0 18px 36px -22px rgba(0,0,0,0.65),inset 0 1px 0 rgba(255,255,255,0.06);animation:cs-rise 520ms cubic-bezier(0.2,0.7,0.3,1) both;animation-delay:180ms;transition:transform 200ms cubic-bezier(0.2,0.6,0.2,1);" style-hover="transform:translateY(-4px);">
+            <div style="display:flex;align-items:flex-start;gap:11px;"><span style="width:22px;height:22px;border-radius:999px;border:2px solid rgba(255,255,255,0.20);flex-shrink:0;margin-top:1px;"></span><div style="flex:1;min-width:0;"><div style="font-size:15px;font-weight:600;line-height:1.35;">Ranger dossier Drive</div><div style="font-size:13px;color:#A1A1AA;margin-top:4px;line-height:1.45;">Nommer les exports v01, v02.</div></div></div>
+            <div style="display:flex;align-items:center;gap:8px;margin-top:14px;"><span style="display:inline-flex;align-items:center;gap:5px;font-size:11.5px;font-weight:600;color:#A1A1AA;"><span style="width:6px;height:6px;border-radius:999px;background:#71717A;"></span>Basse</span></div>
+          </div>
+          <!-- terminée -->
+          <div style="background:rgba(255,255,255,0.03);-webkit-backdrop-filter:blur(18px) saturate(130%);backdrop-filter:blur(18px) saturate(130%);border:1px solid rgba(255,255,255,0.06);border-radius:18px;padding:18px;opacity:0.62;box-shadow:inset 0 1px 0 rgba(255,255,255,0.05);animation:cs-rise 520ms cubic-bezier(0.2,0.7,0.3,1) both;animation-delay:250ms;">
+            <div style="display:flex;align-items:flex-start;gap:11px;"><span style="width:22px;height:22px;border-radius:999px;background:#3FCF8E;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;"><span style="display:block;width:5px;height:9px;border:solid #0C0D10;border-width:0 2px 2px 0;transform:rotate(45deg);margin-top:-1.5px;"></span></span><div style="flex:1;min-width:0;"><div style="font-size:15px;font-weight:600;line-height:1.35;color:#71717A;text-decoration:line-through;">Facture The Source 200€</div><div style="font-size:13px;color:#5A5A61;margin-top:4px;line-height:1.45;text-decoration:line-through;">Mission 1 journée · encaissée.</div></div></div>
+            <div style="display:flex;align-items:center;gap:8px;margin-top:14px;"><span style="display:inline-flex;align-items:center;gap:5px;font-size:11.5px;font-weight:600;color:#86EFC0;"><span style="width:6px;height:6px;border-radius:999px;background:#3FCF8E;"></span>Terminée</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 3. Notion page dark -->
+    <div style="margin-bottom:52px;">
+      <div style="display:flex;align-items:baseline;gap:12px;margin-bottom:6px;"><span style="font-family:ui-monospace,monospace;font-size:13px;color:#71717A;font-weight:600;">03</span><h3 style="margin:0;font-size:20px;font-weight:700;letter-spacing:-0.01em;">Page note · façon Notion (dark)</h3></div>
+      <p style="margin:0 0 20px;color:#A1A1AA;font-size:14.5px;max-width:64ch;">Lecture aérée à gauche, édition inline discrète à droite. Grand titre, propriétés en lignes, beaucoup d'air.</p>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
+        <div>
+          <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:#71717A;margin-bottom:10px;">Lecture</div>
+          <div style="background:linear-gradient(180deg,#17191E,#121317);border:1px solid rgba(255,255,255,0.08);border-radius:20px;padding:38px 34px;min-height:400px;box-shadow:0 14px 34px -18px rgba(0,0,0,0.7);">
+            <div style="display:flex;justify-content:flex-end;margin-bottom:20px;"><span style="width:32px;height:32px;border-radius:9px;background:rgba(255,255,255,0.06);display:flex;align-items:center;justify-content:center;"><span style="width:13px;height:13px;border:1.5px solid #A1A1AA;border-radius:3px;transform:rotate(45deg);"></span></span></div>
+            <div style="font-size:33px;font-weight:700;letter-spacing:-0.02em;line-height:1.1;margin-bottom:26px;">Logo principal + variantes</div>
+            <div style="display:flex;flex-direction:column;gap:2px;margin-bottom:26px;">
+              <div style="display:flex;align-items:center;gap:14px;padding:9px 0;"><span style="width:110px;font-size:13.5px;color:#71717A;font-weight:500;">Échéance</span><span style="font-size:14.5px;font-weight:500;">2 juillet 2026</span></div>
+              <div style="display:flex;align-items:center;gap:14px;padding:9px 0;"><span style="width:110px;font-size:13.5px;color:#71717A;font-weight:500;">Priorité</span><span style="display:inline-flex;align-items:center;gap:6px;font-size:13.5px;font-weight:600;color:#FCA5A5;"><span style="width:7px;height:7px;border-radius:999px;background:#F26D6D;"></span>Haute</span></div>
+              <div style="display:flex;align-items:center;gap:14px;padding:9px 0;"><span style="width:110px;font-size:13.5px;color:#71717A;font-weight:500;">Avancement</span><span style="display:flex;align-items:center;gap:10px;flex:1;"><span style="flex:1;max-width:150px;height:7px;border-radius:999px;background:rgba(255,255,255,0.08);overflow:hidden;"><span style="display:block;width:60%;height:100%;background:linear-gradient(90deg,#5B9DF9,#7FB2FF);border-radius:999px;"></span></span><span style="font-size:13.5px;font-weight:600;">60%</span></span></div>
+            </div>
+            <div style="height:1px;background:rgba(255,255,255,0.07);margin-bottom:22px;"></div>
+            <div style="font-size:15.5px;line-height:1.7;color:#C7C9CE;">Direction validée : bold / warm. Icône maison fusionnant étoile et pic montagneux. Logotype custom police « Foun ».</div>
+          </div>
+        </div>
+        <div>
+          <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:#71717A;margin-bottom:10px;">Édition</div>
+          <div style="background:linear-gradient(180deg,#17191E,#121317);border:1px solid rgba(255,255,255,0.08);border-radius:20px;padding:38px 34px;min-height:400px;box-shadow:0 14px 34px -18px rgba(0,0,0,0.7);">
+            <div style="display:flex;justify-content:flex-end;margin-bottom:20px;"><span style="display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border-radius:9px;background:rgba(91,157,249,0.16);border:1px solid rgba(91,157,249,0.28);font-size:12.5px;font-weight:600;color:#93C0FF;">En cours d'édition</span></div>
+            <div style="font-size:33px;font-weight:700;letter-spacing:-0.02em;line-height:1.1;margin-bottom:26px;border-radius:8px;outline:2px solid rgba(91,157,249,0.45);outline-offset:6px;">Logo principal + variantes</div>
+            <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:26px;">
+              <div style="display:flex;align-items:center;gap:14px;"><span style="width:100px;font-size:13.5px;color:#71717A;font-weight:500;">Échéance</span><span style="flex:1;font-size:14px;padding:8px 12px;border:1px solid rgba(255,255,255,0.12);border-radius:10px;background:#141519;">2 juillet 2026</span></div>
+              <div style="display:flex;align-items:center;gap:14px;"><span style="width:100px;font-size:13.5px;color:#71717A;font-weight:500;">Priorité</span><span style="flex:1;font-size:14px;padding:8px 12px;border:1px solid rgba(255,255,255,0.12);border-radius:10px;background:#141519;display:flex;justify-content:space-between;">Haute <span style="color:#71717A;">▾</span></span></div>
+              <div style="display:flex;align-items:center;gap:14px;"><span style="width:100px;font-size:13.5px;color:#71717A;font-weight:500;">Avancement</span><span style="flex:1;font-size:14px;padding:8px 12px;border:1px solid rgba(255,255,255,0.12);border-radius:10px;background:#141519;">60 %</span></div>
+            </div>
+            <div style="height:1px;background:rgba(255,255,255,0.07);margin-bottom:18px;"></div>
+            <div style="font-size:15.5px;line-height:1.7;color:#C7C9CE;padding:12px 14px;border:1px solid rgba(255,255,255,0.12);border-radius:12px;background:#141519;">Direction validée : bold / warm. Icône maison…</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 4. Semainier dark -->
+    <div style="margin-bottom:52px;">
+      <div style="display:flex;align-items:baseline;gap:12px;margin-bottom:6px;"><span style="font-family:ui-monospace,monospace;font-size:13px;color:#71717A;font-weight:600;">04</span><h3 style="margin:0;font-size:20px;font-weight:700;letter-spacing:-0.01em;">Semainier · dark</h3></div>
+      <p style="margin:0 0 20px;color:#A1A1AA;font-size:14.5px;max-width:64ch;">Toujours sobre : boîtes de catégorie en surface unie (la couleur = le dot), tuiles sombres, chips qui flottent. Jour courant = pill claire inversée.</p>
+      <div style="background:#0F1013;border:1px solid rgba(255,255,255,0.06);border-radius:20px;padding:22px;overflow-x:auto;">
+        <div style="min-width:660px;">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;"><div style="font-size:15px;font-weight:600;">Semaine du 30 juin</div><div style="display:flex;align-items:center;gap:6px;"><span style="width:30px;height:30px;border-radius:9px;background:#17191D;border:1px solid rgba(255,255,255,0.09);display:flex;align-items:center;justify-content:center;color:#A1A1AA;font-size:15px;">‹</span><span style="width:30px;height:30px;border-radius:9px;background:#17191D;border:1px solid rgba(255,255,255,0.09);display:flex;align-items:center;justify-content:center;color:#A1A1AA;font-size:15px;">›</span><span style="margin-left:6px;padding:0 12px;height:30px;border-radius:9px;background:#17191D;border:1px solid rgba(255,255,255,0.09);display:flex;align-items:center;gap:6px;font-size:12.5px;font-weight:600;color:#C7C9CE;">Week-end ›</span></div></div>
+          <div style="display:grid;grid-template-columns:132px repeat(5,1fr);gap:8px;margin-bottom:8px;">
+            <div></div>
+            <div style="text-align:center;font-size:12px;font-weight:600;color:#71717A;">Lun 30</div>
+            <div style="text-align:center;"><span style="display:inline-flex;font-size:12px;font-weight:700;color:#0C0D10;background:#F3F4F6;padding:3px 10px;border-radius:999px;">Mar 01</span></div>
+            <div style="text-align:center;font-size:12px;font-weight:600;color:#71717A;">Mer 02</div>
+            <div style="text-align:center;font-size:12px;font-weight:600;color:#71717A;">Jeu 03</div>
+            <div style="text-align:center;font-size:12px;font-weight:600;color:#71717A;">Ven 04</div>
+          </div>
+          <div style="display:grid;grid-template-columns:132px repeat(5,1fr);gap:8px;margin-bottom:8px;">
+            <div style="display:flex;align-items:center;padding:0 14px;border-radius:12px;background:rgba(91,157,249,0.12);border:1px solid rgba(91,157,249,0.26);"><span style="font-size:13px;font-weight:600;color:#93C0FF;letter-spacing:-0.01em;">Freelance</span></div>
+            <div style="min-height:78px;border-radius:12px;background:#171A1F;border:1px solid rgba(255,255,255,0.05);padding:7px;"><div style="background:#1F2228;border:1px solid rgba(255,255,255,0.06);border-radius:9px;padding:8px 10px;font-size:12.5px;font-weight:600;color:#F3F4F6;box-shadow:0 5px 12px -7px rgba(0,0,0,0.7);display:flex;align-items:center;gap:8px;animation:cs-rise 500ms cubic-bezier(0.2,0.7,0.3,1) both;animation-delay:60ms;"><span style="width:7px;height:7px;border-radius:999px;background:#5B9DF9;flex-shrink:0;"></span>Logo PACO</div></div>
+            <div style="min-height:78px;border-radius:12px;background:#171A1F;border:1px solid rgba(255,255,255,0.05);padding:7px;"></div>
+            <div style="min-height:78px;border-radius:12px;background:#171A1F;border:1px solid rgba(255,255,255,0.05);padding:7px;"><div style="background:#1F2228;border:1px solid rgba(255,255,255,0.06);border-radius:9px;padding:8px 10px;font-size:12.5px;font-weight:600;color:#F3F4F6;box-shadow:0 5px 12px -7px rgba(0,0,0,0.7);display:flex;align-items:center;gap:8px;animation:cs-rise 500ms cubic-bezier(0.2,0.7,0.3,1) both;animation-delay:130ms;"><span style="width:7px;height:7px;border-radius:999px;background:#5B9DF9;flex-shrink:0;"></span>Visuels Wali</div></div>
+            <div style="min-height:78px;border-radius:12px;background:#171A1F;border:1px solid rgba(255,255,255,0.05);padding:7px;"></div>
+            <div style="min-height:78px;border-radius:12px;background:#171A1F;border:1px solid rgba(255,255,255,0.05);padding:7px;"></div>
+          </div>
+          <div style="display:grid;grid-template-columns:132px repeat(5,1fr);gap:8px;margin-bottom:8px;">
+            <div style="display:flex;align-items:center;padding:0 14px;border-radius:12px;background:rgba(63,207,142,0.12);border:1px solid rgba(63,207,142,0.26);"><span style="font-size:13px;font-weight:600;color:#86EFC0;letter-spacing:-0.01em;">Entreprise</span></div>
+            <div style="min-height:78px;border-radius:12px;background:#171A1F;border:1px solid rgba(255,255,255,0.05);padding:7px;"></div>
+            <div style="min-height:78px;border-radius:12px;background:#171A1F;border:1px solid rgba(255,255,255,0.05);padding:7px;"><div style="background:#1F2228;border:1px solid rgba(255,255,255,0.06);border-radius:9px;padding:8px 10px;font-size:12.5px;font-weight:600;color:#F3F4F6;box-shadow:0 5px 12px -7px rgba(0,0,0,0.7);display:flex;align-items:center;gap:8px;animation:cs-rise 500ms cubic-bezier(0.2,0.7,0.3,1) both;animation-delay:100ms;"><span style="width:7px;height:7px;border-radius:999px;background:#3FCF8E;flex-shrink:0;"></span>Onboarding The Source</div></div>
+            <div style="min-height:78px;border-radius:12px;background:#171A1F;border:1px solid rgba(255,255,255,0.05);padding:7px;"></div>
+            <div style="min-height:78px;border-radius:12px;background:#171A1F;border:1px solid rgba(255,255,255,0.05);padding:7px;"></div>
+            <div style="min-height:78px;border-radius:12px;background:#171A1F;border:1px solid rgba(255,255,255,0.05);padding:7px;"></div>
+          </div>
+          <div style="display:grid;grid-template-columns:132px repeat(5,1fr);gap:8px;">
+            <div style="display:flex;align-items:center;padding:0 14px;border-radius:12px;background:rgba(245,146,78,0.12);border:1px solid rgba(245,146,78,0.26);"><span style="font-size:13px;font-weight:600;color:#FCC79A;letter-spacing:-0.01em;">Perso</span></div>
+            <div style="min-height:78px;border-radius:12px;background:#171A1F;border:1px solid rgba(255,255,255,0.05);padding:7px;"></div>
+            <div style="min-height:78px;border-radius:12px;background:#171A1F;border:1px solid rgba(255,255,255,0.05);padding:7px;"></div>
+            <div style="min-height:78px;border-radius:12px;background:#171A1F;border:1px solid rgba(255,255,255,0.05);padding:7px;"><div style="background:#1F2228;border:1px solid rgba(255,255,255,0.06);border-radius:9px;padding:8px 10px;font-size:12.5px;font-weight:600;color:#F3F4F6;box-shadow:0 5px 12px -7px rgba(0,0,0,0.7);display:flex;align-items:center;gap:8px;animation:cs-rise 500ms cubic-bezier(0.2,0.7,0.3,1) both;animation-delay:80ms;"><span style="width:7px;height:7px;border-radius:999px;background:#F5924E;flex-shrink:0;"></span>Revendre vêtements</div></div>
+            <div style="min-height:78px;border-radius:12px;background:#171A1F;border:1px solid rgba(255,255,255,0.05);padding:7px;display:flex;align-items:center;justify-content:center;"><span style="color:#3A3A40;font-size:20px;font-weight:300;">+</span></div>
+            <div style="min-height:78px;border-radius:12px;background:#171A1F;border:1px solid rgba(255,255,255,0.05);padding:7px;"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 5. Finance stats dark -->
+    <div style="margin-bottom:52px;">
+      <div style="display:flex;align-items:baseline;gap:12px;margin-bottom:6px;"><span style="font-family:ui-monospace,monospace;font-size:13px;color:#71717A;font-weight:600;">05</span><h3 style="margin:0;font-size:20px;font-weight:700;letter-spacing:-0.01em;">Statistiques Finance · dark</h3></div>
+      <div style="background:#0F1013;border:1px solid rgba(255,255,255,0.06);border-radius:20px;padding:32px;">
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px;">
+          <div style="background:linear-gradient(180deg,#1A1D22,#141519);border:1px solid rgba(255,255,255,0.08);border-radius:16px;padding:20px;box-shadow:0 10px 30px -16px rgba(0,0,0,0.7);animation:cs-rise 520ms cubic-bezier(0.2,0.7,0.3,1) both;">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;"><span style="font-size:13px;font-weight:500;color:#71717A;">CA encaissé · année</span><span style="width:30px;height:30px;border-radius:9px;background:rgba(63,207,142,0.16);display:flex;align-items:center;justify-content:center;"><span style="width:11px;height:11px;border-radius:999px;background:#3FCF8E;"></span></span></div>
+            <div style="font-size:32px;font-weight:700;letter-spacing:-0.02em;line-height:1;">3 240<span style="font-size:20px;font-weight:600;color:#71717A;"> €</span></div>
+            <div style="display:flex;align-items:center;gap:6px;margin-top:12px;"><span style="font-size:12.5px;font-weight:600;color:#86EFC0;">+18%</span><span style="font-size:12.5px;color:#71717A;">vs mois dernier</span></div>
+          </div>
+          <div style="background:linear-gradient(180deg,#1A1D22,#141519);border:1px solid rgba(255,255,255,0.08);border-radius:16px;padding:20px;box-shadow:0 10px 30px -16px rgba(0,0,0,0.7);animation:cs-rise 520ms cubic-bezier(0.2,0.7,0.3,1) both;animation-delay:60ms;">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;"><span style="font-size:13px;font-weight:500;color:#71717A;">En attente / dû</span><span style="width:30px;height:30px;border-radius:9px;background:rgba(245,146,78,0.16);display:flex;align-items:center;justify-content:center;"><span style="width:11px;height:11px;border-radius:999px;background:#F5924E;"></span></span></div>
+            <div style="font-size:32px;font-weight:700;letter-spacing:-0.02em;line-height:1;">790<span style="font-size:20px;font-weight:600;color:#71717A;"> €</span></div>
+            <div style="display:flex;align-items:center;gap:6px;margin-top:12px;"><span style="display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:600;color:#FCC79A;"><span style="width:6px;height:6px;border-radius:999px;background:#F5924E;"></span>1 facture PACO</span></div>
+          </div>
+          <div style="background:linear-gradient(180deg,#1A1D22,#141519);border:1px solid rgba(255,255,255,0.08);border-radius:16px;padding:20px;box-shadow:0 10px 30px -16px rgba(0,0,0,0.7);animation:cs-rise 520ms cubic-bezier(0.2,0.7,0.3,1) both;animation-delay:120ms;">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;"><span style="font-size:13px;font-weight:500;color:#71717A;">CA par mois</span><span style="font-size:12.5px;font-weight:600;color:#93C0FF;">2026</span></div>
+            <div style="font-size:28px;font-weight:700;letter-spacing:-0.02em;line-height:1;margin-bottom:12px;">3 240<span style="font-size:18px;font-weight:600;color:#71717A;"> €</span></div>
+            <svg viewBox="0 0 240 64" preserveAspectRatio="none" style="width:100%;height:64px;display:block;">
+              <defs><linearGradient id="csGradD" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#5B9DF9" stop-opacity="0.45"></stop><stop offset="100%" stop-color="#5B9DF9" stop-opacity="0"></stop></linearGradient></defs>
+              <path d="M0,50 L40,44 L80,48 L120,30 L160,34 L200,16 L240,10 L240,64 L0,64 Z" fill="url(#csGradD)"></path>
+              <path d="M0,50 L40,44 L80,48 L120,30 L160,34 L200,16 L240,10" fill="none" stroke="#5B9DF9" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"></path>
+            </svg>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 6. Barres verre dark -->
+    <div style="margin-bottom:52px;">
+      <div style="display:flex;align-items:baseline;gap:12px;margin-bottom:6px;"><span style="font-family:ui-monospace,monospace;font-size:13px;color:#71717A;font-weight:600;">06</span><h3 style="margin:0;font-size:20px;font-weight:700;letter-spacing:-0.01em;">Barres · verre dépoli dark</h3></div>
+      <div style="background:linear-gradient(120deg,#132038,#241635,#2C2016);background-size:170% 170%;animation:cs-drift 24s ease-in-out infinite;border:1px solid rgba(255,255,255,0.06);border-radius:20px;padding:28px;display:grid;grid-template-columns:220px 1fr;gap:20px;align-items:start;">
+        <div style="background:rgba(18,20,24,0.55);-webkit-backdrop-filter:blur(20px) saturate(160%);backdrop-filter:blur(20px) saturate(160%);border:1px solid rgba(255,255,255,0.10);border-radius:18px;padding:16px 12px;box-shadow:0 12px 30px -14px rgba(0,0,0,0.7);">
+          <div style="display:flex;align-items:center;gap:9px;padding:6px 10px 16px;"><span style="width:22px;height:22px;border-radius:7px;background:linear-gradient(150deg,#5B9DF9,#A87CFF);"></span><span style="font-weight:700;font-size:14px;">Creative</span></div>
+          <div style="display:flex;align-items:center;gap:11px;padding:9px 11px;border-radius:11px;background:#F3F4F6;color:#0C0D10;margin-bottom:3px;"><span style="width:17px;height:17px;border-radius:5px;border:1.6px solid currentColor;"></span><span style="font-size:13.5px;font-weight:600;">Accueil</span></div>
+          <div style="display:flex;align-items:center;gap:11px;padding:9px 11px;border-radius:11px;color:#A1A1AA;margin-bottom:3px;transition:background 150ms ease;" style-hover="background:rgba(255,255,255,0.06);"><span style="width:17px;height:17px;border-radius:5px;border:1.6px solid currentColor;border-top-width:4px;"></span><span style="font-size:13.5px;font-weight:500;">Work</span></div>
+          <div style="display:flex;align-items:center;gap:11px;padding:9px 11px;border-radius:11px;color:#A1A1AA;margin-bottom:3px;transition:background 150ms ease;" style-hover="background:rgba(255,255,255,0.06);"><span style="width:17px;height:17px;border-radius:999px;border:1.6px solid currentColor;"></span><span style="font-size:13.5px;font-weight:500;">Finance</span></div>
+          <div style="display:flex;align-items:center;gap:11px;padding:9px 11px;border-radius:11px;color:#A1A1AA;transition:background 150ms ease;" style-hover="background:rgba(255,255,255,0.06);"><span style="width:17px;height:17px;border-radius:999px;background:currentColor;opacity:0.5;"></span><span style="font-size:13.5px;font-weight:500;">Moi</span></div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:20px;">
+          <div style="background:rgba(18,20,24,0.55);-webkit-backdrop-filter:blur(20px) saturate(160%);backdrop-filter:blur(20px) saturate(160%);border:1px solid rgba(255,255,255,0.10);border-radius:16px;padding:13px 18px;display:flex;align-items:center;justify-content:space-between;box-shadow:0 12px 30px -14px rgba(0,0,0,0.7);">
+            <span style="font-size:17px;font-weight:700;letter-spacing:-0.01em;">Accueil</span>
+            <div style="display:flex;align-items:center;gap:10px;"><span style="padding:7px 12px;border-radius:10px;background:rgba(255,255,255,0.06);font-size:12.5px;color:#71717A;font-weight:500;">Rechercher…</span><span style="padding:8px 14px;border-radius:11px;background:#F3F4F6;color:#0C0D10;font-size:13px;font-weight:600;">+ Note</span></div>
+          </div>
+          <div style="max-width:380px;background:rgba(18,20,24,0.6);-webkit-backdrop-filter:blur(20px) saturate(160%);backdrop-filter:blur(20px) saturate(160%);border:1px solid rgba(255,255,255,0.10);border-radius:20px;padding:9px 8px;display:flex;justify-content:space-around;box-shadow:0 14px 34px -14px rgba(0,0,0,0.75);">
+            <div style="display:flex;flex-direction:column;align-items:center;gap:4px;color:#5B9DF9;"><span style="width:19px;height:19px;border-radius:5px;border:1.8px solid currentColor;"></span><span style="font-size:10px;font-weight:600;">Accueil</span></div>
+            <div style="display:flex;flex-direction:column;align-items:center;gap:4px;color:#71717A;"><span style="width:19px;height:19px;border-radius:5px;border:1.8px solid currentColor;border-top-width:4px;"></span><span style="font-size:10px;font-weight:500;">Work</span></div>
+            <div style="display:flex;flex-direction:column;align-items:center;gap:4px;color:#71717A;"><span style="width:19px;height:19px;border-radius:999px;border:1.8px solid currentColor;"></span><span style="font-size:10px;font-weight:500;">Finance</span></div>
+            <div style="display:flex;flex-direction:column;align-items:center;gap:4px;color:#71717A;"><span style="width:19px;height:19px;border-radius:999px;background:currentColor;opacity:0.5;"></span><span style="font-size:10px;font-weight:500;">Moi</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 7. Contrôles dark -->
+    <div>
+      <div style="display:flex;align-items:baseline;gap:12px;margin-bottom:6px;"><span style="font-family:ui-monospace,monospace;font-size:13px;color:#71717A;font-weight:600;">07</span><h3 style="margin:0;font-size:20px;font-weight:700;letter-spacing:-0.01em;">Boutons · badges · case · progression · champs</h3></div>
+      <div style="background:#0F1013;border:1px solid rgba(255,255,255,0.06);border-radius:20px;padding:32px;display:flex;flex-direction:column;gap:30px;">
+        <div>
+          <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:#71717A;margin-bottom:14px;">Boutons (le primaire s'inverse en clair)</div>
+          <div style="display:flex;flex-wrap:wrap;gap:12px;align-items:center;">
+            <button style="border:none;cursor:pointer;background:#F3F4F6;color:#0C0D10;font-family:inherit;font-size:14px;font-weight:600;padding:10px 18px;border-radius:12px;transition:all 150ms cubic-bezier(0.2,0.6,0.2,1);" style-hover="transform:translateY(-1px);background:#fff;">Primaire</button>
+            <button style="cursor:pointer;background:rgba(255,255,255,0.06);color:#F3F4F6;font-family:inherit;font-size:14px;font-weight:600;padding:10px 18px;border-radius:12px;border:1px solid rgba(255,255,255,0.14);transition:all 150ms ease;" style-hover="background:rgba(255,255,255,0.10);">Secondaire</button>
+            <button style="cursor:pointer;background:transparent;color:#A1A1AA;font-family:inherit;font-size:14px;font-weight:600;padding:10px 16px;border-radius:12px;border:none;transition:background 150ms ease;" style-hover="background:rgba(255,255,255,0.06);">Ghost</button>
+            <button style="cursor:pointer;background:#F26D6D;color:#160404;font-family:inherit;font-size:14px;font-weight:700;padding:10px 18px;border-radius:12px;border:none;transition:all 150ms ease;" style-hover="background:#F58686;">Danger</button>
+            <button disabled style="background:#F3F4F6;color:#0C0D10;font-family:inherit;font-size:14px;font-weight:600;padding:10px 18px;border-radius:12px;border:none;opacity:0.3;cursor:not-allowed;">Désactivé</button>
+          </div>
+        </div>
+        <div>
+          <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:#71717A;margin-bottom:14px;">Badges de statut</div>
+          <div style="display:flex;flex-wrap:wrap;gap:10px;align-items:center;">
+            <span style="display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border-radius:999px;background:rgba(91,157,249,0.16);border:1px solid rgba(91,157,249,0.28);font-size:12.5px;font-weight:600;color:#93C0FF;"><span style="width:6px;height:6px;border-radius:999px;background:#5B9DF9;"></span>En cours</span>
+            <span style="display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border-radius:999px;background:rgba(63,207,142,0.16);border:1px solid rgba(63,207,142,0.28);font-size:12.5px;font-weight:600;color:#86EFC0;"><span style="width:6px;height:6px;border-radius:999px;background:#3FCF8E;"></span>Validé</span>
+            <span style="display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border-radius:999px;background:rgba(245,146,78,0.16);border:1px solid rgba(245,146,78,0.28);font-size:12.5px;font-weight:600;color:#FCC79A;"><span style="width:6px;height:6px;border-radius:999px;background:#F5924E;"></span>En attente</span>
+            <span style="display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border-radius:999px;background:rgba(242,109,109,0.16);border:1px solid rgba(242,109,109,0.28);font-size:12.5px;font-weight:600;color:#FCA5A5;"><span style="width:6px;height:6px;border-radius:999px;background:#F26D6D;"></span>En retard</span>
+            <span style="display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border-radius:999px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);font-size:12.5px;font-weight:600;color:#A1A1AA;"><span style="width:6px;height:6px;border-radius:999px;background:#71717A;"></span>Archivé</span>
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:28px;">
+          <div>
+            <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:#71717A;margin-bottom:14px;">Case à cocher</div>
+            <div style="display:flex;align-items:center;gap:20px;">
+              <div style="display:flex;align-items:center;gap:10px;cursor:pointer;" onClick="{{ toggle }}">
+                <sc-if value="{{ checked }}" hint-placeholder-val="{{ false }}"><span style="width:24px;height:24px;border-radius:999px;background:#3FCF8E;display:flex;align-items:center;justify-content:center;animation:cs-pop 240ms cubic-bezier(0.2,0.7,0.3,1.3);"><span style="display:block;width:5px;height:10px;border:solid #0C0D10;border-width:0 2.5px 2.5px 0;transform:rotate(45deg);margin-top:-1.5px;"></span></span></sc-if>
+                <sc-if value="{{ notChecked }}" hint-placeholder-val="{{ true }}"><span style="width:24px;height:24px;border-radius:999px;border:2px solid rgba(255,255,255,0.22);"></span></sc-if>
+                <span style="font-size:14px;color:#A1A1AA;">Clique-moi</span>
+              </div>
+            </div>
+          </div>
+          <div>
+            <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:#71717A;margin-bottom:14px;">Barre de progression</div>
+            <div style="display:flex;align-items:center;gap:12px;"><span style="flex:1;height:8px;border-radius:999px;background:rgba(255,255,255,0.08);overflow:hidden;"><span style="display:block;width:71%;height:100%;background:linear-gradient(90deg,#5B9DF9,#7FB2FF);border-radius:999px;"></span></span><span style="font-size:13px;font-weight:600;">71%</span></div>
+            <div style="display:flex;align-items:center;gap:12px;margin-top:12px;"><span style="flex:1;height:8px;border-radius:999px;background:rgba(255,255,255,0.08);overflow:hidden;"><span style="display:block;width:100%;height:100%;background:#3FCF8E;border-radius:999px;"></span></span><span style="font-size:13px;font-weight:600;color:#86EFC0;">100%</span></div>
+          </div>
+        </div>
+        <div>
+          <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:#71717A;margin-bottom:14px;">Champs de saisie</div>
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;max-width:640px;">
+            <div style="padding:10px 14px;background:#141519;border:1px solid rgba(255,255,255,0.12);border-radius:12px;font-size:14px;color:#F3F4F6;">Nom du projet</div>
+            <div style="padding:10px 14px;background:#141519;border:2px solid #5B9DF9;border-radius:12px;font-size:14px;color:#F3F4F6;box-shadow:0 0 0 4px rgba(91,157,249,0.18);">PACO Services<span style="color:#5B9DF9;">|</span></div>
+            <div style="padding:10px 14px;background:#141519;border:1px solid rgba(255,255,255,0.12);border-radius:12px;font-size:14px;color:#71717A;display:flex;align-items:center;justify-content:space-between;">Provenance <span>▾</span></div>
+          </div>
+        </div>
+      </div>
+      <div style="background:#0F1013;border:1px solid rgba(255,255,255,0.07);border-radius:16px;padding:16px 20px;margin-top:16px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px;line-height:1.9;color:#B4B7BE;">
+        <span style="color:#71717A;">primaire</span> dark:bg-[#F3F4F6] dark:text-[#0C0D10] (inversé) · <span style="color:#71717A;">badge</span> bg couleur/16 + border/28 + texte éclairci + dot<br>
+        <span style="color:#71717A;">champ</span> dark:bg-[#141519] border-white/12 · focus border-active ring-active/18 · <span style="color:#71717A;">progress</span> track white/8 + fill dégradé
+      </div>
+    </div>
+  </section>
+
+  <sc-if value="{{ sheetOpen }}" hint-placeholder-val="{{ false }}">
+    <div onClick="{{ closeSheet }}" style="position:fixed;inset:0;z-index:100;background:rgba(0,0,0,0.55);-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;padding:24px;animation:cs-fade 200ms ease both;">
+      <div onClick="{{ stop }}" style="width:100%;max-width:440px;background:linear-gradient(180deg,#1A1D22,#141519);border:1px solid rgba(255,255,255,0.10);border-radius:24px;box-shadow:0 30px 70px -14px rgba(0,0,0,0.8);padding:28px;animation:cs-sheet 300ms cubic-bezier(0.32,0.72,0,1) both;">
+        <div style="width:40px;height:5px;border-radius:999px;background:rgba(255,255,255,0.14);margin:0 auto 20px;"></div>
+        <div style="font-size:27px;font-weight:700;letter-spacing:-0.02em;margin-bottom:18px;">Nouvelle note</div>
+        <div style="display:flex;gap:10px;justify-content:flex-end;"><button onClick="{{ closeSheet }}" style="cursor:pointer;background:transparent;border:none;font-family:inherit;font-size:14px;font-weight:600;color:#A1A1AA;padding:10px 16px;">Annuler</button><button onClick="{{ closeSheet }}" style="cursor:pointer;background:#F3F4F6;color:#0C0D10;border:none;font-family:inherit;font-size:14px;font-weight:600;padding:10px 18px;border-radius:12px;">Créer</button></div>
+      </div>
+    </div>
+  </sc-if>
+
+  <footer style="max-width:1120px;margin:0 auto;padding:0 24px 72px;">
+    <div style="border-top:1px solid rgba(255,255,255,0.08);padding-top:24px;color:#71717A;font-size:13px;">Creative Space · dark mode · toutes les valeurs sont exploitables en Tailwind avec le variant <span style="font-family:ui-monospace,monospace;">dark:</span>.</div>
+  </footer>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = { checked: false, sheetOpen: false };
+  renderVals() {
+    return {
+      checked: this.state.checked,
+      notChecked: !this.state.checked,
+      toggle: () => this.setState(s => ({ checked: !s.checked })),
+      sheetOpen: this.state.sheetOpen,
+      openSheet: () => this.setState({ sheetOpen: true }),
+      closeSheet: () => this.setState({ sheetOpen: false }),
+      stop: (e) => e.stopPropagation(),
+    };
+  }
+}
+</script>
+</body>
+</html>
