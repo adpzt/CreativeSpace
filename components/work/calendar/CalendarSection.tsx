@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   startOfWeek,
   endOfWeek,
@@ -29,7 +29,6 @@ import {
   type DragStartEvent,
   type DragEndEvent,
 } from "@dnd-kit/core";
-import { CSS } from "@dnd-kit/utilities";
 import {
   ChevronLeft,
   ChevronRight,
@@ -101,6 +100,8 @@ export default function CalendarSection({
   // 5 jours par défaut (Lun-Ven), week-end dépliable
   const days = showWeekend ? allDays : allDays.slice(0, 5);
   const isCurrentWeek = isSameWeek(refDate, new Date(), { weekStartsOn: 1 });
+  const todayIso = iso(new Date());
+  const isPastDay = (d: Date) => iso(d) < todayIso;
 
   const cellBlocks = (dayIso: string, cat: CalendarCategory) =>
     blocks.filter((b) => b.category === cat && b.date_start === dayIso);
@@ -393,14 +394,24 @@ export default function CalendarSection({
               {days.map((d) => (
                 <div
                   key={iso(d)}
-                  className="border-b border-r border-gray-100 bg-gray-50 px-2 py-2 text-center"
+                  className={`border-b border-r border-gray-100 px-2 py-2 text-center ${
+                    isToday(d)
+                      ? "bg-blue-50"
+                      : isPastDay(d)
+                        ? "bg-gray-100"
+                        : "bg-gray-50"
+                  }`}
                 >
                   <p className="text-[11px] uppercase text-muted">
                     {format(d, "EEE", { locale: fr })}
                   </p>
                   <p
                     className={`text-sm font-semibold ${
-                      isToday(d) ? "text-active" : ""
+                      isToday(d)
+                        ? "text-active"
+                        : isPastDay(d)
+                          ? "text-muted"
+                          : ""
                     }`}
                   >
                     {format(d, "d")}
@@ -423,9 +434,19 @@ export default function CalendarSection({
                       cat={cat.key}
                       blocks={cellBlocks(iso(d), cat.key)}
                       colorForBlock={colorForBlock}
-                      className="min-h-[112px] border-b border-r border-gray-100 p-1.5"
+                      className={`min-h-[112px] border-b border-r border-gray-100 p-1.5 ${
+                        isToday(d)
+                          ? "bg-blue-50/30"
+                          : isPastDay(d)
+                            ? "bg-gray-50"
+                            : ""
+                      }`}
                       onAdd={() => setAddCtx({ dayIso: iso(d), cat: cat.key })}
                       onOpen={(id) => setNoteBlockId(id)}
+                      onToggle={(id) => {
+                        const b = blocks.find((x) => x.id === id);
+                        if (b) toggle(b);
+                      }}
                     />
                   ))}
                 </div>
@@ -450,13 +471,21 @@ export default function CalendarSection({
             {days.map((d) => (
               <div
                 key={iso(d)}
-                className={`overflow-hidden rounded-2xl border bg-white ${
-                  isToday(d) ? "border-active/50" : "border-gray-100"
+                className={`overflow-hidden rounded-2xl border ${
+                  isToday(d)
+                    ? "border-active/50 bg-white"
+                    : isPastDay(d)
+                      ? "border-gray-100 bg-gray-50"
+                      : "border-gray-100 bg-white"
                 }`}
               >
                 <div
                   className={`flex items-baseline gap-2 px-3 py-2 ${
-                    isToday(d) ? "bg-blue-50/50" : "bg-gray-50"
+                    isToday(d)
+                      ? "bg-blue-50/50"
+                      : isPastDay(d)
+                        ? "bg-gray-100"
+                        : "bg-gray-50"
                   }`}
                 >
                   <span className="text-sm font-semibold capitalize">
@@ -485,6 +514,10 @@ export default function CalendarSection({
                         className="min-h-[40px] flex-1"
                         onAdd={() => setAddCtx({ dayIso: iso(d), cat: cat.key })}
                         onOpen={(id) => setNoteBlockId(id)}
+                        onToggle={(id) => {
+                          const b = blocks.find((x) => x.id === id);
+                          if (b) toggle(b);
+                        }}
                       />
                     </div>
                   ))}
@@ -585,6 +618,7 @@ function Cell({
   className,
   onAdd,
   onOpen,
+  onToggle,
 }: {
   dayIso: string;
   cat: CalendarCategory;
@@ -593,6 +627,7 @@ function Cell({
   className?: string;
   onAdd: () => void;
   onOpen: (id: string) => void;
+  onToggle: (id: string) => void;
 }) {
   const { setNodeRef, isOver } = useDroppable({ id: `${dayIso}|${cat}` });
   return (
@@ -607,6 +642,7 @@ function Cell({
             block={b}
             projectColor={colorForBlock(b)}
             onOpen={() => onOpen(b.id)}
+            onToggle={() => onToggle(b.id)}
           />
         ))}
         <button
@@ -625,26 +661,43 @@ function DraggableChip({
   block,
   projectColor,
   onOpen,
+  onToggle,
 }: {
   block: CalendarBlock;
   projectColor: string | null;
   onOpen: () => void;
+  onToggle: () => void;
 }) {
-  const { attributes, listeners, setNodeRef, transform, isDragging } =
-    useDraggable({ id: block.id });
-  const style = {
-    transform: CSS.Translate.toString(transform),
-    opacity: isDragging ? 0.4 : 1,
-  };
-  // Tout le bloc est cliquable (ouvre la note) ET déplaçable.
+  const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
+    id: block.id,
+  });
+  // Pas de transform sur la source : c'est le DragOverlay qui suit le curseur.
+  // (Appliquer transform ici faisait "voler" le bloc et le laissait décalé.)
+  const style = { opacity: isDragging ? 0.4 : 1 };
+
+  // 1 clic = ouvrir la note ; 2 clics (ou 2 taps) = marquer terminé.
+  const clickTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  function handleClick() {
+    if (clickTimer.current) {
+      clearTimeout(clickTimer.current);
+      clickTimer.current = null;
+      onToggle();
+    } else {
+      clickTimer.current = setTimeout(() => {
+        clickTimer.current = null;
+        onOpen();
+      }, 220);
+    }
+  }
+
   return (
     <div
       ref={setNodeRef}
       {...attributes}
       {...listeners}
-      onClick={onOpen}
+      onClick={handleClick}
       style={style}
-      className={`flex cursor-grab touch-none items-start gap-1.5 rounded-lg px-2 py-1.5 text-xs ${
+      className={`flex cursor-grab touch-none select-none items-start gap-1.5 rounded-lg px-2 py-1.5 text-xs ${
         block.completed ? "bg-green-50" : "bg-gray-50"
       }`}
     >

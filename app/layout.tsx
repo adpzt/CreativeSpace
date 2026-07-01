@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 
@@ -14,6 +14,15 @@ export const metadata: Metadata = {
   description: "Espace de travail privé de pztdesign",
 };
 
+// Empêche le zoom (pinch + double-tap) sur mobile pour un ressenti d'app native.
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+  themeColor: "#f5f5f7",
+};
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -21,7 +30,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="fr" className={inter.variable}>
-      <body className="min-h-screen bg-white font-sans text-ink antialiased">
+      <body className="min-h-screen bg-[#f5f5f7] font-sans text-ink antialiased">
         {children}
       </body>
     </html>
