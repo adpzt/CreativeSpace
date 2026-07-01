@@ -252,11 +252,11 @@ export default async function HomePage() {
           </Link>
         </div>
         {activeProjects.length === 0 ? (
-          <p className="rounded-2xl border border-dashed border-gray-200 px-4 py-6 text-center text-sm text-muted">
+          <p className="rounded-2xl border border-dashed border-gray-200 px-4 py-6 text-center text-sm text-muted dark:border-hairline">
             Aucun projet actif.
           </p>
         ) : (
-          <ul className="divide-y divide-gray-100 overflow-hidden rounded-2xl border border-gray-100 bg-white">
+          <ul className="divide-y divide-gray-100 overflow-hidden rounded-2xl border border-gray-100 bg-white dark:divide-white/10 dark:border-hairline dark:bg-surface">
             {activeProjects.map((p) => (
               <ProjectRow key={p.id} project={p} clientName={clientName(p.client_id)} />
             ))}
@@ -280,7 +280,9 @@ export default async function HomePage() {
               <div
                 key={dStr}
                 className={`rounded-xl border p-2 ${
-                  isToday ? "border-active/50 bg-blue-50/40" : "border-gray-100 bg-white"
+                  isToday
+                    ? "border-active/50 bg-blue-50/40 dark:bg-active/15"
+                    : "border-gray-100 bg-white dark:border-hairline dark:bg-surface"
                 }`}
               >
                 <p className="mb-1.5 text-[11px] font-medium uppercase text-muted">
@@ -291,7 +293,7 @@ export default async function HomePage() {
                     <li
                       key={b.id}
                       className={`flex items-center gap-1 text-xs ${
-                        b.completed ? "text-muted line-through" : "text-gray-600"
+                        b.completed ? "text-muted line-through" : "text-gray-600 dark:text-ink-soft"
                       }`}
                     >
                       <span
@@ -331,10 +333,10 @@ function Alert({
 }) {
   const styles =
     level === "urgent"
-      ? "border-urgent/30 bg-red-50/60"
+      ? "border-urgent/30 bg-red-50/60 dark:bg-urgent/15"
       : level === "warning"
-        ? "border-pending/30 bg-orange-50/60"
-        : "border-gray-200 bg-gray-50";
+        ? "border-pending/30 bg-orange-50/60 dark:bg-pending/15"
+        : "border-gray-200 bg-gray-50 dark:border-hairline dark:bg-white/[0.06]";
   const iconColor =
     level === "urgent"
       ? "text-urgent"
@@ -347,7 +349,7 @@ function Alert({
       <span className="min-w-0 flex-1 truncate font-medium">{text}</span>
       <Link
         href={href}
-        className="shrink-0 rounded-lg bg-white px-2.5 py-1 text-xs font-medium hover:bg-gray-50"
+        className="shrink-0 rounded-lg bg-white px-2.5 py-1 text-xs font-medium hover:bg-gray-50 dark:bg-surface dark:hover:bg-white/[0.06]"
       >
         {cta}
       </Link>
@@ -367,7 +369,7 @@ function ProjectRow({
   return (
     <Link
       href="/work"
-      className="flex items-center gap-3 px-4 py-3 transition-colors hover:bg-gray-50"
+      className="flex items-center gap-3 px-4 py-3 transition-colors hover:bg-gray-50 dark:hover:bg-white/[0.06]"
     >
       <span className={`h-2 w-2 shrink-0 rounded-full ${st?.dot ?? "bg-muted"}`} />
       <div className="min-w-0 flex-1">

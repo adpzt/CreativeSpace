@@ -15,13 +15,13 @@ export default function BriefView() {
           href={BRIEF_FORM_URL}
           target="_blank"
           rel="noopener noreferrer"
-          className="inline-flex items-center gap-2 rounded-xl bg-ink px-4 py-2.5 text-sm font-medium text-white hover:opacity-90"
+          className="inline-flex items-center gap-2 rounded-xl bg-ink px-4 py-2.5 text-sm font-medium text-white dark:text-bg hover:opacity-90"
         >
           <ExternalLink className="h-4 w-4" />
           Ouvrir le Google Form
         </a>
       ) : (
-        <p className="rounded-xl border border-dashed border-gray-200 px-4 py-3 text-sm text-muted">
+        <p className="rounded-xl border border-dashed border-gray-200 dark:border-hairline px-4 py-3 text-sm text-muted">
           Lien du Google Form à ajouter (pour les clients qui ne veulent pas
           d&apos;appel). Dis-moi l&apos;URL et je le branche sur un bouton ici.
         </p>
@@ -33,11 +33,11 @@ export default function BriefView() {
           return (
             <li
               key={b.type}
-              className="overflow-hidden rounded-2xl border border-gray-100 bg-white"
+              className="overflow-hidden rounded-2xl border border-gray-100 dark:border-hairline bg-white dark:bg-surface"
             >
               <button
                 onClick={() => setOpen(isOpen ? null : b.type)}
-                className="flex w-full items-center gap-3 px-4 py-3 text-left hover:bg-gray-50"
+                className="flex w-full items-center gap-3 px-4 py-3 text-left hover:bg-gray-50 dark:hover:bg-white/[0.06]"
               >
                 <span className="flex-1 font-medium">{b.type}</span>
                 <span className="text-xs text-muted">{b.questions.length}</span>
@@ -48,14 +48,14 @@ export default function BriefView() {
                 />
               </button>
               {isOpen && (
-                <div className="border-t border-gray-100 px-4 py-4">
+                <div className="border-t border-gray-100 dark:border-hairline px-4 py-4">
                   <div className="mb-3 flex justify-end">
                     <CopyButton
                       text={b.questions.map((q) => `- ${q}`).join("\n")}
                       label="Copier les questions"
                     />
                   </div>
-                  <ul className="space-y-1.5 text-sm text-gray-600">
+                  <ul className="space-y-1.5 text-sm text-gray-600 dark:text-ink-soft">
                     {b.questions.map((q, i) => (
                       <li key={i} className="flex gap-2">
                         <span className="text-muted">{i + 1}.</span>

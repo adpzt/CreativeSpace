@@ -126,7 +126,7 @@ export default function DiagrammesSection({
       </div>
 
       {!hasData ? (
-        <div className="rounded-2xl border border-dashed border-gray-200 px-6 py-10 text-center text-sm text-muted">
+        <div className="rounded-2xl border border-dashed border-gray-200 px-6 py-10 text-center text-sm text-muted dark:border-hairline">
           Aucun revenu encaissé pour l&apos;instant. Les graphiques apparaîtront ici
           dès le premier encaissement.
         </div>
@@ -145,7 +145,7 @@ export default function DiagrammesSection({
                 <button
                   onClick={() => setMonthYear((yy) => yy - 1)}
                   aria-label="Année précédente"
-                  className="rounded-lg p-1.5 text-muted hover:bg-gray-100 hover:text-ink"
+                  className="rounded-lg p-1.5 text-muted hover:bg-gray-100 hover:text-ink dark:hover:bg-white/[0.06]"
                 >
                   <ChevronLeft className="h-4 w-4" />
                 </button>
@@ -153,7 +153,7 @@ export default function DiagrammesSection({
                 <button
                   onClick={() => setMonthYear((yy) => yy + 1)}
                   aria-label="Année suivante"
-                  className="rounded-lg p-1.5 text-muted hover:bg-gray-100 hover:text-ink"
+                  className="rounded-lg p-1.5 text-muted hover:bg-gray-100 hover:text-ink dark:hover:bg-white/[0.06]"
                 >
                   <ChevronRight className="h-4 w-4" />
                 </button>
@@ -188,7 +188,7 @@ function ChartCard({
   const color = (i: number) => PROJECT_COLORS[i % PROJECT_COLORS.length];
 
   return (
-    <div className={`rounded-2xl border border-gray-100 bg-white p-5 ${className}`}>
+    <div className={`rounded-2xl border border-gray-100 bg-white p-5 dark:border-hairline dark:bg-surface ${className}`}>
       <div className="mb-4 flex items-center justify-between gap-2">
         <h3 className="text-sm font-semibold">{title}</h3>
         <div className="flex items-center gap-1">
@@ -197,7 +197,7 @@ function ChartCard({
             onClick={() => setAsList((v) => !v)}
             aria-label={asList ? "Vue graphique" : "Vue liste"}
             title={asList ? "Vue graphique" : "Vue liste"}
-            className="rounded-lg p-1.5 text-muted transition-colors hover:bg-gray-100 hover:text-ink"
+            className="rounded-lg p-1.5 text-muted transition-colors hover:bg-gray-100 hover:text-ink dark:hover:bg-white/[0.06]"
           >
             {asList ? (
               kind === "pie" ? (
@@ -213,7 +213,7 @@ function ChartCard({
       </div>
 
       {asList ? (
-        <ul className="divide-y divide-gray-100">
+        <ul className="divide-y divide-gray-100 dark:divide-white/10">
           {data
             .filter((d) => d.value > 0)
             .map((d, i) => (

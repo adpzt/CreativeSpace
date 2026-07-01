@@ -37,13 +37,13 @@ export default function CommunicationView() {
             return (
               <li
                 key={step.n}
-                className="overflow-hidden rounded-2xl border border-gray-100 bg-white"
+                className="overflow-hidden rounded-2xl border border-gray-100 dark:border-hairline bg-white dark:bg-surface"
               >
                 <button
                   onClick={() => toggle(step.n)}
-                  className="flex w-full items-center gap-3 px-4 py-3 text-left hover:bg-gray-50"
+                  className="flex w-full items-center gap-3 px-4 py-3 text-left hover:bg-gray-50 dark:hover:bg-white/[0.06]"
                 >
-                  <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-gray-100 text-xs font-semibold text-gray-600">
+                  <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-gray-100 dark:bg-white/[0.06] text-xs font-semibold text-gray-600 dark:text-ink-soft">
                     {step.n}
                   </span>
                   <span className="flex-1 font-medium">{step.title}</span>
@@ -55,7 +55,7 @@ export default function CommunicationView() {
                 </button>
 
                 {isOpen && (
-                  <div className="space-y-4 border-t border-gray-100 px-4 py-4 text-sm">
+                  <div className="space-y-4 border-t border-gray-100 dark:border-hairline px-4 py-4 text-sm">
                     {step.faire && (
                       <Block title="À faire" items={step.faire} />
                     )}
@@ -78,7 +78,7 @@ export default function CommunicationView() {
                             <a
                               key={id}
                               href={`#${id}`}
-                              className="rounded-full bg-blue-50 px-2.5 py-1 text-xs font-medium text-active hover:underline"
+                              className="rounded-full bg-blue-50 dark:bg-active/15 px-2.5 py-1 text-xs font-medium text-active hover:underline"
                             >
                               {scriptTitle(id)}
                             </a>
@@ -115,13 +115,13 @@ export default function CommunicationView() {
             <li
               key={s.id}
               id={s.id}
-              className="scroll-mt-24 rounded-2xl border border-gray-100 bg-white p-4"
+              className="scroll-mt-24 rounded-2xl border border-gray-100 dark:border-hairline bg-white dark:bg-surface p-4"
             >
               <div className="mb-2 flex items-start justify-between gap-3">
                 <p className="text-sm font-semibold">{s.title}</p>
                 <CopyButton text={s.text} />
               </div>
-              <p className="text-sm leading-relaxed text-gray-600">{s.text}</p>
+              <p className="text-sm leading-relaxed text-gray-600 dark:text-ink-soft">{s.text}</p>
             </li>
           ))}
         </ul>
@@ -134,14 +134,14 @@ export default function CommunicationView() {
           Le signal, et le réflexe à avoir.
         </p>
 
-        <ul className="divide-y divide-gray-100 overflow-hidden rounded-2xl border border-gray-100 bg-white">
+        <ul className="divide-y divide-gray-100 dark:divide-white/10 overflow-hidden rounded-2xl border border-gray-100 dark:border-hairline bg-white dark:bg-surface">
           {RED_FLAGS.map((r, i) => (
             <li key={i} className="flex flex-col gap-1 px-4 py-3 sm:flex-row sm:gap-4">
               <span className="flex items-start gap-2 font-medium sm:w-1/2">
                 <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-pending" />
                 {r.signal}
               </span>
-              <span className="text-gray-600 sm:w-1/2">{r.action}</span>
+              <span className="text-gray-600 dark:text-ink-soft sm:w-1/2">{r.action}</span>
             </li>
           ))}
         </ul>
@@ -170,7 +170,7 @@ function Block({
       </p>
       <ul className="space-y-1">
         {items.map((it, i) => (
-          <li key={i} className="flex gap-2 text-gray-600">
+          <li key={i} className="flex gap-2 text-gray-600 dark:text-ink-soft">
             <span className={danger ? "text-urgent" : "text-muted"}>•</span>
             <span>{it}</span>
           </li>

@@ -29,7 +29,7 @@ import type {
 const labelClass =
   "mb-1.5 block text-xs font-medium uppercase tracking-wide text-muted";
 const inputClass =
-  "w-full rounded-xl border border-gray-200 px-3.5 py-2.5 text-sm outline-none transition-colors focus:border-active focus:ring-4 focus:ring-active/12 placeholder:text-muted";
+  "w-full rounded-xl border border-gray-200 dark:border-hairline px-3.5 py-2.5 text-sm outline-none transition-colors focus:border-active focus:ring-4 focus:ring-active/12 placeholder:text-muted";
 
 type LocalDeliverable = {
   tempId: string;
@@ -221,7 +221,7 @@ export default function ProjectCreateForm({
                     setSelectedClientId(c.id);
                     setClientQuery(c.company || c.name);
                   }}
-                  className="flex w-full items-center gap-2 rounded-lg border border-gray-100 px-3 py-1.5 text-left text-sm hover:border-ink"
+                  className="flex w-full items-center gap-2 rounded-lg border border-gray-100 dark:border-hairline px-3 py-1.5 text-left text-sm hover:border-ink"
                 >
                   <span className="font-medium">{c.company || c.name}</span>
                   {c.company && (
@@ -247,7 +247,7 @@ export default function ProjectCreateForm({
             <select
               value={category}
               onChange={(e) => setCategory(e.target.value as CalendarCategory)}
-              className="flex-1 rounded-xl border border-gray-200 px-3.5 py-2.5 text-sm outline-none focus:border-active focus:ring-4 focus:ring-active/12"
+              className="flex-1 rounded-xl border border-gray-200 dark:border-hairline px-3.5 py-2.5 text-sm outline-none focus:border-active focus:ring-4 focus:ring-active/12"
             >
               {CALENDAR_CATEGORIES.map((c) => (
                 <option key={c.key} value={c.key}>
@@ -272,8 +272,8 @@ export default function ProjectCreateForm({
                   onClick={() => toggleMission(m)}
                   className={`rounded-full border px-3 py-1 text-xs font-medium transition-colors ${
                     active
-                      ? "border-ink bg-ink text-white"
-                      : "border-gray-200 text-gray-500 hover:border-ink hover:text-ink"
+                      ? "border-ink bg-ink text-white dark:text-bg"
+                      : "border-gray-200 dark:border-hairline text-gray-500 dark:text-muted hover:border-ink hover:text-ink"
                   }`}
                 >
                   {m}
@@ -370,9 +370,9 @@ export default function ProjectCreateForm({
                             )
                           }
                           placeholder="Justificatif (ex : impression)"
-                          className="min-w-0 flex-1 rounded-xl border border-gray-200 px-3 py-2 text-sm outline-none focus:border-active focus:ring-4 focus:ring-active/12"
+                          className="min-w-0 flex-1 rounded-xl border border-gray-200 dark:border-hairline px-3 py-2 text-sm outline-none focus:border-active focus:ring-4 focus:ring-active/12"
                         />
-                        <div className="flex shrink-0 items-center rounded-lg border border-gray-200 pr-1.5 focus-within:border-ink">
+                        <div className="flex shrink-0 items-center rounded-lg border border-gray-200 dark:border-hairline pr-1.5 focus-within:border-ink">
                           <input
                             value={ex.amount || ""}
                             onChange={(e) =>
@@ -400,7 +400,7 @@ export default function ProjectCreateForm({
                             setExpenses((p) => p.filter((_, idx) => idx !== i))
                           }
                           aria-label="Retirer la dépense"
-                          className="shrink-0 rounded-lg p-1.5 text-urgent hover:bg-red-50"
+                          className="shrink-0 rounded-lg p-1.5 text-urgent hover:bg-red-50 dark:hover:bg-urgent/15"
                         >
                           <X className="h-4 w-4" />
                         </button>
@@ -413,7 +413,7 @@ export default function ProjectCreateForm({
                   onClick={() =>
                     setExpenses((p) => [...p, { label: "", amount: 0 }])
                   }
-                  className="inline-flex items-center gap-1 rounded-lg px-2 py-1 text-xs font-medium text-muted transition-colors hover:bg-gray-100 hover:text-ink"
+                  className="inline-flex items-center gap-1 rounded-lg px-2 py-1 text-xs font-medium text-muted transition-colors hover:bg-gray-100 dark:hover:bg-white/[0.06] hover:text-ink"
                 >
                   <Plus className="h-3.5 w-3.5" />
                   Dépense
@@ -473,14 +473,14 @@ export default function ProjectCreateForm({
           <ul className="space-y-1.5">
             {delivs.map((r) => (
               <li key={r.tempId} className="flex items-center gap-1.5">
-                <div className="flex flex-1 items-center gap-1.5 rounded-xl border border-gray-100 bg-white px-2 py-1.5">
+                <div className="flex flex-1 items-center gap-1.5 rounded-xl border border-gray-100 dark:border-hairline bg-white dark:bg-surface px-2 py-1.5">
                   <input
                     value={r.name}
                     onChange={(e) => updateRow(r.tempId, { name: e.target.value })}
                     placeholder="Livrable (logo, flyer...)"
                     className="min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-muted"
                   />
-                  <div className="flex shrink-0 items-center rounded-lg border border-gray-200 pr-1.5 focus-within:border-ink">
+                  <div className="flex shrink-0 items-center rounded-lg border border-gray-200 dark:border-hairline pr-1.5 focus-within:border-ink">
                     <input
                       value={r.days}
                       onChange={(e) => updateRow(r.tempId, { days: e.target.value })}
@@ -496,7 +496,7 @@ export default function ProjectCreateForm({
                     onClick={() => setNoteRowId(r.tempId)}
                     aria-label="Note du livrable"
                     className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-lg transition-colors ${
-                      r.notes ? "bg-blue-50 text-active" : "text-active hover:bg-blue-50"
+                      r.notes ? "bg-blue-50 dark:bg-active/15 text-active" : "text-active hover:bg-blue-50 dark:hover:bg-active/15"
                     }`}
                   >
                     <FileText className="h-3.5 w-3.5" />
@@ -512,7 +512,7 @@ export default function ProjectCreateForm({
                     )
                   }
                   aria-label="Supprimer le livrable"
-                  className="shrink-0 rounded-lg p-1.5 text-urgent transition-colors hover:bg-red-50"
+                  className="shrink-0 rounded-lg p-1.5 text-urgent transition-colors hover:bg-red-50 dark:hover:bg-urgent/15"
                 >
                   <X className="h-4 w-4" />
                 </button>
@@ -522,7 +522,7 @@ export default function ProjectCreateForm({
           <button
             type="button"
             onClick={() => setDelivs((p) => [...p, newRow()])}
-            className="mt-2 inline-flex items-center gap-1 rounded-lg px-2 py-1 text-xs font-medium text-muted transition-colors hover:bg-gray-100 hover:text-ink"
+            className="mt-2 inline-flex items-center gap-1 rounded-lg px-2 py-1 text-xs font-medium text-muted transition-colors hover:bg-gray-100 dark:hover:bg-white/[0.06] hover:text-ink"
           >
             <Plus className="h-3.5 w-3.5" />
             Livrable

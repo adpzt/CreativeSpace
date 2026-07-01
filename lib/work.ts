@@ -68,40 +68,40 @@ export const PROJECT_STATUS: Record<
   waiting_brief: {
     label: "En attente brief",
     dot: "bg-pending",
-    badge: "bg-orange-50 text-pending",
+    badge: "bg-orange-50 text-pending dark:bg-pending/15",
   },
   waiting_feedback: {
     label: "En attente retours",
     dot: "bg-pending",
-    badge: "bg-orange-50 text-pending",
+    badge: "bg-orange-50 text-pending dark:bg-pending/15",
   },
   waiting_payment: {
     label: "En attente solde",
     dot: "bg-pending",
-    badge: "bg-orange-50 text-pending",
+    badge: "bg-orange-50 text-pending dark:bg-pending/15",
   },
   // En cours : bleu
   in_production: {
     label: "En production",
     dot: "bg-active",
-    badge: "bg-blue-50 text-active",
+    badge: "bg-blue-50 text-active dark:bg-active/15",
   },
   in_revision: {
     label: "En révision",
     dot: "bg-active",
-    badge: "bg-blue-50 text-active",
+    badge: "bg-blue-50 text-active dark:bg-active/15",
   },
   // Terminé : vert
   closed: {
     label: "Clôturé",
     dot: "bg-success",
-    badge: "bg-green-50 text-success",
+    badge: "bg-green-50 text-success dark:bg-success/15",
   },
   // Annulé : rouge
   cancelled: {
     label: "Annulé",
     dot: "bg-urgent",
-    badge: "bg-red-50 text-urgent",
+    badge: "bg-red-50 text-urgent dark:bg-urgent/15",
   },
 };
 

@@ -95,7 +95,7 @@ export default function DepensesSection({
         <>
           {/* À valider : dépenses détectées sur les projets */}
           {pending.length > 0 && (
-            <div className="mb-5 rounded-2xl border border-dashed border-gray-200 bg-gray-50/40 p-4">
+            <div className="mb-5 rounded-2xl border border-dashed border-gray-200 bg-gray-50/40 p-4 dark:border-hairline dark:bg-white/[0.06]">
               <p className="mb-2 text-xs font-medium uppercase tracking-wide text-muted">
                 Dépenses de mission à valider ({pending.length})
               </p>
@@ -103,24 +103,24 @@ export default function DepensesSection({
                 {pending.map((m, i) => (
                   <li
                     key={`p-${i}`}
-                    className="flex items-center gap-3 rounded-xl bg-white px-3 py-2"
+                    className="flex items-center gap-3 rounded-xl bg-white px-3 py-2 dark:bg-surface"
                   >
                     <Briefcase className="h-4 w-4 shrink-0 text-muted" />
                     <div className="min-w-0 flex-1">
-                      <p className="truncate text-sm text-gray-500">
+                      <p className="truncate text-sm text-gray-500 dark:text-muted">
                         {m.label || "Dépense"}
                       </p>
                       <p className="truncate text-xs text-muted">
                         Mission · {m.projectName}
                       </p>
                     </div>
-                    <span className="shrink-0 text-sm font-medium text-gray-400">
+                    <span className="shrink-0 text-sm font-medium text-gray-400 dark:text-muted">
                       {formatEuro(m.amount)}
                     </span>
                     <button
                       onClick={() => validate(m)}
                       disabled={isPending}
-                      className="inline-flex shrink-0 items-center gap-1 rounded-lg bg-ink px-2.5 py-1.5 text-xs font-medium text-white hover:opacity-90 disabled:opacity-50"
+                      className="inline-flex shrink-0 items-center gap-1 rounded-lg bg-ink px-2.5 py-1.5 text-xs font-medium text-white hover:opacity-90 disabled:opacity-50 dark:text-bg"
                     >
                       <Check className="h-3.5 w-3.5" />
                       Valider
@@ -133,12 +133,12 @@ export default function DepensesSection({
 
           {/* Dépenses validées / manuelles (comptées dans le total) */}
           {expenses.length > 0 && (
-            <ul className="divide-y divide-gray-100 overflow-hidden rounded-2xl border border-gray-100 bg-white">
+            <ul className="divide-y divide-gray-100 overflow-hidden rounded-2xl border border-gray-100 bg-white dark:divide-white/10 dark:border-hairline dark:bg-surface">
               {expenses.map((e) => (
                 <li key={e.id}>
                   <button
                     onClick={() => setEditing(e)}
-                    className="flex w-full items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-gray-50"
+                    className="flex w-full items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-gray-50 dark:hover:bg-white/[0.06]"
                   >
                     <div className="min-w-0 flex-1">
                       <p className="truncate font-medium">

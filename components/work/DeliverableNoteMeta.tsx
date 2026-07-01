@@ -28,7 +28,7 @@ export default function DeliverableNoteMeta({
       </p>
       <div className="flex items-center gap-2">
         <span className="text-muted">Progression</span>
-        <div className="flex items-center rounded-lg border border-gray-200 pr-1.5 focus-within:border-ink">
+        <div className="flex items-center rounded-lg border border-gray-200 dark:border-hairline pr-1.5 focus-within:border-ink">
           <input
             value={completed ? "100" : p}
             disabled={completed}

@@ -38,8 +38,8 @@ export default async function MePage() {
   return (
     <div className="space-y-10">
       {/* En-tête profil */}
-      <div className="flex items-center gap-4 rounded-3xl border border-gray-100 bg-gradient-to-br from-gray-50 to-white p-6">
-        <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-ink text-xl font-semibold tracking-tight text-white">
+      <div className="flex items-center gap-4 rounded-3xl border border-gray-100 bg-gradient-to-br from-gray-50 to-white p-6 dark:border-hairline dark:from-surface dark:to-surface">
+        <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-ink text-xl font-semibold tracking-tight text-white dark:text-bg">
           AP
         </div>
         <div className="min-w-0 flex-1">
@@ -91,7 +91,7 @@ export default async function MePage() {
               href={l.url}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 rounded-xl border border-gray-200 px-3.5 py-2 text-sm font-medium hover:border-ink"
+              className="inline-flex items-center gap-2 rounded-xl border border-gray-200 px-3.5 py-2 text-sm font-medium hover:border-ink dark:border-hairline"
             >
               <ExternalLink className="h-4 w-4 text-muted" />
               {l.label}
@@ -106,11 +106,11 @@ export default async function MePage() {
           Dernières missions
         </h3>
         {missions.length === 0 ? (
-          <p className="rounded-2xl border border-dashed border-gray-200 px-4 py-6 text-center text-sm text-muted">
+          <p className="rounded-2xl border border-dashed border-gray-200 px-4 py-6 text-center text-sm text-muted dark:border-hairline">
             Aucune mission encaissée pour l&apos;instant.
           </p>
         ) : (
-          <ul className="divide-y divide-gray-100 overflow-hidden rounded-2xl border border-gray-100 bg-white">
+          <ul className="divide-y divide-gray-100 overflow-hidden rounded-2xl border border-gray-100 bg-white dark:divide-white/10 dark:border-hairline dark:bg-surface">
             {missions.map((m) => (
               <li key={m.id} className="flex items-center gap-3 px-4 py-3">
                 <div className="min-w-0 flex-1">
@@ -138,7 +138,7 @@ export default async function MePage() {
       </section>
 
       {/* Inspiration */}
-      <section className="border-t border-gray-100 pt-6">
+      <section className="border-t border-gray-100 pt-6 dark:border-hairline">
         <h3 className="mb-3 text-xs font-medium uppercase tracking-wide text-muted">
           Inspiration
         </h3>

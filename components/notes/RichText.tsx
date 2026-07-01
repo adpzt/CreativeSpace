@@ -41,13 +41,13 @@ export default function RichText({
         <ToolBtn onClick={() => exec("italic")} label="Italique">
           <Italic className="h-4 w-4" />
         </ToolBtn>
-        <span className="mx-1 h-5 w-px bg-gray-200" />
+        <span className="mx-1 h-5 w-px bg-gray-200 dark:bg-white/10" />
         <button
           type="button"
           onMouseDown={(e) => e.preventDefault()}
           onClick={() => exec("foreColor", "#1A1A1A")}
           aria-label="Couleur par défaut"
-          className="flex h-7 w-7 items-center justify-center rounded-lg border border-gray-200 text-muted hover:border-gray-400"
+          className="flex h-7 w-7 items-center justify-center rounded-lg border border-gray-200 dark:border-hairline text-muted hover:border-gray-400"
         >
           <RemoveFormatting className="h-3.5 w-3.5" />
         </button>
@@ -91,7 +91,7 @@ function ToolBtn({
       onMouseDown={(e) => e.preventDefault()}
       onClick={onClick}
       aria-label={label}
-      className="flex h-7 w-7 items-center justify-center rounded-lg border border-gray-200 text-ink hover:border-gray-400"
+      className="flex h-7 w-7 items-center justify-center rounded-lg border border-gray-200 dark:border-hairline text-ink hover:border-gray-400"
     >
       {children}
     </button>

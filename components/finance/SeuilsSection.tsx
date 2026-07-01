@@ -22,7 +22,7 @@ export default function SeuilsSection({ payments }: { payments: Payment[] }) {
       <h3 className="mb-4 text-base font-semibold tracking-tight">
         Seuils à surveiller
       </h3>
-      <div className="space-y-5 rounded-2xl border border-gray-100 bg-white p-5">
+      <div className="space-y-5 rounded-2xl border border-gray-100 bg-white p-5 dark:border-hairline dark:bg-surface">
         <ThresholdBar
           label="Plafond micro-BNC"
           current={caYear}
@@ -79,7 +79,7 @@ function ThresholdBar({
           {formatEuro(current)} / {formatEuro(max)}
         </span>
       </div>
-      <div className="h-2 w-full overflow-hidden rounded-full bg-gray-100">
+      <div className="h-2 w-full overflow-hidden rounded-full bg-gray-100 dark:bg-white/[0.06]">
         <div
           className={`h-full rounded-full transition-all ${barColor}`}
           style={{ width: `${Math.min(100, percent)}%` }}

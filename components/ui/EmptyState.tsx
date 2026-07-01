@@ -14,8 +14,8 @@ export default function EmptyState({
   action?: ReactNode;
 }) {
   return (
-    <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-gray-200 px-6 py-14 text-center">
-      <div className="mb-3 flex h-11 w-11 items-center justify-center rounded-2xl bg-gray-100">
+    <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-gray-200 dark:border-hairline px-6 py-14 text-center">
+      <div className="mb-3 flex h-11 w-11 items-center justify-center rounded-2xl bg-gray-100 dark:bg-white/[0.06]">
         <Icon className="h-5 w-5 text-muted" />
       </div>
       <p className="font-medium">{title}</p>

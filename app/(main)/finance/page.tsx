@@ -70,7 +70,7 @@ export default async function FinancePage() {
 
 function SectionBanner({ title, subtitle }: { title: string; subtitle: string }) {
   return (
-    <div className="border-t border-gray-200 pt-5">
+    <div className="border-t border-gray-200 pt-5 dark:border-hairline">
       <h2 className="text-2xl font-bold tracking-tight">{title}</h2>
       <p className="mt-0.5 text-sm text-muted">{subtitle}</p>
     </div>

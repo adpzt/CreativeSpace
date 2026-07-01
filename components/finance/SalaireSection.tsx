@@ -92,12 +92,12 @@ export default function SalaireSection({
                     net versé {formatEuro(totalNet)}
                   </span>
                 </div>
-                <ul className="divide-y divide-gray-100 overflow-hidden rounded-2xl border border-gray-100 bg-white">
+                <ul className="divide-y divide-gray-100 overflow-hidden rounded-2xl border border-gray-100 bg-white dark:divide-white/10 dark:border-hairline dark:bg-surface">
                   {rows.map((s) => (
                     <li key={s.id}>
                       <button
                         onClick={() => setEditing(s)}
-                        className="flex w-full items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-gray-50"
+                        className="flex w-full items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-gray-50 dark:hover:bg-white/[0.06]"
                       >
                         <div className="min-w-0 flex-1">
                           <p className="truncate font-medium">

@@ -438,7 +438,7 @@ export default function CalendarSection({
               )
             }
             aria-label="Précédent"
-            className="rounded-lg p-2 text-muted hover:bg-gray-100 hover:text-ink"
+            className="rounded-lg p-2 text-muted hover:bg-gray-100 dark:hover:bg-white/[0.06] hover:text-ink"
           >
             <ChevronLeft className="h-4 w-4" />
           </button>
@@ -449,7 +449,7 @@ export default function CalendarSection({
               )
             }
             aria-label="Suivant"
-            className="rounded-lg p-2 text-muted hover:bg-gray-100 hover:text-ink"
+            className="rounded-lg p-2 text-muted hover:bg-gray-100 dark:hover:bg-white/[0.06] hover:text-ink"
           >
             <ChevronRight className="h-4 w-4" />
           </button>
@@ -457,7 +457,7 @@ export default function CalendarSection({
           {!isCurrentWeek && view === "week" && (
             <button
               onClick={() => setRefDate(new Date())}
-              className="ml-2 rounded-lg bg-blue-50 px-2 py-1 text-xs font-medium text-active hover:bg-blue-100"
+              className="ml-2 rounded-lg bg-blue-50 dark:bg-active/15 px-2 py-1 text-xs font-medium text-active hover:bg-blue-100 dark:hover:bg-active/25"
             >
               En ce moment
             </button>
@@ -468,7 +468,7 @@ export default function CalendarSection({
           {view === "week" && (
             <button
               onClick={() => setShowWeekend((s) => !s)}
-              className="hidden items-center gap-1 rounded-lg border border-gray-200 px-2.5 py-1 text-xs font-medium text-muted transition-colors hover:border-ink hover:text-ink md:inline-flex"
+              className="hidden items-center gap-1 rounded-lg border border-gray-200 dark:border-hairline px-2.5 py-1 text-xs font-medium text-muted transition-colors hover:border-ink hover:text-ink md:inline-flex"
             >
               {showWeekend ? (
                 <ChevronsLeft className="h-3.5 w-3.5" />
@@ -478,11 +478,11 @@ export default function CalendarSection({
               Week-end
             </button>
           )}
-          <div className="flex rounded-lg bg-gray-100 p-0.5 text-xs font-medium">
+          <div className="flex rounded-lg bg-gray-100 dark:bg-white/[0.06] p-0.5 text-xs font-medium">
             <button
               onClick={() => setView("week")}
               className={`rounded-md px-2.5 py-1 ${
-                view === "week" ? "bg-white shadow-sm" : "text-muted"
+                view === "week" ? "bg-white dark:bg-surface shadow-sm" : "text-muted"
               }`}
             >
               Semaine
@@ -490,7 +490,7 @@ export default function CalendarSection({
             <button
               onClick={() => setView("month")}
               className={`rounded-md px-2.5 py-1 ${
-                view === "month" ? "bg-white shadow-sm" : "text-muted"
+                view === "month" ? "bg-white dark:bg-surface shadow-sm" : "text-muted"
               }`}
             >
               Mois
@@ -512,7 +512,7 @@ export default function CalendarSection({
         >
           {/* Desktop : board avec tuiles (jours x catégories) */}
           <div className="hidden md:block">
-            <div className="overflow-x-auto rounded-[20px] border border-black/[0.05] bg-[#FCFCFD] p-4">
+            <div className="overflow-x-auto rounded-[20px] border border-hairline bg-[#FCFCFD] dark:bg-white/[0.03] p-4">
               <div
                 className="grid gap-2"
                 style={{
@@ -528,7 +528,7 @@ export default function CalendarSection({
                     </p>
                     <div className="mt-1">
                       {isToday(d) ? (
-                        <span className="inline-flex items-center justify-center rounded-full bg-ink px-[10px] py-[3px] text-[12px] font-bold text-white">
+                        <span className="inline-flex items-center justify-center rounded-full bg-ink px-[10px] py-[3px] text-[12px] font-bold text-white dark:text-bg">
                           {format(d, "d")}
                         </span>
                       ) : (
@@ -544,7 +544,7 @@ export default function CalendarSection({
                   <div key={cat.key} className="contents">
                     <div className="flex items-center">
                       <span
-                        className="flex items-center rounded-xl border border-black/[0.06] bg-white px-[14px] py-2 text-[13px] font-semibold shadow-card"
+                        className="flex items-center rounded-xl border border-hairline bg-white dark:bg-surface px-[14px] py-2 text-[13px] font-semibold shadow-card"
                         style={{ color: cat.color }}
                       >
                         {cat.label}
@@ -557,7 +557,7 @@ export default function CalendarSection({
                         cat={cat.key}
                         blocks={cellBlocks(iso(d), cat.key)}
                         colorForBlock={colorForBlock}
-                        className="min-h-[92px] rounded-xl border border-black/[0.035] bg-[#F1F1F4] p-[7px]"
+                        className="min-h-[92px] rounded-xl border border-hairline bg-[#F1F1F4] dark:bg-[#171A1F] p-[7px]"
                         onAdd={() => setAddCtx({ dayIso: iso(d), cat: cat.key })}
                         onOpen={(id) => setNoteBlockId(id)}
                         onToggle={(id) => {
@@ -574,7 +574,7 @@ export default function CalendarSection({
 
           <DragOverlay>
             {activeBlock ? (
-              <div className="rounded-[9px] bg-white px-[10px] py-2 text-[12.5px] font-semibold text-ink shadow-float">
+              <div className="rounded-[9px] bg-white dark:bg-surface px-[10px] py-2 text-[12.5px] font-semibold text-ink shadow-float dark:shadow-[0_30px_70px_-14px_rgba(0,0,0,0.8)]">
                 {activeBlock.title}
               </div>
             ) : null}
@@ -592,13 +592,13 @@ export default function CalendarSection({
             {days.map((d) => (
               <div
                 key={iso(d)}
-                className={`overflow-hidden rounded-2xl border bg-white ${
-                  isToday(d) ? "border-active/50" : "border-gray-100"
+                className={`overflow-hidden rounded-2xl border bg-white dark:bg-surface ${
+                  isToday(d) ? "border-active/50" : "border-gray-100 dark:border-hairline"
                 }`}
               >
                 <div
                   className={`flex items-baseline gap-2 px-3 py-2 ${
-                    isToday(d) ? "bg-blue-50/50" : "bg-gray-50"
+                    isToday(d) ? "bg-blue-50/50 dark:bg-active/15" : "bg-gray-50 dark:bg-white/[0.06]"
                   }`}
                 >
                   <span className="text-sm font-semibold capitalize">
@@ -610,7 +610,7 @@ export default function CalendarSection({
                     </span>
                   )}
                 </div>
-                <div className="divide-y divide-gray-100">
+                <div className="divide-y divide-gray-100 dark:divide-white/10">
                   {CALENDAR_CATEGORIES.map((cat) => (
                     <div key={cat.key} className="flex items-start gap-2 px-2 py-2">
                       <span
@@ -639,7 +639,7 @@ export default function CalendarSection({
             ))}
             <button
               onClick={() => setShowWeekend((s) => !s)}
-              className="w-full rounded-xl border border-gray-100 bg-white py-2 text-sm font-medium text-muted hover:bg-gray-50 hover:text-ink"
+              className="w-full rounded-xl border border-gray-100 dark:border-hairline bg-white dark:bg-surface py-2 text-sm font-medium text-muted hover:bg-gray-50 dark:hover:bg-white/[0.06] hover:text-ink"
             >
               {showWeekend ? "Masquer le week-end" : "Voir le week-end"}
             </button>
@@ -647,7 +647,7 @@ export default function CalendarSection({
 
           <DragOverlay>
             {activeBlock ? (
-              <div className="rounded-[9px] bg-white px-[10px] py-2 text-[12.5px] font-semibold text-ink shadow-float">
+              <div className="rounded-[9px] bg-white dark:bg-surface px-[10px] py-2 text-[12.5px] font-semibold text-ink shadow-float dark:shadow-[0_30px_70px_-14px_rgba(0,0,0,0.8)]">
                 {activeBlock.title}
               </div>
             ) : null}
@@ -728,7 +728,7 @@ export default function CalendarSection({
                   type="time"
                   value={noteBlock.time ?? ""}
                   onChange={(e) => setTime(noteBlock, e.target.value || null)}
-                  className="rounded-lg border border-gray-200 px-2.5 py-1 text-sm outline-none focus:border-active focus:ring-4 focus:ring-active/12"
+                  className="rounded-lg border border-gray-200 dark:border-hairline px-2.5 py-1 text-sm outline-none focus:border-active focus:ring-4 focus:ring-active/12"
                 />
                 {noteBlock.time && (
                   <button
@@ -744,8 +744,8 @@ export default function CalendarSection({
                   onClick={() => toggle(noteBlock)}
                   className={`inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium ${
                     noteBlock.completed
-                      ? "bg-green-50 text-success"
-                      : "text-muted hover:bg-gray-100 hover:text-ink"
+                      ? "bg-green-50 dark:bg-success/15 text-success"
+                      : "text-muted hover:bg-gray-100 dark:hover:bg-white/[0.06] hover:text-ink"
                   }`}
                 >
                   <Check className="h-3.5 w-3.5" />
@@ -754,7 +754,7 @@ export default function CalendarSection({
                 <button
                   onClick={() => remove(noteBlock.id)}
                   aria-label="Supprimer"
-                  className="rounded-lg p-1.5 text-muted hover:bg-red-50 hover:text-urgent"
+                  className="rounded-lg p-1.5 text-muted hover:bg-red-50 dark:hover:bg-urgent/15 hover:text-urgent"
                 >
                   <Trash2 className="h-4 w-4" />
                 </button>
@@ -792,7 +792,7 @@ function Cell({
   return (
     <div
       ref={setNodeRef}
-      className={`${className ?? ""} ${isOver ? "bg-blue-50" : ""}`}
+      className={`${className ?? ""} ${isOver ? "bg-blue-50 dark:bg-active/15" : ""}`}
     >
       <div className="space-y-1">
         {blocks.map((b) => (
@@ -807,7 +807,7 @@ function Cell({
         <button
           onClick={onAdd}
           aria-label="Ajouter"
-          className="flex h-6 w-6 items-center justify-center rounded-lg text-muted transition-colors hover:bg-gray-100 hover:text-ink"
+          className="flex h-6 w-6 items-center justify-center rounded-lg text-muted transition-colors hover:bg-gray-100 dark:hover:bg-white/[0.06] hover:text-ink"
         >
           <Plus className="h-4 w-4" />
         </button>
@@ -856,7 +856,7 @@ function DraggableChip({
       {...listeners}
       onClick={handleClick}
       style={style}
-      className="flex cursor-grab touch-none select-none items-start gap-2 rounded-[9px] bg-white px-[10px] py-2 text-[12.5px] font-semibold text-ink shadow-chip transition duration-[180ms] ease-ios hover:-translate-y-0.5"
+      className="flex cursor-grab touch-none select-none items-start gap-2 rounded-[9px] bg-white dark:bg-surface px-[10px] py-2 text-[12.5px] font-semibold text-ink shadow-chip transition duration-[180ms] ease-ios hover:-translate-y-0.5"
     >
       {projectColor && (
         <span
@@ -898,7 +898,7 @@ function ColorDots({
         onClick={() => onChange(null)}
         aria-label="Aucune pastille"
         className={`flex h-6 w-6 items-center justify-center rounded-full border text-[10px] text-muted ${
-          value === null ? "border-ink" : "border-gray-200 hover:border-gray-400"
+          value === null ? "border-ink" : "border-gray-200 dark:border-hairline hover:border-gray-400"
         }`}
       >
         /
@@ -962,12 +962,12 @@ function AddEntry({
             if (e.key === "Enter") submit();
           }}
           placeholder="Tâche, note, arrêt maladie, /…"
-          className="flex-1 rounded-xl border border-gray-200 px-3.5 py-2.5 text-sm outline-none focus:border-active focus:ring-4 focus:ring-active/12"
+          className="flex-1 rounded-xl border border-gray-200 dark:border-hairline px-3.5 py-2.5 text-sm outline-none focus:border-active focus:ring-4 focus:ring-active/12"
         />
         <button
           onClick={submit}
           aria-label="Ajouter"
-          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-ink text-white transition-opacity hover:opacity-90"
+          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-ink text-white dark:text-bg transition-opacity hover:opacity-90"
         >
           <CornerDownLeft className="h-4 w-4" />
         </button>
@@ -989,7 +989,7 @@ function AddEntry({
             type="time"
             value={time}
             onChange={(e) => setTime(e.target.value)}
-            className="rounded-xl border border-gray-200 px-3 py-2 text-sm outline-none focus:border-active focus:ring-4 focus:ring-active/12"
+            className="rounded-xl border border-gray-200 dark:border-hairline px-3 py-2 text-sm outline-none focus:border-active focus:ring-4 focus:ring-active/12"
           />
         </div>
       </div>
@@ -1005,7 +1005,7 @@ function AddEntry({
               <li key={s.deliverable.id}>
                 <button
                   onClick={() => onPick(s)}
-                  className="flex w-full items-center gap-2 rounded-xl border border-gray-100 bg-white px-3 py-2 text-left text-sm transition-colors hover:border-ink"
+                  className="flex w-full items-center gap-2 rounded-xl border border-gray-100 dark:border-hairline bg-white dark:bg-surface px-3 py-2 text-left text-sm transition-colors hover:border-ink"
                 >
                   <span
                     className="h-2.5 w-2.5 shrink-0 rounded-full"
@@ -1032,7 +1032,7 @@ function AddEntry({
               <li key={n.id}>
                 <button
                   onClick={() => onPickNote(n)}
-                  className="flex w-full items-center gap-2 rounded-xl border border-gray-100 bg-white px-3 py-2 text-left text-sm transition-colors hover:border-ink"
+                  className="flex w-full items-center gap-2 rounded-xl border border-gray-100 dark:border-hairline bg-white dark:bg-surface px-3 py-2 text-left text-sm transition-colors hover:border-ink"
                 >
                   <span className="h-2.5 w-2.5 shrink-0 rounded-full bg-[#EA580C]" />
                   <span className="flex-1 truncate">
@@ -1071,12 +1071,12 @@ function MonthView({
 
   return (
     <div className="overflow-x-auto">
-      <div className="min-w-[700px] border-l border-t border-gray-100">
+      <div className="min-w-[700px] border-l border-t border-gray-100 dark:border-hairline">
         <div className="grid grid-cols-7">
           {weekDayLabels.map((l) => (
             <div
               key={l}
-              className="border-b border-r border-gray-100 bg-gray-50 py-1.5 text-center text-[11px] uppercase text-muted"
+              className="border-b border-r border-gray-100 dark:border-hairline bg-gray-50 dark:bg-white/[0.06] py-1.5 text-center text-[11px] uppercase text-muted"
             >
               {l}
             </div>
@@ -1089,13 +1089,13 @@ function MonthView({
               <button
                 key={dIso}
                 onClick={() => onPickDay(d)}
-                className={`flex min-h-[96px] flex-col border-b border-r border-gray-100 p-1.5 text-left transition-colors hover:bg-gray-50 ${
-                  inMonth ? "" : "bg-gray-50/50"
+                className={`flex min-h-[96px] flex-col border-b border-r border-gray-100 dark:border-hairline p-1.5 text-left transition-colors hover:bg-gray-50 dark:hover:bg-white/[0.06] ${
+                  inMonth ? "" : "bg-gray-50/50 dark:bg-white/[0.03]"
                 }`}
               >
                 <span
                   className={`self-end text-xs font-semibold ${
-                    isToday(d) ? "text-active" : inMonth ? "" : "text-gray-300"
+                    isToday(d) ? "text-active" : inMonth ? "" : "text-gray-300 dark:text-muted"
                   }`}
                 >
                   {format(d, "d")}
@@ -1104,7 +1104,7 @@ function MonthView({
                   {list.slice(0, 4).map((b) => (
                     <div
                       key={b.id}
-                      className="flex items-center gap-1 truncate text-[10px] text-gray-600"
+                      className="flex items-center gap-1 truncate text-[10px] text-gray-600 dark:text-muted"
                     >
                       <span
                         className="h-1.5 w-1.5 shrink-0 rounded-full"

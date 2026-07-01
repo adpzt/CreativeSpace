@@ -24,7 +24,7 @@ export default function ProductionView() {
           </div>
           <CopyButton text={FOLDER_STRUCTURE} />
         </div>
-        <pre className="overflow-x-auto rounded-2xl border border-gray-100 bg-gray-50 p-4 text-xs leading-relaxed text-gray-700">
+        <pre className="overflow-x-auto rounded-2xl border border-gray-100 dark:border-hairline bg-gray-50 dark:bg-white/[0.06] p-4 text-xs leading-relaxed text-gray-700 dark:text-ink-soft">
           {FOLDER_STRUCTURE}
         </pre>
       </section>
@@ -34,7 +34,7 @@ export default function ProductionView() {
         <h2 className="mb-4 text-lg font-semibold tracking-tight">
           Règles de nommage
         </h2>
-        <ul className="space-y-1.5 text-sm text-gray-600">
+        <ul className="space-y-1.5 text-sm text-gray-600 dark:text-ink-soft">
           {NAMING_RULES.map((r, i) => (
             <li key={i} className="flex gap-2">
               <span className="text-muted">•</span>
@@ -49,7 +49,7 @@ export default function ProductionView() {
         <h2 className="mb-4 text-lg font-semibold tracking-tight">
           Règles de production
         </h2>
-        <ul className="space-y-1.5 text-sm text-gray-600">
+        <ul className="space-y-1.5 text-sm text-gray-600 dark:text-ink-soft">
           {WORK_RULES.map((r, i) => (
             <li key={i} className="flex gap-2">
               <span className="text-muted">•</span>
@@ -64,25 +64,25 @@ export default function ProductionView() {
         <h2 className="mb-4 text-lg font-semibold tracking-tight">
           Checklist livraison finale
         </h2>
-        <ul className="divide-y divide-gray-100 overflow-hidden rounded-2xl border border-gray-100 bg-white">
+        <ul className="divide-y divide-gray-100 dark:divide-white/10 overflow-hidden rounded-2xl border border-gray-100 dark:border-hairline bg-white dark:bg-surface">
           {LIVRAISON_CHECKLIST.map((it, i) => (
             <li key={i} className="flex items-start gap-3 px-4 py-3 text-sm">
-              <span className="mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded border border-gray-300 text-muted">
+              <span className="mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded border border-gray-300 dark:border-hairline text-muted">
                 <Check className="h-3 w-3" />
               </span>
-              <span className="text-gray-600">{it}</span>
+              <span className="text-gray-600 dark:text-ink-soft">{it}</span>
             </li>
           ))}
         </ul>
       </section>
 
       {/* Arnaqueurs */}
-      <section className="rounded-2xl border border-urgent/30 bg-red-50/50 p-4">
+      <section className="rounded-2xl border border-urgent/30 bg-red-50/50 dark:bg-urgent/15 p-4">
         <p className="mb-2 flex items-center gap-2 text-sm font-semibold text-urgent">
           <AlertTriangle className="h-4 w-4" />
           Arnaqueurs à éviter
         </p>
-        <p className="mb-2 text-sm text-gray-600">
+        <p className="mb-2 text-sm text-gray-600 dark:text-ink-soft">
           Ces organismes envoient des courriers frauduleux aux nouveaux
           auto-entrepreneurs. Ne jamais payer, ne jamais rappeler.
         </p>
@@ -90,7 +90,7 @@ export default function ProductionView() {
           {ARNAQUEURS.map((a) => (
             <li
               key={a}
-              className="rounded-full bg-white px-2.5 py-1 text-xs font-medium text-urgent"
+              className="rounded-full bg-white dark:bg-white/10 px-2.5 py-1 text-xs font-medium text-urgent"
             >
               {a}
             </li>

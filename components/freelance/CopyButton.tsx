@@ -29,7 +29,7 @@ export default function CopyButton({
       className={`inline-flex shrink-0 items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium transition-colors ${
         copied
           ? "bg-success text-white"
-          : "border border-gray-200 text-muted hover:border-ink hover:text-ink"
+          : "border border-gray-200 dark:border-hairline text-muted hover:border-ink hover:text-ink"
       }`}
     >
       {copied ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}

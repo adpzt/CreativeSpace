@@ -62,7 +62,7 @@ export default function ClientOverlayBody({
             {tags.map((t) => (
               <span
                 key={t}
-                className="rounded-full bg-gray-100 px-2.5 py-1 text-xs font-medium text-gray-600"
+                className="rounded-full bg-gray-100 dark:bg-white/[0.06] px-2.5 py-1 text-xs font-medium text-gray-600 dark:text-ink-soft"
               >
                 {t}
               </span>
@@ -82,7 +82,7 @@ export default function ClientOverlayBody({
               </a>
             )}
             {client.phone && (
-              <p className="flex items-center gap-2 text-gray-600">
+              <p className="flex items-center gap-2 text-gray-600 dark:text-ink-soft">
                 <Phone className="h-4 w-4" />
                 {client.phone}
               </p>
@@ -113,7 +113,7 @@ export default function ClientOverlayBody({
               {projects.map((p) => (
                 <li
                   key={p.id}
-                  className="flex items-center justify-between gap-2 rounded-xl border border-gray-100 bg-white px-3 py-2"
+                  className="flex items-center justify-between gap-2 rounded-xl border border-gray-100 dark:border-hairline bg-white dark:bg-surface px-3 py-2"
                 >
                   <span className="truncate text-sm font-medium">{p.name}</span>
                   <StatusBadge status={p.status} />
@@ -140,7 +140,7 @@ export default function ClientOverlayBody({
         <h3 className="text-lg font-semibold tracking-tight">Modifier</h3>
         <button
           onClick={() => setEditing(false)}
-          className="inline-flex items-center gap-1 rounded-lg px-2 py-1 text-xs text-muted transition-colors hover:bg-gray-100 hover:text-ink"
+          className="inline-flex items-center gap-1 rounded-lg px-2 py-1 text-xs text-muted transition-colors hover:bg-gray-100 dark:hover:bg-white/[0.06] hover:text-ink"
         >
           <Eye className="h-3.5 w-3.5" />
           Aperçu
@@ -185,8 +185,8 @@ export default function ClientOverlayBody({
                 onClick={() => toggleTag(t)}
                 className={`rounded-full border px-3 py-1 text-xs font-medium transition-colors ${
                   active
-                    ? "border-ink bg-ink text-white"
-                    : "border-gray-200 text-gray-500 hover:border-ink hover:text-ink"
+                    ? "border-ink bg-ink text-white dark:text-bg"
+                    : "border-gray-200 dark:border-hairline text-gray-500 dark:text-muted hover:border-ink hover:text-ink"
                 }`}
               >
                 {t}
@@ -204,7 +204,7 @@ export default function ClientOverlayBody({
         save={(v) => updateClient(client.id, { notes: v })}
       />
 
-      <div className="border-t border-gray-100 pt-4">
+      <div className="border-t border-gray-100 dark:border-hairline pt-4">
         <Button variant="danger" onClick={handleDelete} disabled={isDeleting}>
           <Trash2 className="h-4 w-4" />
           {isDeleting ? "Suppression..." : "Supprimer ce client"}

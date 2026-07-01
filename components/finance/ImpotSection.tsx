@@ -57,18 +57,18 @@ export default function ImpotSection({
     margeImposable === Infinity ? Infinity : margeImposable / (1 - MICRO_BNC_ABATTEMENT);
 
   return (
-    <div className="overflow-hidden rounded-2xl border-2 border-active/30 bg-white">
-      <div className="flex items-center gap-2 border-b border-active/20 bg-blue-50/50 px-5 py-3">
+    <div className="overflow-hidden rounded-2xl border-2 border-active/30 bg-white dark:bg-surface">
+      <div className="flex items-center gap-2 border-b border-active/20 bg-blue-50/50 px-5 py-3 dark:bg-active/15">
         <Landmark className="h-4 w-4 text-active" />
         <h3 className="text-sm font-semibold">Impôt sur le revenu estimé</h3>
-        <span className="rounded-full bg-white px-2 py-0.5 text-[11px] font-medium text-gray-500">
+        <span className="rounded-full bg-white px-2 py-0.5 text-[11px] font-medium text-gray-500 dark:bg-white/10 dark:text-muted">
           indicatif
         </span>
       </div>
 
       <div className="p-5">
         {/* Somme à payer, mise en avant */}
-        <div className="rounded-xl bg-gray-50 p-5 text-center">
+        <div className="rounded-xl bg-gray-50 p-5 text-center dark:bg-white/[0.06]">
           <p className="text-xs font-medium uppercase tracking-wide text-muted">
             Impôt estimé à payer
           </p>
@@ -98,8 +98,8 @@ export default function ImpotSection({
         <div
           className={`mt-4 flex items-start gap-2 rounded-xl border p-3.5 text-sm ${
             dejaImposable
-              ? "border-pending/30 bg-orange-50/60"
-              : "border-success/30 bg-green-50/50"
+              ? "border-pending/30 bg-orange-50/60 dark:bg-pending/15"
+              : "border-success/30 bg-green-50/50 dark:bg-success/15"
           }`}
         >
           <AlertTriangle
@@ -180,7 +180,7 @@ function ProgressRow({
         <span className="text-sm font-medium">{label}</span>
         <span className="text-sm font-semibold">{formatEuro(target)}</span>
       </div>
-      <div className="h-2 w-full overflow-hidden rounded-full bg-gray-100">
+      <div className="h-2 w-full overflow-hidden rounded-full bg-gray-100 dark:bg-white/[0.06]">
         <div
           className={`h-full rounded-full transition-all ${
             depasse || already ? "bg-urgent" : "bg-active"

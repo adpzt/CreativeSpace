@@ -21,14 +21,14 @@ export default function TodayTasks({ blocks }: { blocks: CalendarBlock[] }) {
 
   if (items.length === 0) {
     return (
-      <p className="rounded-2xl border border-dashed border-gray-200 px-4 py-6 text-center text-sm text-muted">
+      <p className="rounded-2xl border border-dashed border-gray-200 dark:border-hairline px-4 py-6 text-center text-sm text-muted">
         Rien de prévu aujourd&apos;hui.
       </p>
     );
   }
 
   return (
-    <ul className="divide-y divide-gray-100 overflow-hidden rounded-2xl border border-gray-100 bg-white">
+    <ul className="divide-y divide-gray-100 dark:divide-white/10 overflow-hidden rounded-2xl border border-gray-100 dark:border-hairline bg-white dark:bg-surface">
       {items.map((b) => (
         <li key={b.id} className="flex items-center gap-3 px-4 py-3">
           <button
@@ -37,7 +37,7 @@ export default function TodayTasks({ blocks }: { blocks: CalendarBlock[] }) {
             className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-md border transition-colors ${
               b.completed
                 ? "border-success bg-success text-white"
-                : "border-gray-300 hover:border-ink"
+                : "border-gray-300 dark:border-hairline-strong hover:border-ink"
             }`}
           >
             {b.completed && <Check className="h-3.5 w-3.5" />}

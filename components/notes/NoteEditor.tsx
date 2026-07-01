@@ -87,7 +87,7 @@ export default function NoteEditor({
             onClick={() => setMode("edit")}
             aria-label="Modifier"
             title="Modifier"
-            className="flex h-8 w-8 items-center justify-center rounded-[9px] bg-[#F4F4F5] text-ink-soft transition-colors hover:bg-black/10 hover:text-ink"
+            className="flex h-8 w-8 items-center justify-center rounded-[9px] bg-[#F4F4F5] text-ink-soft transition-colors hover:bg-black/10 hover:text-ink dark:bg-white/[0.06] dark:hover:bg-white/10"
           >
             <Pencil className="h-4 w-4" />
           </button>
@@ -128,10 +128,10 @@ export default function NoteEditor({
           </Row>
         </div>
 
-        <div className="mt-5 border-t border-black/[0.06] pt-5">
+        <div className="mt-5 border-t border-hairline pt-5">
           {current.content?.trim() ? (
             <div
-              className="text-[15.5px] leading-relaxed text-[#3F3F46] [&_b]:font-semibold"
+              className="text-[15.5px] leading-relaxed text-[#3F3F46] dark:text-[#C7C9CE] [&_b]:font-semibold"
               dangerouslySetInnerHTML={{ __html: current.content }}
             />
           ) : (
@@ -140,11 +140,11 @@ export default function NoteEditor({
         </div>
 
         {onDelete && (
-          <div className="mt-6 flex justify-end border-t border-gray-100 pt-4">
+          <div className="mt-6 flex justify-end border-t border-gray-100 dark:border-hairline pt-4">
             <button
               onClick={onDelete}
               aria-label="Supprimer"
-              className="rounded-lg p-2 text-muted hover:bg-red-50 hover:text-urgent"
+              className="rounded-lg p-2 text-muted hover:bg-red-50 dark:hover:bg-urgent/15 hover:text-urgent"
             >
               <Trash2 className="h-4 w-4" />
             </button>
@@ -157,7 +157,7 @@ export default function NoteEditor({
   // ---------- ÉDITION ----------
   return (
     <div className="space-y-5 pr-8">
-      <span className="inline-flex items-center gap-1.5 rounded-full bg-[#EFF4FF] px-2.5 py-0.5 text-[11px] font-semibold text-[#1D4ED8]">
+      <span className="inline-flex items-center gap-1.5 rounded-full bg-[#EFF4FF] dark:bg-active/15 px-2.5 py-0.5 text-[11px] font-semibold text-[#1D4ED8] dark:text-[#93C0FF]">
         <Pencil className="h-3 w-3" />
         En cours d&apos;édition
       </span>
@@ -211,7 +211,7 @@ export default function NoteEditor({
         </Row>
       </div>
 
-      <div className="border-t border-gray-100 pt-4">
+      <div className="border-t border-gray-100 dark:border-hairline pt-4">
         <RichText
           value={content}
           onChange={setContent}
@@ -233,7 +233,7 @@ export default function NoteEditor({
           <button
             onClick={onDelete}
             aria-label="Supprimer"
-            className="rounded-lg p-2 text-muted hover:bg-red-50 hover:text-urgent"
+            className="rounded-lg p-2 text-muted hover:bg-red-50 dark:hover:bg-urgent/15 hover:text-urgent"
           >
             <Trash2 className="h-4 w-4" />
           </button>

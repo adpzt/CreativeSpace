@@ -7,7 +7,7 @@ import { CLIENT_TAGS } from "@/lib/work";
 import { createClient } from "@/app/(main)/work/actions";
 
 const inputClass =
-  "w-full rounded-xl border border-gray-200 px-3.5 py-2.5 text-sm outline-none transition-colors focus:border-active focus:ring-4 focus:ring-active/12 placeholder:text-muted";
+  "w-full rounded-xl border border-gray-200 dark:border-hairline px-3.5 py-2.5 text-sm outline-none transition-colors focus:border-active focus:ring-4 focus:ring-active/12 placeholder:text-muted";
 const labelClass =
   "mb-1.5 block text-xs font-medium uppercase tracking-wide text-muted";
 
@@ -114,8 +114,8 @@ export default function ClientCreateForm({ onClose }: { onClose: () => void }) {
                 onClick={() => toggleTag(t)}
                 className={`rounded-full border px-3 py-1 text-xs font-medium transition-colors ${
                   active
-                    ? "border-ink bg-ink text-white"
-                    : "border-gray-200 text-gray-500 hover:border-ink hover:text-ink"
+                    ? "border-ink bg-ink text-white dark:text-bg"
+                    : "border-gray-200 dark:border-hairline text-gray-500 dark:text-muted hover:border-ink hover:text-ink"
                 }`}
               >
                 {t}

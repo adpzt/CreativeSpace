@@ -108,11 +108,11 @@ export default function DashboardSection({
     <section>
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
         <h2 className="text-xl font-semibold tracking-tight">Tableau de bord</h2>
-        <div className="flex items-center gap-1 rounded-xl bg-gray-100 p-1 text-sm">
+        <div className="flex items-center gap-1 rounded-xl bg-gray-100 p-1 text-sm dark:bg-white/[0.06]">
           <button
             onClick={() => setMode("mois")}
             className={`rounded-lg px-3 py-1.5 font-medium transition-colors ${
-              mode === "mois" ? "bg-white text-ink shadow-sm" : "text-muted hover:text-ink"
+              mode === "mois" ? "bg-white text-ink shadow-sm dark:bg-surface" : "text-muted hover:text-ink"
             }`}
           >
             Mois
@@ -120,7 +120,7 @@ export default function DashboardSection({
           <button
             onClick={() => setMode("annee")}
             className={`rounded-lg px-3 py-1.5 font-medium transition-colors ${
-              mode === "annee" ? "bg-white text-ink shadow-sm" : "text-muted hover:text-ink"
+              mode === "annee" ? "bg-white text-ink shadow-sm dark:bg-surface" : "text-muted hover:text-ink"
             }`}
           >
             Année
@@ -135,7 +135,7 @@ export default function DashboardSection({
             <button
               onClick={() => setFocus((f) => shift(f.y, f.m, -1))}
               aria-label="Mois précédent"
-              className="rounded-lg p-1.5 text-muted hover:bg-gray-100 hover:text-ink"
+              className="rounded-lg p-1.5 text-muted hover:bg-gray-100 hover:text-ink dark:hover:bg-white/[0.06]"
             >
               <ChevronLeft className="h-4 w-4" />
             </button>
@@ -145,7 +145,7 @@ export default function DashboardSection({
             <button
               onClick={() => setFocus((f) => shift(f.y, f.m, 1))}
               aria-label="Mois suivant"
-              className="rounded-lg p-1.5 text-muted hover:bg-gray-100 hover:text-ink"
+              className="rounded-lg p-1.5 text-muted hover:bg-gray-100 hover:text-ink dark:hover:bg-white/[0.06]"
             >
               <ChevronRight className="h-4 w-4" />
             </button>
@@ -184,8 +184,8 @@ export default function DashboardSection({
 
       {/* En attente : indicateur global, jamais rattaché à un mois */}
       {enAttente > 0 && (
-        <div className="mt-3 flex items-center gap-3 rounded-2xl border border-gray-100 bg-white p-4">
-          <span className="flex h-7 w-7 items-center justify-center rounded-full bg-gray-50 text-pending">
+        <div className="mt-3 flex items-center gap-3 rounded-2xl border border-gray-100 bg-white p-4 dark:border-hairline dark:bg-surface">
+          <span className="flex h-7 w-7 items-center justify-center rounded-full bg-gray-50 text-pending dark:bg-white/[0.06]">
             <Clock className="h-4 w-4" />
           </span>
           <div className="flex-1">
@@ -227,17 +227,17 @@ function Metric({
 }) {
   const cardBg =
     highlight === "success"
-      ? "border-success/30 bg-green-50/60"
+      ? "border-success/30 bg-green-50/60 dark:bg-success/15"
       : highlight === "urgent"
-        ? "border-urgent/30 bg-red-50/60"
-        : "border-black/[0.06] bg-white";
+        ? "border-urgent/30 bg-red-50/60 dark:bg-urgent/15"
+        : "border-hairline bg-white dark:bg-surface";
   return (
     <div
       className={`animate-rise rounded-2xl border p-5 shadow-card transition duration-[180ms] ease-ios hover:-translate-y-1 hover:shadow-lift ${cardBg}`}
     >
       <div className="mb-2 flex items-center gap-2">
         <span
-          className={`flex h-[30px] w-[30px] items-center justify-center rounded-[9px] bg-black/[0.04] ${tint}`}
+          className={`flex h-[30px] w-[30px] items-center justify-center rounded-[9px] bg-black/[0.04] dark:bg-white/[0.06] ${tint}`}
         >
           <Icon className="h-4 w-4" />
         </span>
@@ -251,19 +251,21 @@ function Metric({
         {value}
       </p>
       {spark && (
-        <div className="mt-3 h-12 w-full">
+        // text-active pilote la couleur : currentColor suit le token (bleu qui
+        // s'éclaircit en dark). Dégradé un peu plus marqué en nuit.
+        <div className="mt-3 h-12 w-full text-active">
           <ResponsiveContainer width="100%" height="100%">
             <AreaChart data={spark} margin={{ top: 2, right: 0, bottom: 0, left: 0 }}>
               <defs>
                 <linearGradient id="caSpark" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#2563EB" stopOpacity={0.28} />
-                  <stop offset="100%" stopColor="#2563EB" stopOpacity={0} />
+                  <stop offset="0%" stopColor="currentColor" stopOpacity={0.3} />
+                  <stop offset="100%" stopColor="currentColor" stopOpacity={0} />
                 </linearGradient>
               </defs>
               <Area
                 type="monotone"
                 dataKey="v"
-                stroke="#2563EB"
+                stroke="currentColor"
                 strokeWidth={2.5}
                 fill="url(#caSpark)"
                 isAnimationActive={false}

@@ -8,17 +8,17 @@ export const PAYMENT_STATUS: Record<
   paid: {
     label: "Encaissé",
     dot: "bg-success",
-    badge: "bg-green-50 text-success",
+    badge: "bg-green-50 text-success dark:bg-success/15",
   },
   pending: {
     label: "En attente",
     dot: "bg-pending",
-    badge: "bg-orange-50 text-pending",
+    badge: "bg-orange-50 text-pending dark:bg-pending/15",
   },
   late: {
     label: "En retard",
     dot: "bg-urgent",
-    badge: "bg-red-50 text-urgent",
+    badge: "bg-red-50 text-urgent dark:bg-urgent/15",
   },
 };
 

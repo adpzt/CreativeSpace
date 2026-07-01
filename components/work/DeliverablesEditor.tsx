@@ -92,7 +92,7 @@ export default function DeliverablesEditor(props: Props) {
             onChange={(e) => setName(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && validateAdd()}
             placeholder="Nouveau livrable (logo, flyer...)"
-            className="flex-1 rounded-xl border border-gray-200 px-3 py-2 text-sm outline-none focus:border-active focus:ring-4 focus:ring-active/12"
+            className="flex-1 rounded-xl border border-gray-200 dark:border-hairline px-3 py-2 text-sm outline-none focus:border-active focus:ring-4 focus:ring-active/12"
           />
           <DayInput value={days} onChange={setDays} />
           <button
@@ -106,7 +106,7 @@ export default function DeliverablesEditor(props: Props) {
       ) : (
         <button
           onClick={() => setAdding(true)}
-          className="mt-2 inline-flex items-center gap-1 rounded-lg px-2 py-1 text-xs font-medium text-muted transition-colors hover:bg-gray-100 hover:text-ink"
+          className="mt-2 inline-flex items-center gap-1 rounded-lg px-2 py-1 text-xs font-medium text-muted transition-colors hover:bg-gray-100 dark:hover:bg-white/[0.06] hover:text-ink"
         >
           <Plus className="h-3.5 w-3.5" />
           Livrable
@@ -127,7 +127,7 @@ function DayInput({
   onBlur?: () => void;
 }) {
   return (
-    <div className="flex shrink-0 items-center rounded-lg border border-gray-200 pr-1.5 focus-within:border-ink">
+    <div className="flex shrink-0 items-center rounded-lg border border-gray-200 dark:border-hairline pr-1.5 focus-within:border-ink">
       <input
         value={value}
         onChange={(e) => onChange(e.target.value)}
@@ -163,11 +163,11 @@ function SortableDeliverable({
   return (
     <li ref={setNodeRef} style={style} className="flex items-center gap-1.5">
       {/* Cadre du livrable */}
-      <div className="flex flex-1 items-center gap-1.5 rounded-xl border border-gray-100 bg-white px-2 py-1.5">
+      <div className="flex flex-1 items-center gap-1.5 rounded-xl border border-gray-100 dark:border-hairline bg-white dark:bg-surface px-2 py-1.5">
         <span
           {...attributes}
           {...listeners}
-          className="shrink-0 cursor-grab touch-none text-gray-300 hover:text-muted"
+          className="shrink-0 cursor-grab touch-none text-gray-300 dark:text-white/20 hover:text-muted"
           aria-label="Réordonner"
         >
           <GripVertical className="h-4 w-4" />
@@ -179,7 +179,7 @@ function SortableDeliverable({
           className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-md border transition-colors ${
             item.completed
               ? "border-success bg-success text-white"
-              : "border-gray-300 hover:border-ink"
+              : "border-gray-300 dark:border-hairline-strong hover:border-ink"
           }`}
         >
           {item.completed && <Check className="h-3.5 w-3.5" />}
@@ -211,7 +211,7 @@ function SortableDeliverable({
           onClick={() => onOpenNote(item.id)}
           aria-label="Note du livrable"
           className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-lg transition-colors ${
-            item.notes ? "bg-blue-50 text-active" : "text-active hover:bg-blue-50"
+            item.notes ? "bg-blue-50 dark:bg-active/15 text-active" : "text-active hover:bg-blue-50 dark:hover:bg-active/15"
           }`}
         >
           <FileText className="h-3.5 w-3.5" />
@@ -222,7 +222,7 @@ function SortableDeliverable({
       <button
         onClick={() => onDelete(item.id)}
         aria-label="Supprimer le livrable"
-        className="shrink-0 rounded-lg p-1.5 text-urgent transition-colors hover:bg-red-50"
+        className="shrink-0 rounded-lg p-1.5 text-urgent transition-colors hover:bg-red-50 dark:hover:bg-urgent/15"
       >
         <X className="h-4 w-4" />
       </button>

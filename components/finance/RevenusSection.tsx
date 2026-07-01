@@ -98,7 +98,7 @@ export default function RevenusSection({
 
       {/* À valider : projets clôturés */}
       {toValidate.length > 0 && (
-        <div className="mb-5 rounded-2xl border border-blue-100 bg-blue-50/50 p-4">
+        <div className="mb-5 rounded-2xl border border-blue-100 bg-blue-50/50 p-4 dark:border-active/30 dark:bg-active/15">
           <p className="mb-2 text-xs font-medium uppercase tracking-wide text-active">
             À valider ({toValidate.length})
           </p>
@@ -106,7 +106,7 @@ export default function RevenusSection({
             {toValidate.map((p) => (
               <li
                 key={p.id}
-                className="flex items-center gap-3 rounded-xl bg-white px-3 py-2"
+                className="flex items-center gap-3 rounded-xl bg-white px-3 py-2 dark:bg-surface"
               >
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-sm font-medium">{p.name}</p>
@@ -122,7 +122,7 @@ export default function RevenusSection({
                 )}
                 <button
                   onClick={() => openFromProject(p)}
-                  className="inline-flex shrink-0 items-center gap-1 rounded-lg bg-ink px-2.5 py-1.5 text-xs font-medium text-white hover:opacity-90"
+                  className="inline-flex shrink-0 items-center gap-1 rounded-lg bg-ink px-2.5 py-1.5 text-xs font-medium text-white hover:opacity-90 dark:text-bg"
                 >
                   Ajouter
                   <ArrowRight className="h-3.5 w-3.5" />
@@ -135,7 +135,7 @@ export default function RevenusSection({
 
       {/* En cours : projets pas encore encaissés, budget prévisionnel grisé */}
       {inProgress.length > 0 && (
-        <ul className="mb-5 divide-y divide-gray-100 overflow-hidden rounded-2xl border border-dashed border-gray-200 bg-gray-50/40">
+        <ul className="mb-5 divide-y divide-gray-100 overflow-hidden rounded-2xl border border-dashed border-gray-200 bg-gray-50/40 dark:divide-white/10 dark:border-hairline dark:bg-white/[0.06]">
           {inProgress.map((p) => {
             const budget = projectBudget(p);
             return (
@@ -143,9 +143,9 @@ export default function RevenusSection({
                 key={p.id}
                 className="flex items-center gap-3 px-4 py-3 text-muted"
               >
-                <span className="h-2 w-2 shrink-0 rounded-full bg-gray-300" />
+                <span className="h-2 w-2 shrink-0 rounded-full bg-gray-300 dark:bg-white/20" />
                 <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-medium text-gray-500">
+                  <p className="truncate text-sm font-medium text-gray-500 dark:text-muted">
                     {p.name}
                   </p>
                   <p className="truncate text-xs">
@@ -154,13 +154,13 @@ export default function RevenusSection({
                   </p>
                 </div>
                 {budget != null ? (
-                  <span className="shrink-0 text-sm font-medium text-gray-400">
+                  <span className="shrink-0 text-sm font-medium text-gray-400 dark:text-muted">
                     {formatEuro(budget)}
                   </span>
                 ) : (
                   <button
                     onClick={() => openFromProject(p)}
-                    className="shrink-0 rounded-lg border border-dashed border-gray-300 px-2.5 py-1 text-xs font-medium text-gray-400 hover:border-ink hover:text-ink"
+                    className="shrink-0 rounded-lg border border-dashed border-gray-300 px-2.5 py-1 text-xs font-medium text-gray-400 hover:border-ink hover:text-ink dark:border-hairline dark:text-muted"
                   >
                     Argent à compléter
                   </button>
@@ -179,14 +179,14 @@ export default function RevenusSection({
           description="Valide un projet clôturé ci-dessus, ou ajoute un revenu manuel."
         />
       ) : (
-        <ul className="divide-y divide-gray-100 overflow-hidden rounded-2xl border border-gray-100 bg-white">
+        <ul className="divide-y divide-gray-100 overflow-hidden rounded-2xl border border-gray-100 bg-white dark:divide-white/10 dark:border-hairline dark:bg-surface">
           {payments.map((pay) => {
             const st = PAYMENT_STATUS[pay.status];
             return (
               <li key={pay.id}>
                 <button
                   onClick={() => setEditing(pay)}
-                  className="flex w-full items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-gray-50"
+                  className="flex w-full items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-gray-50 dark:hover:bg-white/[0.06]"
                 >
                   <span
                     className={`h-2 w-2 shrink-0 rounded-full ${st.dot}`}

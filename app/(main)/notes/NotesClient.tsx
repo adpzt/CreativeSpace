@@ -134,7 +134,7 @@ export default function NotesClient({
           {deleted.length > 0 && (
             <button
               onClick={() => setShowTrash(true)}
-              className="inline-flex items-center gap-1.5 rounded-xl border border-gray-200 px-3 py-2 text-sm font-medium text-muted hover:border-ink hover:text-ink"
+              className="inline-flex items-center gap-1.5 rounded-xl border border-gray-200 dark:border-hairline px-3 py-2 text-sm font-medium text-muted hover:border-ink hover:text-ink"
             >
               <Trash2 className="h-4 w-4" />
               {deleted.length}
@@ -162,8 +162,8 @@ export default function NotesClient({
         </ul>
       ) : (
         !allDone && (
-          <div className="rounded-2xl border border-dashed border-gray-200 px-6 py-14 text-center">
-            <div className="mx-auto mb-3 flex h-11 w-11 items-center justify-center rounded-2xl bg-gray-100">
+          <div className="rounded-2xl border border-dashed border-gray-200 dark:border-hairline px-6 py-14 text-center">
+            <div className="mx-auto mb-3 flex h-11 w-11 items-center justify-center rounded-2xl bg-gray-100 dark:bg-white/[0.06]">
               <Check className="h-5 w-5 text-muted" />
             </div>
             <p className="font-medium">Commence ta première note</p>
@@ -175,7 +175,7 @@ export default function NotesClient({
       )}
 
       {allDone && (
-        <div className="rounded-2xl border border-success/20 bg-green-50/50 px-6 py-10 text-center">
+        <div className="rounded-2xl border border-success/20 bg-green-50/50 dark:bg-success/15 px-6 py-10 text-center">
           <p className="text-lg font-semibold text-success">Tout est fait 🎉</p>
           <p className="mt-1 text-sm text-muted">Profite, tu l'as mérité.</p>
         </div>
@@ -243,7 +243,7 @@ export default function NotesClient({
                 {deleted.map((n) => (
                   <li
                     key={n.id}
-                    className="flex items-center gap-3 rounded-xl border border-gray-100 px-3 py-2.5"
+                    className="flex items-center gap-3 rounded-xl border border-gray-100 dark:border-hairline px-3 py-2.5"
                   >
                     <span className="min-w-0 flex-1 truncate text-sm text-muted">
                       {n.title?.trim() || n.content.split("\n")[0] || "Note"}
@@ -290,10 +290,10 @@ function NoteCard({
 
   return (
     <li
-      className={`group animate-rise rounded-[18px] border border-black/[0.05] p-[18px] transition duration-200 ease-ios hover:-translate-y-1 ${
+      className={`group animate-rise rounded-[18px] border border-hairline dark:border-white/[0.09] p-[18px] transition duration-200 ease-ios hover:-translate-y-1 ${
         note.done
-          ? "bg-white/50 opacity-70"
-          : `bg-gradient-to-b ${pr.grad} to-white/60 shadow-sheen`
+          ? "bg-white/50 dark:bg-white/[0.04] opacity-70"
+          : `bg-gradient-to-b ${pr.grad} to-white/60 dark:from-white/[0.04] dark:to-white/[0.02] shadow-sheen`
       }`}
       style={{
         animationDelay: `${index * 45}ms`,
@@ -309,7 +309,7 @@ function NoteCard({
           className={`mt-0.5 flex h-[22px] w-[22px] shrink-0 items-center justify-center rounded-full border-2 transition-colors ${
             note.done
               ? "animate-pop border-success bg-success text-white"
-              : "border-black/[0.16] hover:border-ink"
+              : "border-black/[0.16] dark:border-white/22 hover:border-ink"
           }`}
         >
           {note.done && <Check className="h-3 w-3" strokeWidth={3} />}
@@ -359,7 +359,7 @@ function NoteCard({
         <button
           onClick={onDelete}
           aria-label="Supprimer"
-          className="shrink-0 rounded-lg p-1.5 text-muted opacity-0 transition-opacity hover:bg-red-50 hover:text-urgent group-hover:opacity-100"
+          className="shrink-0 rounded-lg p-1.5 text-muted opacity-0 transition-opacity hover:bg-red-50 dark:hover:bg-urgent/15 hover:text-urgent group-hover:opacity-100"
         >
           <Trash2 className="h-4 w-4" />
         </button>

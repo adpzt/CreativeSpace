@@ -17,7 +17,7 @@ export default function FreelancePage() {
             <Link
               key={s.href}
               href={s.href}
-              className="group flex items-start gap-3 rounded-2xl border border-gray-100 bg-white p-5 transition-colors hover:border-ink"
+              className="group flex items-start gap-3 rounded-2xl border border-gray-100 bg-white p-5 transition-colors hover:border-ink dark:border-hairline dark:bg-surface"
             >
               <div className="min-w-0 flex-1">
                 <p className="font-semibold tracking-tight">{s.title}</p>
@@ -28,13 +28,13 @@ export default function FreelancePage() {
           ) : (
             <div
               key={s.href}
-              className="flex items-start gap-3 rounded-2xl border border-dashed border-gray-200 p-5 opacity-70"
+              className="flex items-start gap-3 rounded-2xl border border-dashed border-gray-200 p-5 opacity-70 dark:border-hairline"
             >
               <div className="min-w-0 flex-1">
                 <p className="font-semibold tracking-tight">{s.title}</p>
                 <p className="mt-0.5 text-sm text-muted">{s.desc}</p>
               </div>
-              <span className="shrink-0 rounded-full bg-gray-100 px-2 py-0.5 text-[11px] font-medium text-muted">
+              <span className="shrink-0 rounded-full bg-gray-100 px-2 py-0.5 text-[11px] font-medium text-muted dark:bg-white/[0.06]">
                 Bientôt
               </span>
             </div>

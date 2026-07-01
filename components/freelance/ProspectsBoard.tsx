@@ -43,7 +43,7 @@ export default function ProspectsBoard({ prospects }: { prospects: Prospect[] })
               href={l.url}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 rounded-xl border border-gray-200 px-3.5 py-2 text-sm font-medium hover:border-ink"
+              className="inline-flex items-center gap-2 rounded-xl border border-gray-200 dark:border-hairline px-3.5 py-2 text-sm font-medium hover:border-ink"
             >
               <ExternalLink className="h-4 w-4 text-muted" />
               {l.label}
@@ -72,14 +72,14 @@ export default function ProspectsBoard({ prospects }: { prospects: Prospect[] })
             description="Ajoute les agences, entreprises ou comptes à démarcher."
           />
         ) : (
-          <ul className="divide-y divide-gray-100 overflow-hidden rounded-2xl border border-gray-100 bg-white">
+          <ul className="divide-y divide-gray-100 dark:divide-white/10 overflow-hidden rounded-2xl border border-gray-100 dark:border-hairline bg-white dark:bg-surface">
             {prospects.map((p) => {
               const st = PROSPECT_STATUS[p.status];
               return (
                 <li key={p.id}>
                   <button
                     onClick={() => setEditing(p)}
-                    className="flex w-full items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-gray-50"
+                    className="flex w-full items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-gray-50 dark:hover:bg-white/[0.06]"
                   >
                     <div className="min-w-0 flex-1">
                       <p className="truncate font-medium">{p.name}</p>
@@ -96,7 +96,7 @@ export default function ProspectsBoard({ prospects }: { prospects: Prospect[] })
                         target="_blank"
                         rel="noopener noreferrer"
                         onClick={(e) => e.stopPropagation()}
-                        className="shrink-0 rounded-lg p-1.5 text-muted hover:bg-gray-100 hover:text-ink"
+                        className="shrink-0 rounded-lg p-1.5 text-muted hover:bg-gray-100 dark:hover:bg-white/[0.06] hover:text-ink"
                         aria-label="Ouvrir le lien"
                       >
                         <ExternalLink className="h-4 w-4" />

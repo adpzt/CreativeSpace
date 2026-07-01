@@ -19,7 +19,7 @@ import type {
 const labelClass =
   "mb-1.5 block text-xs font-medium uppercase tracking-wide text-muted";
 const inputClass =
-  "w-full rounded-xl border border-gray-200 px-3.5 py-2.5 text-sm outline-none transition-colors focus:border-active focus:ring-4 focus:ring-active/12 placeholder:text-muted";
+  "w-full rounded-xl border border-gray-200 px-3.5 py-2.5 text-sm outline-none transition-colors focus:border-active focus:ring-4 focus:ring-active/12 placeholder:text-muted dark:border-hairline dark:bg-white/[0.06]";
 
 // Formulaire d'un revenu (création, pré-rempli depuis un projet, ou édition).
 export default function RevenuForm({
@@ -226,8 +226,8 @@ export default function RevenuForm({
       <div
         className={`rounded-xl border p-3.5 transition-colors ${
           status === "paid"
-            ? "border-success/40 bg-green-50/50"
-            : "border-gray-200"
+            ? "border-success/40 bg-green-50/50 dark:bg-success/15"
+            : "border-gray-200 dark:border-hairline"
         }`}
       >
         <label className={labelClass}>
@@ -242,7 +242,7 @@ export default function RevenuForm({
           type="date"
           value={received}
           onChange={(e) => setReceived(e.target.value)}
-          className={`${inputClass} ${status === "paid" ? "bg-white" : ""}`}
+          className={`${inputClass} ${status === "paid" ? "bg-white dark:bg-white/[0.06]" : ""}`}
         />
         <p className="mt-1.5 text-xs text-muted">
           Laisse vide si pas encore encaissé. Si tu passes en « Encaissé » sans
@@ -284,7 +284,7 @@ export default function RevenuForm({
             type="button"
             onClick={handleDelete}
             aria-label="Supprimer"
-            className="rounded-lg p-2 text-muted hover:bg-red-50 hover:text-urgent"
+            className="rounded-lg p-2 text-muted hover:bg-red-50 hover:text-urgent dark:hover:bg-urgent/15"
           >
             <Trash2 className="h-4 w-4" />
           </button>

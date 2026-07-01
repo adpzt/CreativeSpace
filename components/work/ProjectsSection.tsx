@@ -82,7 +82,7 @@ export default function ProjectsSection({
           <div className="relative mb-4 inline-block">
             <button
               onClick={() => setMenuOpen((o) => !o)}
-              className="inline-flex items-center gap-1.5 rounded-full border border-gray-200 px-3 py-1.5 text-xs font-medium transition-colors hover:border-ink"
+              className="inline-flex items-center gap-1.5 rounded-full border border-gray-200 dark:border-hairline px-3 py-1.5 text-xs font-medium transition-colors hover:border-ink"
             >
               {filterLabel}
               <ChevronDown className="h-3.5 w-3.5 text-muted" />
@@ -94,7 +94,7 @@ export default function ProjectsSection({
                   aria-hidden
                   onClick={() => setMenuOpen(false)}
                 />
-                <div className="absolute left-0 z-20 mt-1 w-48 rounded-xl border border-gray-100 bg-white p-1 shadow-lg">
+                <div className="absolute left-0 z-20 mt-1 w-48 rounded-xl border border-gray-100 dark:border-hairline bg-white dark:bg-surface p-1 shadow-lg">
                   <MenuItem
                     label="Tous (actifs)"
                     active={filter === "active"}
@@ -128,7 +128,7 @@ export default function ProjectsSection({
                 <button
                   key={p.id}
                   onClick={() => setOpenId(p.id)}
-                  className="rounded-2xl border border-gray-100 bg-white p-4 text-left transition-colors hover:border-gray-200 hover:bg-gray-50"
+                  className="rounded-2xl border border-gray-100 dark:border-hairline bg-white dark:bg-surface p-4 text-left transition-colors hover:border-gray-200 hover:bg-gray-50 dark:hover:bg-white/[0.06]"
                 >
                   <div className="mb-2 flex items-center gap-2">
                     {p.color && (
@@ -197,8 +197,8 @@ function MenuItem({
   return (
     <button
       onClick={onClick}
-      className={`flex w-full items-center gap-2 rounded-lg px-3 py-1.5 text-left text-sm transition-colors hover:bg-gray-100 ${
-        active ? "font-medium text-ink" : "text-gray-600"
+      className={`flex w-full items-center gap-2 rounded-lg px-3 py-1.5 text-left text-sm transition-colors hover:bg-gray-100 dark:hover:bg-white/[0.06] ${
+        active ? "font-medium text-ink" : "text-gray-600 dark:text-muted"
       }`}
     >
       {dot ? (

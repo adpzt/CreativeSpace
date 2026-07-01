@@ -30,19 +30,19 @@ export default function Overlay({
 
   return (
     <div
-      className="fixed inset-0 z-[100] flex items-end justify-center bg-black/[0.32] backdrop-blur-[3px] animate-fade-in sm:items-center sm:p-4"
+      className="fixed inset-0 z-[100] flex items-end justify-center bg-black/[0.32] dark:bg-black/55 backdrop-blur-[3px] animate-fade-in sm:items-center sm:p-4"
       onClick={dismissible ? onClose : undefined}
     >
       <div
-        className="animate-sheet relative max-h-[92vh] w-full max-w-lg overflow-y-auto rounded-t-3xl bg-white p-7 shadow-float sm:rounded-3xl"
+        className="animate-sheet relative max-h-[92vh] w-full max-w-lg overflow-y-auto rounded-t-3xl bg-white dark:bg-surface p-7 shadow-float dark:shadow-[0_30px_70px_-14px_rgba(0,0,0,0.8)] sm:rounded-3xl"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Poignée façon feuille iOS (mobile) */}
-        <div className="mx-auto mb-3 h-[5px] w-10 rounded-full bg-black/[0.12] sm:hidden" />
+        <div className="mx-auto mb-3 h-[5px] w-10 rounded-full bg-black/[0.12] dark:bg-white/20 sm:hidden" />
         <button
           onClick={onClose}
           aria-label="Fermer"
-          className="absolute right-3 top-3 z-10 rounded-lg p-1.5 text-muted transition-colors hover:bg-gray-100"
+          className="absolute right-3 top-3 z-10 rounded-lg p-1.5 text-muted transition-colors hover:bg-gray-100 dark:hover:bg-white/[0.06]"
         >
           <X className="h-4 w-4" />
         </button>

@@ -117,7 +117,7 @@ export default function UrssafSection({
           <p className="text-sm text-muted">Taux actuel : {tauxLabel}</p>
         </div>
         {/* Bascule de vue */}
-        <div className="flex items-center gap-1 rounded-xl bg-gray-100 p-1 text-sm">
+        <div className="flex items-center gap-1 rounded-xl bg-gray-100 p-1 text-sm dark:bg-white/[0.06]">
           {(
             [
               ["mois", "Mois"],
@@ -129,7 +129,7 @@ export default function UrssafSection({
               key={v}
               onClick={() => setView(v)}
               className={`rounded-lg px-3 py-1.5 font-medium transition-colors ${
-                view === v ? "bg-white text-ink shadow-sm" : "text-muted hover:text-ink"
+                view === v ? "bg-white text-ink shadow-sm dark:bg-surface" : "text-muted hover:text-ink"
               }`}
             >
               {label}
@@ -146,7 +146,7 @@ export default function UrssafSection({
           <button
             onClick={() => setFocus((f) => shift(f.y, f.m, -1))}
             aria-label="Mois précédent"
-            className="shrink-0 rounded-lg p-2 text-muted hover:bg-gray-100 hover:text-ink"
+            className="shrink-0 rounded-lg p-2 text-muted hover:bg-gray-100 hover:text-ink dark:hover:bg-white/[0.06]"
           >
             <ChevronLeft className="h-5 w-5" />
           </button>
@@ -169,7 +169,7 @@ export default function UrssafSection({
           <button
             onClick={() => setFocus((f) => shift(f.y, f.m, 1))}
             aria-label="Mois suivant"
-            className="shrink-0 rounded-lg p-2 text-muted hover:bg-gray-100 hover:text-ink"
+            className="shrink-0 rounded-lg p-2 text-muted hover:bg-gray-100 hover:text-ink dark:hover:bg-white/[0.06]"
           >
             <ChevronRight className="h-5 w-5" />
           </button>
@@ -216,10 +216,10 @@ export default function UrssafSection({
 function Tuto() {
   const [show, setShow] = useState(false);
   return (
-    <div className="mb-4 overflow-hidden rounded-2xl border border-gray-100 bg-white">
+    <div className="mb-4 overflow-hidden rounded-2xl border border-gray-100 bg-white dark:border-hairline dark:bg-surface">
       <button
         onClick={() => setShow((s) => !s)}
-        className="flex w-full items-center gap-2 px-4 py-3 text-left text-sm font-medium hover:bg-gray-50"
+        className="flex w-full items-center gap-2 px-4 py-3 text-left text-sm font-medium hover:bg-gray-50 dark:hover:bg-white/[0.06]"
       >
         <HelpCircle className="h-4 w-4 text-muted" />
         Comment déclarer ? (et c&apos;est quoi le CA à déclarer)
@@ -230,7 +230,7 @@ function Tuto() {
         />
       </button>
       {show && (
-        <div className="space-y-3 border-t border-gray-100 px-4 py-3 text-sm text-gray-600">
+        <div className="space-y-3 border-t border-gray-100 px-4 py-3 text-sm text-gray-600 dark:border-hairline dark:text-ink-soft">
           <p>
             Le <strong>CA à déclarer</strong> = le montant <strong>facturé</strong>{" "}
             (le prix du devis, ex. 898 €) des missions encaissées dans le mois — pas
@@ -287,12 +287,12 @@ function MonthCard({
   }
 
   const border = current
-    ? "border-active/50 bg-blue-50/40"
+    ? "border-active/50 bg-blue-50/40 dark:bg-active/15"
     : completed
-      ? "border-success/30 bg-green-50/40"
+      ? "border-success/30 bg-green-50/40 dark:bg-success/15"
       : aDeclarer
-        ? "border-pending/40 bg-orange-50/50"
-        : "border-gray-100 bg-white";
+        ? "border-pending/40 bg-orange-50/50 dark:bg-pending/15"
+        : "border-gray-100 bg-white dark:border-hairline dark:bg-surface";
 
   return (
     <div
@@ -302,7 +302,7 @@ function MonthCard({
     >
       <div className="mb-2 flex items-center justify-between gap-2">
         <span className="text-sm font-semibold">{label}</span>
-        <span className="rounded-full bg-gray-100 px-2 py-0.5 text-[11px] font-medium text-gray-500">
+        <span className="rounded-full bg-gray-100 px-2 py-0.5 text-[11px] font-medium text-gray-500 dark:bg-white/10 dark:text-muted">
           {(rate * 100).toFixed(1).replace(".", ",")}%
         </span>
       </div>
@@ -323,7 +323,7 @@ function MonthCard({
             ? "bg-success text-white"
             : aDeclarer
               ? "bg-pending text-white hover:opacity-90"
-              : "border border-gray-200 text-muted hover:border-ink hover:text-ink"
+              : "border border-gray-200 text-muted hover:border-ink hover:text-ink dark:border-hairline"
         }`}
       >
         {completed ? (
@@ -353,7 +353,7 @@ function RecapCard({
   accent?: boolean;
 }) {
   return (
-    <div className="rounded-2xl border border-gray-100 bg-white p-4">
+    <div className="rounded-2xl border border-gray-100 bg-white p-4 dark:border-hairline dark:bg-surface">
       <p className="text-xs font-medium uppercase tracking-wide text-muted">
         {label}
       </p>

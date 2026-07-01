@@ -18,8 +18,8 @@ export default function ColorPicker({
         type="button"
         onClick={() => onChange("")}
         aria-label="Sans couleur"
-        className={`h-6 w-6 rounded-full border bg-white ${
-          !value ? "ring-2 ring-ink ring-offset-1" : "border-gray-300"
+        className={`h-6 w-6 rounded-full border bg-white dark:bg-surface-2 ${
+          !value ? "ring-2 ring-ink ring-offset-1" : "border-gray-300 dark:border-hairline-strong"
         }`}
       />
       {PROJECT_COLORS.map((c) => (
@@ -40,7 +40,7 @@ export default function ColorPicker({
         className={`relative flex h-6 w-6 cursor-pointer items-center justify-center rounded-full border ${
           value && !inPalette
             ? "ring-2 ring-ink ring-offset-1"
-            : "border-gray-300"
+            : "border-gray-300 dark:border-hairline-strong"
         }`}
         style={value && !inPalette ? { backgroundColor: value } : undefined}
       >

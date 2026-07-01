@@ -14,7 +14,7 @@ import type { Salaire } from "@/lib/types";
 const labelClass =
   "mb-1.5 block text-xs font-medium uppercase tracking-wide text-muted";
 const inputClass =
-  "w-full rounded-xl border border-gray-200 px-3.5 py-2.5 text-sm outline-none transition-colors focus:border-active focus:ring-4 focus:ring-active/12 placeholder:text-muted";
+  "w-full rounded-xl border border-gray-200 px-3.5 py-2.5 text-sm outline-none transition-colors focus:border-active focus:ring-4 focus:ring-active/12 placeholder:text-muted dark:border-hairline dark:bg-white/[0.06]";
 
 // Années sélectionnables : 2024 jusqu'à l'année prochaine (pour archiver les stages 2025, etc.)
 const NOW_YEAR = new Date().getFullYear();
@@ -136,7 +136,7 @@ export default function SalaireForm({
       </div>
 
       {/* Net imposable = LA base fiscale, mise en avant */}
-      <div className="rounded-xl border border-active/40 bg-blue-50/40 p-3.5">
+      <div className="rounded-xl border border-active/40 bg-blue-50/40 p-3.5 dark:bg-active/15">
         <label className={labelClass}>
           Net imposable (€)
           <span className="ml-1 normal-case text-active">· base de l&apos;impôt</span>
@@ -148,7 +148,7 @@ export default function SalaireForm({
           min={0}
           step="any"
           placeholder="0"
-          className={`${inputClass} bg-white`}
+          className={`${inputClass} bg-white dark:bg-white/[0.06]`}
         />
         <p className="mt-1.5 text-xs text-muted">
           Recopie la ligne <strong>« Net imposable »</strong> du bulletin (à saisir
@@ -208,7 +208,7 @@ export default function SalaireForm({
             type="button"
             onClick={handleDelete}
             aria-label="Supprimer"
-            className="rounded-lg p-2 text-muted hover:bg-red-50 hover:text-urgent"
+            className="rounded-lg p-2 text-muted hover:bg-red-50 hover:text-urgent dark:hover:bg-urgent/15"
           >
             <Trash2 className="h-4 w-4" />
           </button>

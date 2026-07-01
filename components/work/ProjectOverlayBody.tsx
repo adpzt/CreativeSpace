@@ -59,7 +59,7 @@ import type {
 const labelClass =
   "mb-1.5 block text-xs font-medium uppercase tracking-wide text-muted";
 const inputClass =
-  "w-full rounded-xl border border-gray-200 px-3.5 py-2.5 text-sm outline-none transition-colors focus:border-active focus:ring-4 focus:ring-active/12";
+  "w-full rounded-xl border border-gray-200 dark:border-hairline px-3.5 py-2.5 text-sm outline-none transition-colors focus:border-active focus:ring-4 focus:ring-active/12";
 const sectionLabel = "mb-2 text-xs font-medium uppercase tracking-wide text-muted";
 
 function categoryLabel(cat: CalendarCategory) {
@@ -278,7 +278,7 @@ export default function ProjectOverlayBody({
             </h2>
           </div>
 
-          <div className="my-4 border-t border-gray-100" />
+          <div className="my-4 border-t border-gray-100 dark:border-hairline" />
 
           <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
             <span
@@ -291,7 +291,7 @@ export default function ProjectOverlayBody({
             {missions.map((m) => (
               <span
                 key={m}
-                className="rounded-full bg-gray-100 px-2.5 py-1 text-xs text-gray-600"
+                className="rounded-full bg-gray-100 dark:bg-white/[0.06] px-2.5 py-1 text-xs text-gray-600 dark:text-muted"
               >
                 {m}
               </span>
@@ -371,7 +371,7 @@ export default function ProjectOverlayBody({
           <div className="mt-6 flex items-center gap-2">
             <button
               onClick={() => setEditing(true)}
-              className="inline-flex items-center gap-1.5 rounded-lg bg-gray-100 px-3 py-1.5 text-sm font-medium transition-colors hover:bg-gray-200"
+              className="inline-flex items-center gap-1.5 rounded-lg bg-gray-100 dark:bg-white/[0.06] px-3 py-1.5 text-sm font-medium transition-colors hover:bg-gray-200 dark:hover:bg-white/10"
             >
               <Pencil className="h-3.5 w-3.5" />
               Modifier
@@ -380,7 +380,7 @@ export default function ProjectOverlayBody({
               onClick={handleDelete}
               disabled={isDeleting}
               aria-label="Supprimer le projet"
-              className="rounded-lg p-2 text-muted transition-colors hover:bg-red-50 hover:text-urgent"
+              className="rounded-lg p-2 text-muted transition-colors hover:bg-red-50 dark:hover:bg-urgent/15 hover:text-urgent"
             >
               <Trash2 className="h-4 w-4" />
             </button>
@@ -408,7 +408,7 @@ export default function ProjectOverlayBody({
           <h3 className="text-lg font-semibold tracking-tight">Modifier</h3>
           <button
             onClick={() => setEditing(false)}
-            className="inline-flex items-center gap-1 rounded-lg px-2 py-1 text-xs text-muted transition-colors hover:bg-gray-100 hover:text-ink"
+            className="inline-flex items-center gap-1 rounded-lg px-2 py-1 text-xs text-muted transition-colors hover:bg-gray-100 dark:hover:bg-white/[0.06] hover:text-ink"
           >
             <Eye className="h-3.5 w-3.5" />
             Aperçu
@@ -428,7 +428,7 @@ export default function ProjectOverlayBody({
             <select
               value={category}
               onChange={(e) => changeCategory(e.target.value as CalendarCategory)}
-              className="flex-1 rounded-xl border border-gray-200 px-3.5 py-2.5 text-sm outline-none focus:border-active focus:ring-4 focus:ring-active/12"
+              className="flex-1 rounded-xl border border-gray-200 dark:border-hairline px-3.5 py-2.5 text-sm outline-none focus:border-active focus:ring-4 focus:ring-active/12"
             >
               {CALENDAR_CATEGORIES.map((c) => (
                 <option key={c.key} value={c.key}>
@@ -452,8 +452,8 @@ export default function ProjectOverlayBody({
                   onClick={() => toggleMission(m)}
                   className={`rounded-full border px-3 py-1 text-xs font-medium transition-colors ${
                     active
-                      ? "border-ink bg-ink text-white"
-                      : "border-gray-200 text-gray-500 hover:border-ink hover:text-ink"
+                      ? "border-ink bg-ink text-white dark:text-bg"
+                      : "border-gray-200 dark:border-hairline text-gray-500 dark:text-muted hover:border-ink hover:text-ink"
                   }`}
                 >
                   {m}
@@ -571,9 +571,9 @@ export default function ProjectOverlayBody({
                             )
                           }
                           placeholder="Justificatif (ex : impression)"
-                          className="min-w-0 flex-1 rounded-xl border border-gray-200 px-3 py-2 text-sm outline-none focus:border-active focus:ring-4 focus:ring-active/12"
+                          className="min-w-0 flex-1 rounded-xl border border-gray-200 dark:border-hairline px-3 py-2 text-sm outline-none focus:border-active focus:ring-4 focus:ring-active/12"
                         />
-                        <div className="flex shrink-0 items-center rounded-lg border border-gray-200 pr-1.5 focus-within:border-ink">
+                        <div className="flex shrink-0 items-center rounded-lg border border-gray-200 dark:border-hairline pr-1.5 focus-within:border-ink">
                           <input
                             value={ex.amount || ""}
                             onChange={(e) =>
@@ -600,7 +600,7 @@ export default function ProjectOverlayBody({
                             setExpenses((p) => p.filter((_, idx) => idx !== i))
                           }
                           aria-label="Retirer la dépense"
-                          className="shrink-0 rounded-lg p-1.5 text-urgent hover:bg-red-50"
+                          className="shrink-0 rounded-lg p-1.5 text-urgent hover:bg-red-50 dark:hover:bg-urgent/15"
                         >
                           <X className="h-4 w-4" />
                         </button>
@@ -613,7 +613,7 @@ export default function ProjectOverlayBody({
                   onClick={() =>
                     setExpenses((p) => [...p, { label: "", amount: 0 }])
                   }
-                  className="inline-flex items-center gap-1 rounded-lg px-2 py-1 text-xs font-medium text-muted transition-colors hover:bg-gray-100 hover:text-ink"
+                  className="inline-flex items-center gap-1 rounded-lg px-2 py-1 text-xs font-medium text-muted transition-colors hover:bg-gray-100 dark:hover:bg-white/[0.06] hover:text-ink"
                 >
                   <Plus className="h-3.5 w-3.5" />
                   Dépense
@@ -679,7 +679,7 @@ export default function ProjectOverlayBody({
           save={(v) => updateProject(project.id, { notes: v })}
         />
 
-        <div className="border-t border-gray-100 pt-4">
+        <div className="border-t border-gray-100 dark:border-hairline pt-4">
           <Button variant="danger" onClick={handleDelete} disabled={isDeleting}>
             <Trash2 className="h-4 w-4" />
             {isDeleting ? "Suppression..." : "Supprimer ce projet"}
@@ -731,14 +731,14 @@ function ReadDeliverable({
 }) {
   const [prog, setProg] = useState(String(item.progress ?? 0));
   return (
-    <li className="flex items-center gap-2 rounded-xl border border-gray-100 bg-white px-3 py-2">
+    <li className="flex items-center gap-2 rounded-xl border border-gray-100 dark:border-hairline bg-white dark:bg-surface px-3 py-2">
       <button
         onClick={() => onToggle(item.id)}
         aria-label="Cocher"
         className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-md border transition-colors ${
           item.completed
             ? "border-success bg-success text-white"
-            : "border-gray-300 hover:border-ink"
+            : "border-gray-300 dark:border-hairline-strong hover:border-ink"
         }`}
       >
         {item.completed && <Check className="h-3.5 w-3.5" />}
@@ -751,7 +751,7 @@ function ReadDeliverable({
         {item.name}
       </span>
       {/* % modifiable directement (100 si terminé) */}
-      <div className="flex shrink-0 items-center rounded-lg border border-gray-200 pr-1 focus-within:border-ink">
+      <div className="flex shrink-0 items-center rounded-lg border border-gray-200 dark:border-hairline pr-1 focus-within:border-ink">
         <input
           value={item.completed ? "100" : prog}
           disabled={item.completed}
@@ -774,7 +774,7 @@ function ReadDeliverable({
         onClick={onOpenNote}
         aria-label="Note du livrable"
         className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-lg transition-colors ${
-          item.notes ? "bg-blue-50 text-active" : "text-active hover:bg-blue-50"
+          item.notes ? "bg-blue-50 dark:bg-active/15 text-active" : "text-active hover:bg-blue-50 dark:hover:bg-active/15"
         }`}
       >
         <FileText className="h-3.5 w-3.5" />

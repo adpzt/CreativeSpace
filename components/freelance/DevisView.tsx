@@ -36,11 +36,11 @@ export default function DevisView() {
           Mention pénalités de retard
         </h2>
         <p className="mb-3 text-sm text-muted">À ajouter sur toutes les factures.</p>
-        <div className="rounded-2xl border border-gray-100 bg-white p-4">
+        <div className="rounded-2xl border border-gray-100 dark:border-hairline bg-white dark:bg-surface p-4">
           <div className="mb-2 flex justify-end">
             <CopyButton text={PENALITES_TEXT} />
           </div>
-          <p className="text-sm leading-relaxed text-gray-600">{PENALITES_TEXT}</p>
+          <p className="text-sm leading-relaxed text-gray-600 dark:text-ink-soft">{PENALITES_TEXT}</p>
         </div>
       </section>
 
@@ -54,7 +54,7 @@ export default function DevisView() {
               href={l.url}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 rounded-xl border border-gray-200 px-3.5 py-2 text-sm font-medium hover:border-ink"
+              className="inline-flex items-center gap-2 rounded-xl border border-gray-200 dark:border-hairline px-3.5 py-2 text-sm font-medium hover:border-ink"
             >
               <ExternalLink className="h-4 w-4 text-muted" />
               {l.label}
@@ -72,13 +72,13 @@ export default function DevisView() {
           </h2>
           <CopyButton text={CGP_FULL} label="Tout copier" />
         </div>
-        <div className="space-y-4 rounded-2xl border border-gray-100 bg-white p-5">
+        <div className="space-y-4 rounded-2xl border border-gray-100 dark:border-hairline bg-white dark:bg-surface p-5">
           {CGP_ARTICLES.map((a) => (
             <div key={a.n}>
               <p className="text-sm font-semibold">
                 {a.n}. {a.title}
               </p>
-              <p className="mt-0.5 text-sm leading-relaxed text-gray-600">{a.text}</p>
+              <p className="mt-0.5 text-sm leading-relaxed text-gray-600 dark:text-ink-soft">{a.text}</p>
             </div>
           ))}
         </div>
@@ -89,13 +89,13 @@ export default function DevisView() {
 
 function CheckList({ items }: { items: string[] }) {
   return (
-    <ul className="divide-y divide-gray-100 overflow-hidden rounded-2xl border border-gray-100 bg-white">
+    <ul className="divide-y divide-gray-100 dark:divide-white/10 overflow-hidden rounded-2xl border border-gray-100 dark:border-hairline bg-white dark:bg-surface">
       {items.map((it, i) => (
         <li key={i} className="flex items-start gap-3 px-4 py-3 text-sm">
-          <span className="mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded border border-gray-300 text-muted">
+          <span className="mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded border border-gray-300 dark:border-hairline text-muted">
             <Check className="h-3 w-3" />
           </span>
-          <span className="text-gray-600">{it}</span>
+          <span className="text-gray-600 dark:text-ink-soft">{it}</span>
         </li>
       ))}
     </ul>

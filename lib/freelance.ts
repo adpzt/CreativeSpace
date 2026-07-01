@@ -402,11 +402,11 @@ export const PROSPECT_TYPES: { key: string; label: string }[] = [
 ];
 
 export const PROSPECT_STATUS: Record<string, { label: string; badge: string }> = {
-  a_contacter: { label: "À contacter", badge: "bg-gray-100 text-gray-500" },
-  contacte: { label: "Contacté", badge: "bg-blue-50 text-active" },
-  en_discussion: { label: "En discussion", badge: "bg-orange-50 text-pending" },
-  pas_interesse: { label: "Pas intéressé", badge: "bg-red-50 text-urgent" },
-  signe: { label: "Signé", badge: "bg-green-50 text-success" },
+  a_contacter: { label: "À contacter", badge: "bg-gray-100 text-gray-500 dark:bg-white/[0.06] dark:text-muted" },
+  contacte: { label: "Contacté", badge: "bg-blue-50 text-active dark:bg-active/15" },
+  en_discussion: { label: "En discussion", badge: "bg-orange-50 text-pending dark:bg-pending/15" },
+  pas_interesse: { label: "Pas intéressé", badge: "bg-red-50 text-urgent dark:bg-urgent/15" },
+  signe: { label: "Signé", badge: "bg-green-50 text-success dark:bg-success/15" },
 };
 
 export const PROSPECT_STATUS_ORDER = [

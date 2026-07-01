@@ -96,13 +96,13 @@ export default function NotePanel({
   return (
     <div className="fixed inset-0 z-[60] flex justify-end">
       <div
-        className={`absolute inset-0 bg-black/[0.32] backdrop-blur-[3px] transition-opacity duration-200 ${
+        className={`absolute inset-0 bg-black/[0.32] dark:bg-black/55 backdrop-blur-[3px] transition-opacity duration-200 ${
           shown ? "opacity-100" : "opacity-0"
         }`}
         onClick={close}
       />
       <div
-        className={`relative flex h-full w-full max-w-lg flex-col bg-white shadow-float transition-transform duration-200 ease-ios ${
+        className={`relative flex h-full w-full max-w-lg flex-col bg-white dark:bg-surface shadow-float dark:shadow-[0_30px_70px_-14px_rgba(0,0,0,0.8)] transition-transform duration-200 ease-ios ${
           shown ? "translate-x-0" : "translate-x-full"
         }`}
       >
@@ -113,14 +113,14 @@ export default function NotePanel({
               onClick={() => setMode("edit")}
               aria-label="Modifier"
               title="Modifier"
-              className="flex h-8 w-8 items-center justify-center rounded-[9px] bg-[#F4F4F5] text-ink-soft transition-colors hover:bg-black/10 hover:text-ink"
+              className="flex h-8 w-8 items-center justify-center rounded-[9px] bg-[#F4F4F5] dark:bg-white/[0.06] text-ink-soft transition-colors hover:bg-black/10 dark:hover:bg-white/10 hover:text-ink"
             >
               <Pencil className="h-4 w-4" />
             </button>
           ) : (
             <button
               onClick={() => setMode("view")}
-              className="inline-flex items-center gap-1.5 rounded-full bg-[#EFF4FF] px-2.5 py-1 text-[11px] font-semibold text-[#1D4ED8] transition-colors hover:bg-[#E0EAFF]"
+              className="inline-flex items-center gap-1.5 rounded-full bg-[#EFF4FF] px-2.5 py-1 text-[11px] font-semibold text-[#1D4ED8] transition-colors hover:bg-[#E0EAFF] dark:bg-active/15 dark:text-[#93C0FF] dark:hover:bg-active/25"
             >
               <Check className="h-3 w-3" />
               Terminé
@@ -136,7 +136,7 @@ export default function NotePanel({
             <button
               onClick={close}
               aria-label="Fermer"
-              className="rounded-lg p-1.5 text-muted transition-colors hover:bg-gray-100"
+              className="rounded-lg p-1.5 text-muted transition-colors hover:bg-gray-100 dark:hover:bg-white/[0.06]"
             >
               <X className="h-4 w-4" />
             </button>
@@ -165,7 +165,7 @@ export default function NotePanel({
 
           {meta && <div className="mt-5 space-y-2 text-sm">{meta}</div>}
 
-          <div className="my-5 border-t border-black/[0.06]" />
+          <div className="my-5 border-t border-hairline" />
 
           {mode === "edit" ? (
             <RichText
@@ -175,7 +175,7 @@ export default function NotePanel({
             />
           ) : value.trim() ? (
             <div
-              className="whitespace-pre-wrap text-[15.5px] leading-relaxed text-[#3F3F46] [&_b]:font-semibold"
+              className="whitespace-pre-wrap text-[15.5px] leading-relaxed text-[#3F3F46] dark:text-[#C7C9CE] [&_b]:font-semibold"
               dangerouslySetInnerHTML={{ __html: value }}
             />
           ) : (
@@ -184,7 +184,7 @@ export default function NotePanel({
         </div>
 
         {footer && (
-          <div className="border-t border-gray-100 px-8 py-3">{footer}</div>
+          <div className="border-t border-gray-100 dark:border-hairline px-8 py-3">{footer}</div>
         )}
       </div>
     </div>
