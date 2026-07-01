@@ -8,21 +8,17 @@ import {
 } from "date-fns";
 import { fr } from "date-fns/locale";
 import {
-  AlertTriangle,
-  Clock,
-  Landmark,
-  Receipt,
-  FileWarning,
-  StickyNote,
-  Plus,
-  ArrowRight,
+  Briefcase,
+  Wallet,
+  CheckCircle2,
+  CalendarClock,
 } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import { getCalendarBlocks, getProjects, getClients } from "./work/actions";
 import { getPayments, getUrssaf } from "./finance/actions";
 import TodayTasks from "@/components/home/TodayTasks";
-import Greeting from "@/components/home/Greeting";
-import { PROJECT_STATUS, projectProgress, formatEuro, CATEGORY_COLOR } from "@/lib/work";
-import type { ProjectWithDeliverables } from "@/lib/types";
+import { ButtonLink } from "@/components/ui/Button";
+import { formatEuro, CATEGORY_COLOR } from "@/lib/work";
 
 export const dynamic = "force-dynamic";
 
@@ -30,6 +26,14 @@ const MONTHS = [
   "janvier", "février", "mars", "avril", "mai", "juin",
   "juillet", "août", "septembre", "octobre", "novembre", "décembre",
 ];
+
+type Traite = {
+  key: string;
+  level: "urgent" | "warning" | "info";
+  text: string;
+  href: string;
+  cta: string;
+};
 
 export default async function HomePage() {
   const [blocks, projects, clients, payments, urssaf] = await Promise.all([
@@ -63,15 +67,13 @@ export default async function HomePage() {
     (p) => p.status !== "closed" && p.status !== "cancelled"
   );
 
-  // --- Alertes ---
-  // Paiements en retard (statut late, ou en attente avec échéance dépassée)
+  // --- Alertes / À traiter ---
   const latePayments = payments.filter(
     (p) =>
       p.status === "late" ||
       (p.status === "pending" && p.due_date && p.due_date < todayStr)
   );
 
-  // Projets clôturés non encore validés en revenu (solde non validé)
   const linkedProjectIds = new Set(
     payments.map((p) => p.project_id).filter(Boolean)
   );
@@ -84,7 +86,6 @@ export default async function HomePage() {
       return { project: p, days };
     });
 
-  // Deadlines proches : projets actifs dont la fin est dans les 7 jours
   const soon = activeProjects
     .filter((p) => {
       if (!p.end_date) return false;
@@ -96,7 +97,7 @@ export default async function HomePage() {
       days: differenceInCalendarDays(parseISO(p.end_date as string), now),
     }));
 
-  // URSSAF : le mois précédent est-il déclaré ? (déclaration le mois suivant)
+  // URSSAF : le mois précédent est-il déclaré ?
   const prev = new Date(now.getFullYear(), now.getMonth() - 1, 1);
   const prevY = prev.getFullYear();
   const prevM = prev.getMonth() + 1;
@@ -106,169 +107,164 @@ export default async function HomePage() {
         p.status === "paid" &&
         p.received_date?.startsWith(`${prevY}-${String(prevM).padStart(2, "0")}`)
     )
-    // Base URSSAF = montant facturé (brut)
     .reduce((s, p) => s + (p.gross_amount ?? p.net_amount ?? 0), 0);
   const prevDeclared = urssaf.find(
     (r) => r.year === prevY && r.month === prevM && r.completed
   );
   const urssafAlert = prevEncaisse > 0 && !prevDeclared;
-
-  // TVA : transition au 01/09/2026
   const tvaAlert = todayStr < "2026-09-01";
 
-  const hasAlerts =
-    latePayments.length > 0 ||
-    unvalidated.length > 0 ||
-    soon.length > 0 ||
-    urssafAlert ||
-    tvaAlert;
-
-  // Résumé du jour pour le hero
+  // --- KPI ---
+  const aEncaisser = payments
+    .filter((p) => p.status !== "paid")
+    .reduce((s, p) => s + (p.net_amount ?? 0), 0);
   const todoToday = todayBlocks.filter((b) => !b.completed).length;
-  const alertCount =
-    latePayments.length + unvalidated.length + soon.length + (urssafAlert ? 1 : 0);
+  const nextDeadline = activeProjects
+    .filter((p) => p.end_date)
+    .map((p) => parseISO(p.end_date as string))
+    .filter((d) => differenceInCalendarDays(d, now) >= 0)
+    .sort((a, b) => a.getTime() - b.getTime())[0];
+
+  // --- Liste "À traiter" (données réelles, priorité en haut) ---
+  const aTraiter: Traite[] = [
+    ...latePayments.map((p) => ({
+      key: `late-${p.id}`,
+      level: "urgent" as const,
+      text: `${clientName(p.client_id) ?? "Paiement"} · solde ${formatEuro(
+        p.net_amount ?? 0
+      )} en attente`,
+      href: "/finance",
+      cta: "Relancer",
+    })),
+    ...unvalidated.map(({ project, days }) => ({
+      key: `uv-${project.id}`,
+      level: (days >= 14 ? "urgent" : "warning") as "urgent" | "warning",
+      text: `Solde non validé · ${project.name}`,
+      href: "/finance",
+      cta: "Valider",
+    })),
+    ...soon.map(({ project, days }) => ({
+      key: `soon-${project.id}`,
+      level: (days <= 2 ? "urgent" : "warning") as "urgent" | "warning",
+      text: `Deadline ${
+        days === 0 ? "aujourd'hui" : days === 1 ? "demain" : `dans ${days} j`
+      } · ${project.name}`,
+      href: "/work",
+      cta: "Ouvrir",
+    })),
+    ...(urssafAlert
+      ? [
+          {
+            key: "urssaf",
+            level: "urgent" as const,
+            text: `URSSAF de ${MONTHS[prevM - 1]} non déclarée`,
+            href: "/finance",
+            cta: "Déclarer",
+          },
+        ]
+      : []),
+    ...(tvaAlert
+      ? [
+          {
+            key: "tva",
+            level: "info" as const,
+            text: "Mention TVA à changer au 1er septembre",
+            href: "/freelance/devis",
+            cta: "Voir",
+          },
+        ]
+      : []),
+  ];
 
   return (
-    <div className="space-y-8">
-      {/* Hero */}
-      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#2563EB] to-[#4F46E5] p-6 text-white shadow-[0_20px_44px_-16px_rgba(37,99,235,0.45)] sm:p-8">
-        <div
-          aria-hidden
-          className="pointer-events-none absolute -right-10 -top-16 h-48 w-48 rounded-full bg-white/10 blur-2xl"
-        />
-        <p className="text-sm capitalize text-white/70">{today}</p>
-        <h2 className="mt-1 text-3xl font-semibold tracking-tight">
-          <Greeting name="Adrien" />
-        </h2>
-        <p className="mt-2 text-sm text-white/80">
-          {todoToday > 0
-            ? `${todoToday} tâche${todoToday > 1 ? "s" : ""} aujourd'hui`
-            : "Rien de prévu aujourd'hui"}
-          {" · "}
-          {activeProjects.length} projet{activeProjects.length > 1 ? "s" : ""} actif
-          {activeProjects.length > 1 ? "s" : ""}
-          {alertCount > 0 &&
-            ` · ${alertCount} alerte${alertCount > 1 ? "s" : ""}`}
-        </p>
-        <div className="mt-5 flex gap-2">
-          <Link
-            href="/work"
-            className="inline-flex items-center gap-1.5 rounded-xl bg-white px-3.5 py-2 text-sm font-semibold text-ink shadow-card transition duration-150 ease-ios hover:-translate-y-px active:scale-[0.97]"
-          >
-            <Plus className="h-4 w-4" />
-            Projet
-          </Link>
-          <Link
-            href="/notes"
-            className="inline-flex items-center gap-1.5 rounded-xl bg-white/15 px-3.5 py-2 text-sm font-semibold text-white backdrop-blur transition duration-150 ease-ios hover:-translate-y-px hover:bg-white/25 active:scale-[0.97]"
-          >
-            <StickyNote className="h-4 w-4" />
-            Note
-          </Link>
+    <div className="space-y-10">
+      {/* En-tête */}
+      <header className="flex flex-wrap items-start justify-between gap-4">
+        <div>
+          <h1 className="text-[34px] font-bold leading-tight tracking-tight">
+            Bonjour Adrien
+          </h1>
+          <p className="mt-1 text-sm capitalize text-muted">{today}</p>
         </div>
-      </div>
+        <div className="flex items-center gap-2">
+          <ButtonLink href="/work">+ Nouveau projet</ButtonLink>
+          <ButtonLink href="/notes" variant="secondary">
+            Note rapide
+          </ButtonLink>
+        </div>
+      </header>
 
-      {/* Alertes */}
-      {hasAlerts && (
-        <section className="space-y-2">
-          {latePayments.map((p) => (
-            <Alert
-              key={`late-${p.id}`}
-              level="urgent"
-              icon={Receipt}
-              text={`Paiement en retard${
-                clientName(p.client_id) ? ` · ${clientName(p.client_id)}` : ""
-              } · ${formatEuro(p.net_amount ?? 0)}`}
-              href="/finance"
-              cta="Voir"
-            />
-          ))}
-          {unvalidated.map(({ project, days }) => (
-            <Alert
-              key={`uv-${project.id}`}
-              level={days >= 14 ? "urgent" : "warning"}
-              icon={FileWarning}
-              text={`Solde non validé · ${project.name}${
-                project.end_date ? ` · clôturé il y a ${days} j` : ""
-              }`}
-              href="/finance"
-              cta="Valider"
-            />
-          ))}
-          {soon.map(({ project, days }) => (
-            <Alert
-              key={`soon-${project.id}`}
-              level={days <= 2 ? "urgent" : "warning"}
-              icon={Clock}
-              text={`Deadline ${
-                days === 0 ? "aujourd'hui" : days === 1 ? "demain" : `dans ${days} j`
-              } · ${project.name}`}
-              href="/work"
-              cta="Ouvrir"
-            />
-          ))}
-          {urssafAlert && (
-            <Alert
-              level="warning"
-              icon={Landmark}
-              text={`URSSAF de ${MONTHS[prevM - 1]} à déclarer (${formatEuro(
-                prevEncaisse
-              )})`}
-              href="/finance"
-              cta="Déclarer"
-            />
-          )}
-          {tvaAlert && (
-            <Alert
-              level="info"
-              icon={AlertTriangle}
-              text="Mention TVA à changer au 01/09/2026 (293B → franchise CIBS)"
-              href="/freelance/devis"
-              cta="Voir"
-            />
-          )}
+      {/* À traiter : priorité, en haut, aligné à gauche, texte simple */}
+      {aTraiter.length > 0 && (
+        <section>
+          <h2 className="mb-4 text-[11px] font-bold uppercase tracking-[0.08em] text-muted">
+            À traiter
+          </h2>
+          <ul className="space-y-3.5">
+            {aTraiter.map((a) => {
+              const color =
+                a.level === "urgent"
+                  ? "text-urgent"
+                  : a.level === "warning"
+                    ? "text-pending"
+                    : "text-active";
+              const dot =
+                a.level === "urgent"
+                  ? "bg-urgent"
+                  : a.level === "warning"
+                    ? "bg-pending"
+                    : "bg-active";
+              return (
+                <li key={a.key} className="flex flex-wrap items-center gap-x-3 gap-y-1">
+                  <span className={`h-2.5 w-2.5 shrink-0 rounded-full ${dot}`} />
+                  <span className="text-[16px] font-medium">{a.text}</span>
+                  <Link
+                    href={a.href}
+                    className={`text-[15px] font-semibold ${color} hover:underline`}
+                  >
+                    {a.cta} ›
+                  </Link>
+                </li>
+              );
+            })}
+          </ul>
         </section>
       )}
 
+      {/* KPI */}
+      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+        <Kpi icon={Briefcase} tint="active" label="Projets actifs" value={String(activeProjects.length)} />
+        <Kpi icon={Wallet} tint="pending" label="À encaisser" value={formatEuro(aEncaisser)} />
+        <Kpi icon={CheckCircle2} tint="success" label="Tâches du jour" value={String(todoToday)} />
+        <Kpi
+          icon={CalendarClock}
+          tint="urgent"
+          label="Prochaine échéance"
+          value={nextDeadline ? format(nextDeadline, "d MMM", { locale: fr }) : "—"}
+        />
+      </div>
+
       {/* Aujourd'hui */}
       <section>
-        <h3 className="mb-3 text-sm font-semibold uppercase tracking-wide text-muted">
+        <h2 className="mb-3 text-[11px] font-bold uppercase tracking-[0.08em] text-muted">
           Aujourd&apos;hui
-        </h3>
+        </h2>
         <TodayTasks blocks={todayBlocks} />
       </section>
 
-      {/* Projets actifs */}
+      {/* Cette semaine */}
       <section>
         <div className="mb-3 flex items-center justify-between">
-          <h3 className="text-sm font-semibold uppercase tracking-wide text-muted">
-            Projets actifs
-          </h3>
+          <h2 className="text-[11px] font-bold uppercase tracking-[0.08em] text-muted">
+            Cette semaine
+          </h2>
           <Link
             href="/work"
-            className="inline-flex items-center gap-1 text-xs font-medium text-active hover:underline"
+            className="text-xs font-medium text-active hover:underline"
           >
-            Tout voir <ArrowRight className="h-3.5 w-3.5" />
+            Ouvrir dans Work ›
           </Link>
         </div>
-        {activeProjects.length === 0 ? (
-          <p className="rounded-2xl border border-dashed border-gray-200 px-4 py-6 text-center text-sm text-muted dark:border-hairline">
-            Aucun projet actif.
-          </p>
-        ) : (
-          <ul className="divide-y divide-gray-100 overflow-hidden rounded-2xl border border-gray-100 bg-white dark:divide-white/10 dark:border-hairline dark:bg-surface">
-            {activeProjects.map((p) => (
-              <ProjectRow key={p.id} project={p} clientName={clientName(p.client_id)} />
-            ))}
-          </ul>
-        )}
-      </section>
-
-      {/* Semainier compact */}
-      <section>
-        <h3 className="mb-3 text-sm font-semibold uppercase tracking-wide text-muted">
-          Cette semaine
-        </h3>
         <div className="grid grid-cols-1 gap-2 sm:grid-cols-7">
           {weekDays.map((day) => {
             const dStr = format(day, "yyyy-MM-dd");
@@ -281,8 +277,8 @@ export default async function HomePage() {
                 key={dStr}
                 className={`rounded-xl border p-2 ${
                   isToday
-                    ? "border-active/50 bg-blue-50/40 dark:bg-active/15"
-                    : "border-gray-100 bg-white dark:border-hairline dark:bg-surface"
+                    ? "border-active/40 bg-blue-50/50"
+                    : "border-black/[0.06] bg-white"
                 }`}
               >
                 <p className="mb-1.5 text-[11px] font-medium uppercase text-muted">
@@ -293,7 +289,7 @@ export default async function HomePage() {
                     <li
                       key={b.id}
                       className={`flex items-center gap-1 text-xs ${
-                        b.completed ? "text-muted line-through" : "text-gray-600 dark:text-ink-soft"
+                        b.completed ? "text-muted line-through" : "text-ink-soft"
                       }`}
                     >
                       <span
@@ -318,71 +314,36 @@ export default async function HomePage() {
   );
 }
 
-function Alert({
-  level,
-  icon: Icon,
-  text,
-  href,
-  cta,
-}: {
-  level: "urgent" | "warning" | "info";
-  icon: typeof Clock;
-  text: string;
-  href: string;
-  cta: string;
-}) {
-  const styles =
-    level === "urgent"
-      ? "border-urgent/30 bg-red-50/60 dark:bg-urgent/15"
-      : level === "warning"
-        ? "border-pending/30 bg-orange-50/60 dark:bg-pending/15"
-        : "border-gray-200 bg-gray-50 dark:border-hairline dark:bg-white/[0.06]";
-  const iconColor =
-    level === "urgent"
-      ? "text-urgent"
-      : level === "warning"
-        ? "text-pending"
-        : "text-muted";
-  return (
-    <div className={`flex items-center gap-3 rounded-xl border p-3 text-sm ${styles}`}>
-      <Icon className={`h-4 w-4 shrink-0 ${iconColor}`} />
-      <span className="min-w-0 flex-1 truncate font-medium">{text}</span>
-      <Link
-        href={href}
-        className="shrink-0 rounded-lg bg-white px-2.5 py-1 text-xs font-medium hover:bg-gray-50 dark:bg-surface dark:hover:bg-white/[0.06]"
-      >
-        {cta}
-      </Link>
-    </div>
-  );
-}
+// Carte KPI : tuile d'icône teintée + label + grand nombre.
+const KPI_TINT: Record<string, string> = {
+  active: "bg-blue-50 text-active",
+  pending: "bg-orange-50 text-pending",
+  success: "bg-green-50 text-success",
+  urgent: "bg-red-50 text-urgent",
+};
 
-function ProjectRow({
-  project,
-  clientName,
+function Kpi({
+  icon: Icon,
+  tint,
+  label,
+  value,
 }: {
-  project: ProjectWithDeliverables;
-  clientName: string | null;
+  icon: LucideIcon;
+  tint: keyof typeof KPI_TINT;
+  label: string;
+  value: string;
 }) {
-  const st = PROJECT_STATUS[project.status];
-  const pct = projectProgress(project.deliverables);
   return (
-    <Link
-      href="/work"
-      className="flex items-center gap-3 px-4 py-3 transition-colors hover:bg-gray-50 dark:hover:bg-white/[0.06]"
-    >
-      <span className={`h-2 w-2 shrink-0 rounded-full ${st?.dot ?? "bg-muted"}`} />
-      <div className="min-w-0 flex-1">
-        <p className="truncate font-medium">{project.name}</p>
-        <p className="truncate text-xs text-muted">
-          {clientName ? `${clientName} · ` : ""}
-          {st?.label ?? project.status}
-          {project.end_date
-            ? ` · ${format(parseISO(project.end_date), "d MMM", { locale: fr })}`
-            : ""}
-        </p>
+    <div className="animate-rise rounded-2xl border border-black/[0.06] bg-white p-5 shadow-card">
+      <div className="mb-3 flex items-center gap-2">
+        <span
+          className={`flex h-7 w-7 items-center justify-center rounded-lg ${KPI_TINT[tint]}`}
+        >
+          <Icon className="h-4 w-4" />
+        </span>
+        <span className="text-[13px] text-muted">{label}</span>
       </div>
-      <span className="shrink-0 text-xs font-medium text-muted">{pct}%</span>
-    </Link>
+      <p className="text-[32px] font-bold leading-none tracking-tight">{value}</p>
+    </div>
   );
 }
