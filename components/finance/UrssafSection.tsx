@@ -296,13 +296,13 @@ function MonthCard({
 
   return (
     <div
-      className={`min-w-[150px] flex-1 rounded-2xl border p-4 transition-opacity ${border} ${
+      className={`min-w-[160px] flex-1 rounded-2xl border p-4 shadow-card transition-opacity ${border} ${
         dim ? "opacity-60" : ""
       }`}
     >
-      <div className="mb-2 flex items-center justify-between gap-2">
-        <span className="text-sm font-semibold">{label}</span>
-        <span className="rounded-full bg-gray-100 px-2 py-0.5 text-[11px] font-medium text-gray-500 dark:bg-white/10 dark:text-muted">
+      <div className="mb-2.5 flex items-center justify-between gap-2">
+        <span className="text-[15px] font-bold tracking-tight">{label}</span>
+        <span className="rounded-full bg-black/[0.05] px-2 py-0.5 text-[11px] font-semibold text-muted">
           {(rate * 100).toFixed(1).replace(".", ",")}%
         </span>
       </div>
@@ -318,12 +318,12 @@ function MonthCard({
       </div>
       <button
         onClick={toggle}
-        className={`mt-3 flex w-full items-center justify-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition-colors ${
+        className={`mt-3 flex w-full items-center justify-center gap-1.5 rounded-lg px-3 py-2 text-xs font-semibold transition-colors ${
           completed
             ? "bg-success text-white"
             : aDeclarer
               ? "bg-pending text-white hover:opacity-90"
-              : "border border-gray-200 text-muted hover:border-ink hover:text-ink dark:border-hairline"
+              : "border border-black/[0.1] text-ink-soft hover:border-black/25 hover:text-ink"
         }`}
       >
         {completed ? (
@@ -331,8 +331,6 @@ function MonthCard({
             <Check className="h-3.5 w-3.5" />
             Déclaré
           </>
-        ) : aDeclarer ? (
-          "À déclarer · marquer fait"
         ) : (
           "Marquer déclaré"
         )}
@@ -353,8 +351,8 @@ function RecapCard({
   accent?: boolean;
 }) {
   return (
-    <div className="rounded-2xl border border-gray-100 bg-white p-4 dark:border-hairline dark:bg-surface">
-      <p className="text-xs font-medium uppercase tracking-wide text-muted">
+    <div className="rounded-2xl border border-black/[0.06] bg-white p-5 shadow-card">
+      <p className="text-[11px] font-semibold uppercase tracking-wide text-muted">
         {label}
       </p>
       <p

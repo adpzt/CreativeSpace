@@ -188,9 +188,9 @@ function ChartCard({
   const color = (i: number) => PROJECT_COLORS[i % PROJECT_COLORS.length];
 
   return (
-    <div className={`rounded-2xl border border-gray-100 bg-white p-5 dark:border-hairline dark:bg-surface ${className}`}>
-      <div className="mb-4 flex items-center justify-between gap-2">
-        <h3 className="text-sm font-semibold">{title}</h3>
+    <div className={`rounded-2xl border border-black/[0.06] bg-white p-4 shadow-card ${className}`}>
+      <div className="mb-3 flex items-center justify-between gap-2">
+        <h3 className="text-[15px] font-bold tracking-tight">{title}</h3>
         <div className="flex items-center gap-1">
           {headerExtra}
           <button
@@ -239,15 +239,15 @@ function ChartCard({
         </ul>
       ) : kind === "pie" ? (
         <div className="flex flex-col items-center gap-3 sm:flex-row">
-          <div className="h-44 w-44 shrink-0">
+          <div className="h-36 w-36 shrink-0">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
                 <Pie
                   data={data}
                   dataKey="value"
                   nameKey="name"
-                  innerRadius={40}
-                  outerRadius={75}
+                  innerRadius={34}
+                  outerRadius={62}
                   paddingAngle={2}
                 >
                   {data.map((_, i) => (
@@ -279,7 +279,7 @@ function ChartCard({
           </ul>
         </div>
       ) : (
-        <div className="h-56 w-full">
+        <div className="h-44 w-full">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={data} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
               <XAxis
