@@ -24,7 +24,7 @@ export default function CommunicationView() {
     <div className="space-y-10">
       {/* ---------- Tunnel client ---------- */}
       <section>
-        <h2 className="mb-1 text-lg font-semibold tracking-tight">
+        <h2 className="mb-1 text-[17px] font-bold tracking-tight">
           Le tunnel client
         </h2>
         <p className="mb-4 text-sm text-muted">
@@ -105,7 +105,7 @@ export default function CommunicationView() {
 
       {/* ---------- Scripts ---------- */}
       <section>
-        <h2 className="mb-1 text-lg font-semibold tracking-tight">Scripts</h2>
+        <h2 className="mb-1 text-[17px] font-bold tracking-tight">Scripts</h2>
         <p className="mb-4 text-sm text-muted">
           Copie en un clic, puis remplace les [crochets].
         </p>
@@ -129,7 +129,7 @@ export default function CommunicationView() {
 
       {/* ---------- Red flags ---------- */}
       <section>
-        <h2 className="mb-1 text-lg font-semibold tracking-tight">Red flags</h2>
+        <h2 className="mb-1 text-[17px] font-bold tracking-tight">Red flags</h2>
         <p className="mb-4 text-sm text-muted">
           Le signal, et le réflexe à avoir.
         </p>

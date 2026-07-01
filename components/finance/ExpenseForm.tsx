@@ -65,7 +65,7 @@ export default function ExpenseForm({
 
   return (
     <form onSubmit={submit} className="space-y-4 pr-8">
-      <h3 className="text-lg font-semibold tracking-tight">
+      <h3 className="text-[17px] font-bold tracking-tight">
         {expense ? "Modifier la dépense" : "Nouvelle dépense"}
       </h3>
 

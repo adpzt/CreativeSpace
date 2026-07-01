@@ -52,7 +52,7 @@ export default function ClientOverlayBody({
   if (!editing) {
     return (
       <div className="pr-8">
-        <h3 className="text-lg font-semibold tracking-tight">{client.name}</h3>
+        <h3 className="text-[17px] font-bold tracking-tight">{client.name}</h3>
         {client.company && (
           <p className="text-sm text-muted">{client.company}</p>
         )}
@@ -137,7 +137,7 @@ export default function ClientOverlayBody({
   return (
     <div className="space-y-4 pr-8">
       <div className="flex items-center gap-2">
-        <h3 className="text-lg font-semibold tracking-tight">Modifier</h3>
+        <h3 className="text-[17px] font-bold tracking-tight">Modifier</h3>
         <button
           onClick={() => setEditing(false)}
           className="inline-flex items-center gap-1 rounded-lg px-2 py-1 text-xs text-muted transition-colors hover:bg-gray-100 dark:hover:bg-white/[0.06] hover:text-ink"

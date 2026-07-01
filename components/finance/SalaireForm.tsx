@@ -90,7 +90,7 @@ export default function SalaireForm({
 
   return (
     <form onSubmit={submit} className="space-y-4 pr-8">
-      <h3 className="text-lg font-semibold tracking-tight">
+      <h3 className="text-[17px] font-bold tracking-tight">
         {salaire ? "Modifier le salaire" : "Nouveau salaire"}
       </h3>
 

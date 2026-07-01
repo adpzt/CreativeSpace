@@ -56,7 +56,7 @@ export default function ProspectsBoard({ prospects }: { prospects: Prospect[] })
       <section>
         <div className="mb-4 flex items-center justify-between">
           <div>
-            <h2 className="text-lg font-semibold tracking-tight">Prospects</h2>
+            <h2 className="text-[17px] font-bold tracking-tight">Prospects</h2>
             <p className="text-sm text-muted">{prospects.length} au total</p>
           </div>
           <Button onClick={() => setCreating(true)}>

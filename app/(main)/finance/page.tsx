@@ -38,11 +38,11 @@ export default async function FinancePage() {
   const salaryTaxable = apprentiTaxableSalary(netImposableAnnuel);
 
   return (
-    <div className="space-y-12">
+    <div className="space-y-8">
       {/* ============== FREELANCE (titre de page) ============== */}
-      <div className="space-y-10">
+      <div className="space-y-8">
         <header>
-          <h1 className="text-[27px] font-bold tracking-tight">Freelance</h1>
+          <h1 className="text-[30px] font-extrabold tracking-[-0.02em]">Freelance</h1>
           <p className="mt-1 text-[15px] text-muted">
             Ton activité de micro-entrepreneur : revenus, dépenses, cotisations.
           </p>
@@ -56,9 +56,9 @@ export default async function FinancePage() {
       </div>
 
       {/* ============== SALAIRE & IMPÔT ============== */}
-      <div className="space-y-10">
+      <div className="space-y-8">
         <header className="border-t border-black/[0.06] pt-8">
-          <h2 className="flex items-center gap-2.5 text-2xl font-bold tracking-tight">
+          <h2 className="flex items-center gap-2.5 text-[26px] font-extrabold tracking-[-0.02em]">
             <span className="h-6 w-1 rounded-full bg-[#9333EA]" />
             Salaire &amp; impôt
           </h2>

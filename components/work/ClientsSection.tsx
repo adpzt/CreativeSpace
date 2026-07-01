@@ -44,7 +44,7 @@ export default function ClientsSection({
   return (
     <section>
       <div className="mb-5 flex items-center justify-between gap-3">
-        <h2 className="text-2xl font-semibold tracking-tight">Clients</h2>
+        <h2 className="text-[26px] font-extrabold tracking-[-0.02em]">Clients</h2>
         <Button variant="secondary" onClick={() => setCreating(true)}>
           <Plus className="h-4 w-4" />
           Nouveau client

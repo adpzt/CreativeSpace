@@ -107,7 +107,7 @@ export default function DashboardSection({
   return (
     <section>
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-        <h2 className="text-xl font-semibold tracking-tight">Tableau de bord</h2>
+        <h2 className="text-[22px] font-bold tracking-[-0.01em]">Tableau de bord</h2>
         <div className="flex items-center gap-1 rounded-xl bg-gray-100 p-1 text-sm dark:bg-white/[0.06]">
           <button
             onClick={() => setMode("mois")}

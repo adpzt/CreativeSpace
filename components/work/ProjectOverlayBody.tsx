@@ -246,7 +246,7 @@ export default function ProjectOverlayBody({
   const paidPopup = askPaid ? (
     <Overlay onClose={() => setAskPaid(false)}>
       <div className="pr-8">
-        <h3 className="text-lg font-semibold tracking-tight">As-tu été payé ?</h3>
+        <h3 className="text-[17px] font-bold tracking-tight">As-tu été payé ?</h3>
         <p className="mt-1 text-sm text-muted">
           Projet clôturé. Indique si le solde a été encaissé (cela alimentera la
           Finance).
@@ -273,7 +273,7 @@ export default function ProjectOverlayBody({
                 style={{ backgroundColor: colorVal }}
               />
             )}
-            <h2 className="text-2xl font-semibold tracking-tight">
+            <h2 className="text-[26px] font-extrabold tracking-[-0.02em]">
               {project.name}
             </h2>
           </div>
@@ -405,7 +405,7 @@ export default function ProjectOverlayBody({
     <>
       <div className="space-y-5 pr-8">
         <div className="flex items-center gap-2">
-          <h3 className="text-lg font-semibold tracking-tight">Modifier</h3>
+          <h3 className="text-[17px] font-bold tracking-tight">Modifier</h3>
           <button
             onClick={() => setEditing(false)}
             className="inline-flex items-center gap-1 rounded-lg px-2 py-1 text-xs text-muted transition-colors hover:bg-gray-100 dark:hover:bg-white/[0.06] hover:text-ink"

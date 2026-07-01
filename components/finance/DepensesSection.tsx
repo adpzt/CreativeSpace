@@ -76,7 +76,7 @@ export default function DepensesSection({
     <section>
       <div className="mb-4 flex items-center justify-between">
         <div>
-          <h2 className="text-xl font-semibold tracking-tight">Dépenses</h2>
+          <h2 className="text-[22px] font-bold tracking-[-0.01em]">Dépenses</h2>
           <p className="text-sm text-muted">Total validé : {formatEuro(total)}</p>
         </div>
         <Button onClick={() => setCreating(true)}>

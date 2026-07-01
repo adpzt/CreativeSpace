@@ -16,7 +16,7 @@ export default function DevisView() {
     <div className="space-y-10">
       {/* Checklist devis */}
       <section>
-        <h2 className="mb-4 text-lg font-semibold tracking-tight">
+        <h2 className="mb-4 text-[17px] font-bold tracking-tight">
           Checklist avant d&apos;envoyer un devis
         </h2>
         <CheckList items={DEVIS_CHECKLIST} />
@@ -24,7 +24,7 @@ export default function DevisView() {
 
       {/* Facture d'acompte */}
       <section>
-        <h2 className="mb-4 text-lg font-semibold tracking-tight">
+        <h2 className="mb-4 text-[17px] font-bold tracking-tight">
           Facture d&apos;acompte
         </h2>
         <CheckList items={FACTURE_ACOMPTE_CHECKLIST} />
@@ -32,7 +32,7 @@ export default function DevisView() {
 
       {/* Pénalités de retard */}
       <section>
-        <h2 className="mb-1 text-lg font-semibold tracking-tight">
+        <h2 className="mb-1 text-[17px] font-bold tracking-tight">
           Mention pénalités de retard
         </h2>
         <p className="mb-3 text-sm text-muted">À ajouter sur toutes les factures.</p>
@@ -46,7 +46,7 @@ export default function DevisView() {
 
       {/* Liens utiles */}
       <section>
-        <h2 className="mb-4 text-lg font-semibold tracking-tight">Liens utiles</h2>
+        <h2 className="mb-4 text-[17px] font-bold tracking-tight">Liens utiles</h2>
         <div className="flex flex-wrap gap-2">
           {DEVIS_LINKS.map((l) => (
             <a
@@ -67,7 +67,7 @@ export default function DevisView() {
       {/* Conditions Générales de Prestation */}
       <section>
         <div className="mb-4 flex items-center justify-between gap-3">
-          <h2 className="text-lg font-semibold tracking-tight">
+          <h2 className="text-[17px] font-bold tracking-tight">
             Conditions Générales de Prestation
           </h2>
           <CopyButton text={CGP_FULL} label="Tout copier" />

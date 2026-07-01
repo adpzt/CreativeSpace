@@ -119,7 +119,7 @@ export default function DiagrammesSection({
   return (
     <section>
       <div className="mb-4">
-        <h2 className="text-xl font-semibold tracking-tight">Diagrammes</h2>
+        <h2 className="text-[22px] font-bold tracking-[-0.01em]">Diagrammes</h2>
         <p className="text-sm text-muted">
           Argent réellement encaissé depuis le début (net des dépenses de mission)
         </p>

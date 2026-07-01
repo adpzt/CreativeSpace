@@ -57,7 +57,7 @@ export default function SalaireSection({
     <section>
       <div className="mb-4 flex items-center justify-between">
         <div>
-          <h2 className="text-xl font-semibold tracking-tight">Salarié</h2>
+          <h2 className="text-[22px] font-bold tracking-[-0.01em]">Salarié</h2>
           <p className="text-sm text-muted">
             Revenu total {year} : {formatEuro(revenuTotal)}
             <span className="text-muted">

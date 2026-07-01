@@ -91,7 +91,7 @@ export default function RevenuForm({
 
   return (
     <form onSubmit={submit} className="space-y-4 pr-8">
-      <h3 className="text-lg font-semibold tracking-tight">
+      <h3 className="text-[17px] font-bold tracking-tight">
         {payment ? "Modifier le revenu" : "Nouveau revenu"}
       </h3>
 

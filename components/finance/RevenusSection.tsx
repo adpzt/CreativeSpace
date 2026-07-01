@@ -89,7 +89,7 @@ export default function RevenusSection({
   return (
     <section>
       <div className="mb-4 flex items-center justify-between">
-        <h2 className="text-xl font-semibold tracking-tight">Revenus</h2>
+        <h2 className="text-[22px] font-bold tracking-[-0.01em]">Revenus</h2>
         <Button onClick={() => setCreating(true)}>
           <Plus className="h-4 w-4" />
           Revenu manuel

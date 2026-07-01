@@ -30,7 +30,7 @@ export default function LoginPage() {
           <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-ink">
             <Lock className="h-5 w-5 text-bg" />
           </div>
-          <h1 className="text-2xl font-semibold tracking-tight">Creative Space</h1>
+          <h1 className="text-[26px] font-extrabold tracking-[-0.02em]">Creative Space</h1>
           <p className="mt-1 text-sm text-muted">Espace privé de pztdesign</p>
         </div>
 

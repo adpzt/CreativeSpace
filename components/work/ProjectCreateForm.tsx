@@ -178,7 +178,7 @@ export default function ProjectCreateForm({
     <>
       <form onSubmit={submit} className="space-y-4">
         <div className="flex items-center justify-between gap-2 pr-8">
-          <h3 className="text-lg font-semibold tracking-tight">Nouveau projet</h3>
+          <h3 className="text-[17px] font-bold tracking-tight">Nouveau projet</h3>
           <button
             type="button"
             onClick={reset}

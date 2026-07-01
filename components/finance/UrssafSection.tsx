@@ -113,7 +113,7 @@ export default function UrssafSection({
     <section>
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h2 className="text-xl font-semibold tracking-tight">URSSAF</h2>
+          <h2 className="text-[22px] font-bold tracking-[-0.01em]">URSSAF</h2>
           <p className="text-sm text-muted">Taux actuel : {tauxLabel}</p>
         </div>
         {/* Bascule de vue */}
@@ -358,7 +358,7 @@ function RecapCard({
         {label}
       </p>
       <p
-        className={`mt-1 text-2xl font-semibold tracking-tight ${
+        className={`mt-1 text-[26px] font-extrabold tracking-[-0.02em] ${
           accent ? "text-active" : ""
         }`}
       >

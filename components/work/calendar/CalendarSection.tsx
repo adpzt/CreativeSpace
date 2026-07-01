@@ -955,7 +955,7 @@ function AddEntry({
   };
   return (
     <div className="space-y-4 pr-8">
-      <h3 className="text-lg font-semibold tracking-tight">
+      <h3 className="text-[17px] font-bold tracking-tight">
         Ajouter ({catLabel})
       </h3>
 

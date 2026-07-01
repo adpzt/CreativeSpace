@@ -17,7 +17,7 @@ export default function ProductionView() {
       <section>
         <div className="mb-3 flex items-center justify-between gap-3">
           <div>
-            <h2 className="text-lg font-semibold tracking-tight">
+            <h2 className="text-[17px] font-bold tracking-tight">
               Structure de dossiers Drive
             </h2>
             <p className="text-sm text-muted">À reproduire pour chaque projet.</p>
@@ -31,7 +31,7 @@ export default function ProductionView() {
 
       {/* Nommage */}
       <section>
-        <h2 className="mb-4 text-lg font-semibold tracking-tight">
+        <h2 className="mb-4 text-[17px] font-bold tracking-tight">
           Règles de nommage
         </h2>
         <ul className="space-y-1.5 text-sm text-gray-600 dark:text-ink-soft">
@@ -46,7 +46,7 @@ export default function ProductionView() {
 
       {/* Règles de travail */}
       <section>
-        <h2 className="mb-4 text-lg font-semibold tracking-tight">
+        <h2 className="mb-4 text-[17px] font-bold tracking-tight">
           Règles de production
         </h2>
         <ul className="space-y-1.5 text-sm text-gray-600 dark:text-ink-soft">
@@ -61,7 +61,7 @@ export default function ProductionView() {
 
       {/* Checklist livraison */}
       <section>
-        <h2 className="mb-4 text-lg font-semibold tracking-tight">
+        <h2 className="mb-4 text-[17px] font-bold tracking-tight">
           Checklist livraison finale
         </h2>
         <ul className="divide-y divide-gray-100 dark:divide-white/10 overflow-hidden rounded-2xl border border-gray-100 dark:border-hairline bg-white dark:bg-surface">

@@ -6,6 +6,7 @@ import { format, parseISO, isPast, isToday } from "date-fns";
 import { fr } from "date-fns/locale";
 import { Plus, Check, Trash2, ChevronDown, RotateCcw } from "lucide-react";
 import Overlay from "@/components/ui/Overlay";
+import { Button } from "@/components/ui/Button";
 import NoteEditor from "@/components/notes/NoteEditor";
 import {
   createNote,
@@ -16,18 +17,6 @@ import {
   type Note,
 } from "./actions";
 import { stripHtml } from "@/lib/notes";
-
-const emptyNote = (): Note => ({
-  id: "",
-  title: "",
-  content: "",
-  done: false,
-  priority: "moyenne",
-  theme: null,
-  due_date: null,
-  deleted_at: null,
-  created_at: "",
-});
 
 // Couleurs des post-it (cyclées par index), léger désalignement.
 const POSTIT = ["bg-[#FEF3C7]", "bg-[#DBEAFE]", "bg-[#FCE7F3]", "bg-[#DCFCE7]"];
@@ -48,6 +37,8 @@ export default function NotesClient({
   const [deleted, setDeleted] = useState<Note[]>(initialDeleted);
   useEffect(() => setDeleted(initialDeleted), [initialDeleted]);
   const [editing, setEditing] = useState<Note | null>(null);
+  const [composing, setComposing] = useState(false);
+  const [draft, setDraft] = useState("");
   const [showDone, setShowDone] = useState(false);
   const [showTrash, setShowTrash] = useState(false);
 
@@ -123,12 +114,23 @@ export default function NotesClient({
     return full;
   }
 
+  // Post-it = note libre (contenu seul, sans titre ni échéance) -> zone "Notes rapides".
+  async function addPostit() {
+    const text = draft.trim();
+    setComposing(false);
+    setDraft("");
+    if (!text) return;
+    const created = await createNote(text);
+    setNotes((list) => [created, ...list]);
+    router.refresh();
+  }
+
   return (
-    <div className="space-y-10">
+    <div className="space-y-8">
       {/* En-tête */}
       <header className="flex items-start justify-between gap-3">
         <div>
-          <h1 className="text-[27px] font-bold tracking-tight">To do</h1>
+          <h1 className="text-[30px] font-extrabold tracking-[-0.02em]">To do</h1>
           <p className="mt-1 text-[15px] text-muted">
             Tes notes rapides en post-it et ta liste de choses à faire.
           </p>
@@ -151,7 +153,10 @@ export default function NotesClient({
             Notes rapides
           </h2>
           <button
-            onClick={() => setEditing(emptyNote())}
+            onClick={() => {
+              setDraft("");
+              setComposing(true);
+            }}
             className="inline-flex items-center gap-1.5 rounded-full bg-ink px-3.5 py-1.5 text-sm font-semibold text-white transition-transform duration-150 ease-ios hover:-translate-y-px active:scale-[0.97]"
           >
             <Plus className="h-4 w-4" />
@@ -239,6 +244,32 @@ export default function NotesClient({
         </section>
       )}
 
+      {composing && (
+        <Overlay onClose={() => setComposing(false)}>
+          <div className="pr-8">
+            <h3 className="mb-3 text-[17px] font-bold tracking-tight">
+              Nouveau post-it
+            </h3>
+            <textarea
+              autoFocus
+              value={draft}
+              onChange={(e) => setDraft(e.target.value)}
+              onKeyDown={(e) => {
+                if ((e.metaKey || e.ctrlKey) && e.key === "Enter") addPostit();
+              }}
+              placeholder="Une idée, un rappel…"
+              className="min-h-[140px] w-full resize-none rounded-2xl bg-[#FEF3C7] p-4 text-[15px] leading-relaxed text-ink outline-none placeholder:text-ink/40"
+            />
+            <div className="mt-3 flex justify-end gap-2">
+              <Button variant="ghost" onClick={() => setComposing(false)}>
+                Annuler
+              </Button>
+              <Button onClick={addPostit}>Ajouter</Button>
+            </div>
+          </div>
+        </Overlay>
+      )}
+
       {editing && (
         <Overlay onClose={() => setEditing(null)}>
           <NoteEditor
@@ -255,7 +286,7 @@ export default function NotesClient({
         <Overlay onClose={() => setShowTrash(false)}>
           <div className="pr-8">
             <div className="mb-4 flex items-center justify-between">
-              <h3 className="text-lg font-semibold tracking-tight">Corbeille</h3>
+              <h3 className="text-[17px] font-bold tracking-tight">Corbeille</h3>
               {deleted.length > 0 && (
                 <button
                   onClick={clearTrash}

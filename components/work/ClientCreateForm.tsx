@@ -55,7 +55,7 @@ export default function ClientCreateForm({ onClose }: { onClose: () => void }) {
 
   return (
     <form onSubmit={submit} className="space-y-4">
-      <h3 className="pr-8 text-lg font-semibold tracking-tight">
+      <h3 className="pr-8 text-[17px] font-bold tracking-tight">
         Nouveau client
       </h3>
 

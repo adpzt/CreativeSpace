@@ -19,10 +19,10 @@ export default async function FreelancePage() {
   const tjm = settings[TJM_KEY] ?? TJM_DEFAULT;
 
   return (
-    <div className="space-y-12">
+    <div className="space-y-8">
       {/* En-tête */}
       <header>
-        <h1 className="text-[27px] font-bold tracking-tight">Freelance</h1>
+        <h1 className="text-[30px] font-extrabold tracking-[-0.02em]">Freelance</h1>
         <p className="mt-1 text-[15px] text-muted">
           Ton guide opérationnel : à ouvrir quand tu as un doute avec un client.
           Tunnel, scripts, red flags, prospection.
@@ -36,7 +36,7 @@ export default async function FreelancePage() {
             AP
           </span>
           <div className="min-w-0">
-            <h2 className="text-2xl font-bold tracking-tight">Adrien Poizat</h2>
+            <h2 className="text-[26px] font-extrabold tracking-[-0.02em]">Adrien Poizat</h2>
             <p className="truncate text-sm text-muted">
               pztdesign · Auto-entrepreneur · TJM {tjm} €/j
             </p>
@@ -113,7 +113,7 @@ function Section({
 }) {
   return (
     <section>
-      <h2 className="mb-4 text-xl font-semibold tracking-tight">{title}</h2>
+      <h2 className="mb-4 text-[22px] font-bold tracking-[-0.01em]">{title}</h2>
       {children}
     </section>
   );

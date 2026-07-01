@@ -24,7 +24,7 @@ export default async function WorkPage() {
   ]);
 
   return (
-    <div className="space-y-12">
+    <div className="space-y-8">
       <BannerHeader initialUrl={banner} />
 
       {/* PROJETS - section principale */}
@@ -32,7 +32,7 @@ export default async function WorkPage() {
 
       {/* CALENDRIER - semainier (to-do de la semaine) */}
       <div>
-        <h2 className="mb-5 text-2xl font-semibold tracking-tight">Calendrier</h2>
+        <h2 className="mb-5 text-[26px] font-extrabold tracking-[-0.02em]">Calendrier</h2>
         <CalendarSection
           initial={blocks}
           projects={projects}
