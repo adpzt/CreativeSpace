@@ -460,7 +460,7 @@ export default function CalendarSection({
           >
             <ChevronRight className="h-4 w-4" />
           </button>
-          <span className="ml-1 text-sm font-medium capitalize">{label}</span>
+          <span className="ml-1 text-[15px] font-semibold first-letter:uppercase">{label}</span>
           {!isCurrentWeek && view === "week" && (
             <button
               onClick={() => setRefDate(new Date())}
@@ -563,7 +563,7 @@ export default function CalendarSection({
                         cat={cat.key}
                         blocks={cellBlocks(iso(d), cat.key)}
                         colorForBlock={colorForBlock}
-                        className="min-h-[92px] rounded-xl border border-hairline bg-[#F1F1F4] dark:bg-[#171A1F] p-[7px]"
+                        className="min-h-[74px] rounded-xl border border-black/[0.04] bg-[#F1F1F4] p-[7px]"
                         onAdd={() => setAddCtx({ dayIso: iso(d), cat: cat.key })}
                         onOpen={(id) => setNoteBlockId(id)}
                         onToggle={(id) => {
