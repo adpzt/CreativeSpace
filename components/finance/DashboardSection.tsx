@@ -212,17 +212,21 @@ function Metric({
       ? "border-success/30 bg-green-50/60"
       : highlight === "urgent"
         ? "border-urgent/30 bg-red-50/60"
-        : "border-gray-100 bg-white";
+        : "border-black/[0.06] bg-white";
   return (
-    <div className={`rounded-2xl border p-4 ${cardBg}`}>
+    <div
+      className={`animate-rise rounded-2xl border p-5 shadow-card transition duration-[180ms] ease-ios hover:-translate-y-1 hover:shadow-lift ${cardBg}`}
+    >
       <div className="mb-2 flex items-center gap-2">
-        <span className={`flex h-7 w-7 items-center justify-center rounded-full bg-gray-50 ${tint}`}>
+        <span
+          className={`flex h-[30px] w-[30px] items-center justify-center rounded-[9px] bg-black/[0.04] ${tint}`}
+        >
           <Icon className="h-4 w-4" />
         </span>
-        <p className="text-xs font-medium uppercase tracking-wide text-muted">{label}</p>
+        <p className="text-[13px] text-muted">{label}</p>
       </div>
       <p
-        className={`text-2xl font-semibold tracking-tight ${
+        className={`text-3xl font-bold tracking-tight ${
           highlight === "success" ? "text-success" : highlight === "urgent" ? "text-urgent" : ""
         }`}
       >

@@ -22,10 +22,10 @@ export default function Sidebar() {
             <Link
               key={item.href}
               href={item.href}
-              className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition-colors ${
+              className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition duration-150 ease-ios ${
                 active
-                  ? "bg-gray-100 font-medium text-ink"
-                  : "text-gray-500 hover:bg-gray-50 hover:text-ink"
+                  ? "bg-ink font-semibold text-white"
+                  : "text-ink-soft hover:bg-black/5 hover:text-ink"
               }`}
             >
               <Icon className="h-[18px] w-[18px]" />

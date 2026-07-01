@@ -19,8 +19,8 @@ export default function BottomNav() {
           <Link
             key={item.href}
             href={item.href}
-            className={`flex flex-1 flex-col items-center gap-0.5 py-2 text-[10px] transition-colors ${
-              active ? "text-ink" : "text-muted"
+            className={`flex flex-1 flex-col items-center gap-0.5 py-2 text-[10px] font-medium transition-colors ${
+              active ? "text-active" : "text-muted"
             }`}
           >
             <Icon className="h-5 w-5" />
