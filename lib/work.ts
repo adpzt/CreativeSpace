@@ -64,21 +64,21 @@ export const PROJECT_STATUS: Record<
   ProjectStatus,
   { label: string; dot: string; badge: string }
 > = {
-  // Les 3 "en attente" : gris
+  // Les 3 "en attente" : orange (signal d'attente, cf. design system 2.7)
   waiting_brief: {
     label: "En attente brief",
-    dot: "bg-muted",
-    badge: "bg-gray-100 text-gray-500",
+    dot: "bg-pending",
+    badge: "bg-orange-50 text-pending",
   },
   waiting_feedback: {
     label: "En attente retours",
-    dot: "bg-muted",
-    badge: "bg-gray-100 text-gray-500",
+    dot: "bg-pending",
+    badge: "bg-orange-50 text-pending",
   },
   waiting_payment: {
     label: "En attente solde",
-    dot: "bg-muted",
-    badge: "bg-gray-100 text-gray-500",
+    dot: "bg-pending",
+    badge: "bg-orange-50 text-pending",
   },
   // En cours : bleu
   in_production: {

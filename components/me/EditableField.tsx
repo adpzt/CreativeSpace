@@ -58,7 +58,7 @@ export default function EditableField({
               setEditing(false);
             }
           }}
-          className="w-full rounded-lg border border-gray-200 px-2.5 py-1.5 text-sm outline-none focus:border-ink"
+          className="w-full rounded-lg border border-gray-200 px-2.5 py-1.5 text-sm outline-none focus:border-active focus:ring-4 focus:ring-active/12"
         />
       ) : (
         <div className="flex items-center gap-2">

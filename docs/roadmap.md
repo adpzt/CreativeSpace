@@ -431,7 +431,7 @@ Le calendrier étant le composant le plus critique, il est livré en DEUX temps 
 
 ## PHASE 7 — Bonus & polish
 
-- [~] **Refonte design globale (design system Claude Design → Tailwind)** — EN COURS par points de retour (voir context.md "APPLICATION DU DESIGN SYSTEM" + design_handoff_creative_space/README.md) : ✅ tokens, ✅ Notes, ✅ semainier, ✅ composants ui (boutons/progress/sidebar/header/bottomnav) + cartes stats Finance, ✅ format page-Notion (lecture+crayon+RichText) pour livrables/calendrier (NotePanel) ; RESTE : mini-graphe Recharts, badges de statut, champs (focus ring), Home hero.
+- [~] **Refonte design globale (design system Claude Design → Tailwind)** — EN COURS par points de retour (voir context.md "APPLICATION DU DESIGN SYSTEM" + design_handoff_creative_space/README.md) : ✅ tokens, ✅ Notes, ✅ semainier, ✅ composants ui (boutons/progress/sidebar/header/bottomnav) + cartes stats Finance, ✅ format page-Notion (lecture+crayon+RichText) pour livrables/calendrier (NotePanel), ✅ finitions : mini-graphe Recharts (carte CA), badges de statut (pill+dot, "en attente" orange), champs (focus ring-4 ring-active/12), Home hero (ombre teintée + boutons tactiles). Design system quasi complet. **PROCHAIN : dark mode (Phase 7 bonus, Adrien donnera ses consignes).**
 - [ ] **Page note/livrable façon Notion** : ouverture en LECTURE (grand titre, propriétés en lignes, % même hors projet), édition au crayon seulement (logique lecture/édition à implémenter).
 - [ ] **Éditeur de texte riche** (contentEditable, gras/italique/couleur par sélection, live) pour les notes/blocs — remplace l'ancien format "bloc entier" retiré.
 - [ ] Export / sauvegarde des données (JSON ou CSV) - filet de sécurité

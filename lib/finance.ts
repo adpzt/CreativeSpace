@@ -12,8 +12,8 @@ export const PAYMENT_STATUS: Record<
   },
   pending: {
     label: "En attente",
-    dot: "bg-muted",
-    badge: "bg-gray-100 text-gray-500",
+    dot: "bg-pending",
+    badge: "bg-orange-50 text-pending",
   },
   late: {
     label: "En retard",

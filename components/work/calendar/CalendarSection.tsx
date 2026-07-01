@@ -728,7 +728,7 @@ export default function CalendarSection({
                   type="time"
                   value={noteBlock.time ?? ""}
                   onChange={(e) => setTime(noteBlock, e.target.value || null)}
-                  className="rounded-lg border border-gray-200 px-2.5 py-1 text-sm outline-none focus:border-ink"
+                  className="rounded-lg border border-gray-200 px-2.5 py-1 text-sm outline-none focus:border-active focus:ring-4 focus:ring-active/12"
                 />
                 {noteBlock.time && (
                   <button
@@ -962,7 +962,7 @@ function AddEntry({
             if (e.key === "Enter") submit();
           }}
           placeholder="Tâche, note, arrêt maladie, /…"
-          className="flex-1 rounded-xl border border-gray-200 px-3.5 py-2.5 text-sm outline-none focus:border-ink"
+          className="flex-1 rounded-xl border border-gray-200 px-3.5 py-2.5 text-sm outline-none focus:border-active focus:ring-4 focus:ring-active/12"
         />
         <button
           onClick={submit}
@@ -989,7 +989,7 @@ function AddEntry({
             type="time"
             value={time}
             onChange={(e) => setTime(e.target.value)}
-            className="rounded-xl border border-gray-200 px-3 py-2 text-sm outline-none focus:border-ink"
+            className="rounded-xl border border-gray-200 px-3 py-2 text-sm outline-none focus:border-active focus:ring-4 focus:ring-active/12"
           />
         </div>
       </div>

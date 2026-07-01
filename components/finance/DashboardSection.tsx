@@ -12,6 +12,7 @@ import {
   Info,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
+import { Area, AreaChart, ResponsiveContainer } from "recharts";
 import { formatEuro } from "@/lib/work";
 import { urssafRate } from "@/lib/finance";
 import type { Payment, Expense } from "@/lib/types";
@@ -94,6 +95,15 @@ export default function DashboardSection({
   }
   const benefice = ca - dep - urssaf;
 
+  // Mini-tendance : CA net des 6 derniers mois (jusqu'au mois affiché, sinon
+  // jusqu'au mois courant en vue annuelle). Affichée sur la carte CA.
+  const spEnd = mode === "mois" ? focus : { y: curY, m: curM };
+  const caSpark = Array.from({ length: 6 }, (_, i) => {
+    const s = shift(spEnd.y, spEnd.m, i - 5);
+    return { v: paidIn(`${s.y}-${String(s.m).padStart(2, "0")}`) };
+  });
+  const hasSpark = caSpark.some((d) => d.v > 0);
+
   return (
     <section>
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
@@ -154,7 +164,13 @@ export default function DashboardSection({
       </div>
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <Metric icon={Wallet} tint="text-success" label="CA encaissé" value={formatEuro(ca)} />
+        <Metric
+          icon={Wallet}
+          tint="text-success"
+          label="CA encaissé"
+          value={formatEuro(ca)}
+          spark={hasSpark ? caSpark : undefined}
+        />
         <Metric icon={Receipt} tint="text-muted" label="Dépenses" value={formatEuro(dep)} />
         <Metric icon={Landmark} tint="text-muted" label="URSSAF estimée" value={formatEuro(urssaf)} />
         <Metric
@@ -200,12 +216,14 @@ function Metric({
   label,
   value,
   highlight,
+  spark,
 }: {
   icon: LucideIcon;
   tint: string;
   label: string;
   value: string;
   highlight?: "success" | "urgent";
+  spark?: { v: number }[];
 }) {
   const cardBg =
     highlight === "success"
@@ -232,6 +250,28 @@ function Metric({
       >
         {value}
       </p>
+      {spark && (
+        <div className="mt-3 h-12 w-full">
+          <ResponsiveContainer width="100%" height="100%">
+            <AreaChart data={spark} margin={{ top: 2, right: 0, bottom: 0, left: 0 }}>
+              <defs>
+                <linearGradient id="caSpark" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="#2563EB" stopOpacity={0.28} />
+                  <stop offset="100%" stopColor="#2563EB" stopOpacity={0} />
+                </linearGradient>
+              </defs>
+              <Area
+                type="monotone"
+                dataKey="v"
+                stroke="#2563EB"
+                strokeWidth={2.5}
+                fill="url(#caSpark)"
+                isAnimationActive={false}
+              />
+            </AreaChart>
+          </ResponsiveContainer>
+        </div>
+      )}
     </div>
   );
 }

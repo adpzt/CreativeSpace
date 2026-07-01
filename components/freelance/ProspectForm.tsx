@@ -15,7 +15,7 @@ import type { Prospect, ProspectStatus, ProspectType } from "@/lib/types";
 const labelClass =
   "mb-1.5 block text-xs font-medium uppercase tracking-wide text-muted";
 const inputClass =
-  "w-full rounded-xl border border-gray-200 px-3.5 py-2.5 text-sm outline-none transition-colors focus:border-ink placeholder:text-muted";
+  "w-full rounded-xl border border-gray-200 px-3.5 py-2.5 text-sm outline-none transition-colors focus:border-active focus:ring-4 focus:ring-active/12 placeholder:text-muted";
 
 export default function ProspectForm({
   prospect,

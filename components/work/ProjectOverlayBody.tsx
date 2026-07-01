@@ -59,7 +59,7 @@ import type {
 const labelClass =
   "mb-1.5 block text-xs font-medium uppercase tracking-wide text-muted";
 const inputClass =
-  "w-full rounded-xl border border-gray-200 px-3.5 py-2.5 text-sm outline-none transition-colors focus:border-ink";
+  "w-full rounded-xl border border-gray-200 px-3.5 py-2.5 text-sm outline-none transition-colors focus:border-active focus:ring-4 focus:ring-active/12";
 const sectionLabel = "mb-2 text-xs font-medium uppercase tracking-wide text-muted";
 
 function categoryLabel(cat: CalendarCategory) {
@@ -428,7 +428,7 @@ export default function ProjectOverlayBody({
             <select
               value={category}
               onChange={(e) => changeCategory(e.target.value as CalendarCategory)}
-              className="flex-1 rounded-xl border border-gray-200 px-3.5 py-2.5 text-sm outline-none focus:border-ink"
+              className="flex-1 rounded-xl border border-gray-200 px-3.5 py-2.5 text-sm outline-none focus:border-active focus:ring-4 focus:ring-active/12"
             >
               {CALENDAR_CATEGORIES.map((c) => (
                 <option key={c.key} value={c.key}>
@@ -571,7 +571,7 @@ export default function ProjectOverlayBody({
                             )
                           }
                           placeholder="Justificatif (ex : impression)"
-                          className="min-w-0 flex-1 rounded-xl border border-gray-200 px-3 py-2 text-sm outline-none focus:border-ink"
+                          className="min-w-0 flex-1 rounded-xl border border-gray-200 px-3 py-2 text-sm outline-none focus:border-active focus:ring-4 focus:ring-active/12"
                         />
                         <div className="flex shrink-0 items-center rounded-lg border border-gray-200 pr-1.5 focus-within:border-ink">
                           <input

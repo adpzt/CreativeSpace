@@ -198,7 +198,7 @@ export default function RevenusSection({
                     )}
                   </div>
                   <span
-                    className={`shrink-0 rounded-full px-2 py-0.5 text-[11px] font-medium ${st.badge}`}
+                    className={`shrink-0 rounded-full px-2.5 py-1 text-[12.5px] font-semibold ${st.badge}`}
                   >
                     {st.label}
                   </span>

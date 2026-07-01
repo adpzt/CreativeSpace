@@ -131,7 +131,7 @@ export default async function HomePage() {
   return (
     <div className="space-y-8">
       {/* Hero */}
-      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#2563EB] to-[#4F46E5] p-6 text-white sm:p-8">
+      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#2563EB] to-[#4F46E5] p-6 text-white shadow-[0_20px_44px_-16px_rgba(37,99,235,0.45)] sm:p-8">
         <div
           aria-hidden
           className="pointer-events-none absolute -right-10 -top-16 h-48 w-48 rounded-full bg-white/10 blur-2xl"
@@ -153,14 +153,14 @@ export default async function HomePage() {
         <div className="mt-5 flex gap-2">
           <Link
             href="/work"
-            className="inline-flex items-center gap-1.5 rounded-xl bg-white px-3.5 py-2 text-sm font-medium text-ink transition-opacity hover:opacity-90"
+            className="inline-flex items-center gap-1.5 rounded-xl bg-white px-3.5 py-2 text-sm font-semibold text-ink shadow-card transition duration-150 ease-ios hover:-translate-y-px active:scale-[0.97]"
           >
             <Plus className="h-4 w-4" />
             Projet
           </Link>
           <Link
             href="/notes"
-            className="inline-flex items-center gap-1.5 rounded-xl bg-white/15 px-3.5 py-2 text-sm font-medium text-white backdrop-blur transition-colors hover:bg-white/25"
+            className="inline-flex items-center gap-1.5 rounded-xl bg-white/15 px-3.5 py-2 text-sm font-semibold text-white backdrop-blur transition duration-150 ease-ios hover:-translate-y-px hover:bg-white/25 active:scale-[0.97]"
           >
             <StickyNote className="h-4 w-4" />
             Note

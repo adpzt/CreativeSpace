@@ -92,7 +92,7 @@ export default function DeliverablesEditor(props: Props) {
             onChange={(e) => setName(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && validateAdd()}
             placeholder="Nouveau livrable (logo, flyer...)"
-            className="flex-1 rounded-xl border border-gray-200 px-3 py-2 text-sm outline-none focus:border-ink"
+            className="flex-1 rounded-xl border border-gray-200 px-3 py-2 text-sm outline-none focus:border-active focus:ring-4 focus:ring-active/12"
           />
           <DayInput value={days} onChange={setDays} />
           <button
