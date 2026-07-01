@@ -179,7 +179,7 @@ export default function RevenusSection({
           description="Valide un projet clôturé ci-dessus, ou ajoute un revenu manuel."
         />
       ) : (
-        <ul className="divide-y divide-gray-100 overflow-hidden rounded-2xl border border-gray-100">
+        <ul className="divide-y divide-gray-100 overflow-hidden rounded-2xl border border-gray-100 bg-white">
           {payments.map((pay) => {
             const st = PAYMENT_STATUS[pay.status];
             return (

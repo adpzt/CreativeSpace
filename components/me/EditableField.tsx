@@ -41,7 +41,7 @@ export default function EditableField({
   }
 
   return (
-    <div className="rounded-2xl border border-gray-100 p-4">
+    <div className="rounded-2xl border border-gray-100 bg-white p-4">
       <p className="mb-1 text-xs font-medium uppercase tracking-wide text-muted">
         {label}
       </p>

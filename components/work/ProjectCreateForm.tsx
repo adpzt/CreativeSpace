@@ -473,7 +473,7 @@ export default function ProjectCreateForm({
           <ul className="space-y-1.5">
             {delivs.map((r) => (
               <li key={r.tempId} className="flex items-center gap-1.5">
-                <div className="flex flex-1 items-center gap-1.5 rounded-xl border border-gray-100 px-2 py-1.5">
+                <div className="flex flex-1 items-center gap-1.5 rounded-xl border border-gray-100 bg-white px-2 py-1.5">
                   <input
                     value={r.name}
                     onChange={(e) => updateRow(r.tempId, { name: e.target.value })}

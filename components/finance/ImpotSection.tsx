@@ -56,7 +56,7 @@ export default function ImpotSection({
     margeImposable === Infinity ? Infinity : margeImposable / (1 - MICRO_BNC_ABATTEMENT);
 
   return (
-    <div className="overflow-hidden rounded-2xl border-2 border-active/30">
+    <div className="overflow-hidden rounded-2xl border-2 border-active/30 bg-white">
       <div className="flex items-center gap-2 border-b border-active/20 bg-blue-50/50 px-5 py-3">
         <Landmark className="h-4 w-4 text-active" />
         <h3 className="text-sm font-semibold">Impôt sur le revenu estimé</h3>

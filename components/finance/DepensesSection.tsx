@@ -133,7 +133,7 @@ export default function DepensesSection({
 
           {/* Dépenses validées / manuelles (comptées dans le total) */}
           {expenses.length > 0 && (
-            <ul className="divide-y divide-gray-100 overflow-hidden rounded-2xl border border-gray-100">
+            <ul className="divide-y divide-gray-100 overflow-hidden rounded-2xl border border-gray-100 bg-white">
               {expenses.map((e) => (
                 <li key={e.id}>
                   <button

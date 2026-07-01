@@ -33,7 +33,7 @@ export default function BriefView() {
           return (
             <li
               key={b.type}
-              className="overflow-hidden rounded-2xl border border-gray-100"
+              className="overflow-hidden rounded-2xl border border-gray-100 bg-white"
             >
               <button
                 onClick={() => setOpen(isOpen ? null : b.type)}

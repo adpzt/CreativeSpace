@@ -17,7 +17,7 @@ export default function FreelancePage() {
             <Link
               key={s.href}
               href={s.href}
-              className="group flex items-start gap-3 rounded-2xl border border-gray-100 p-5 transition-colors hover:border-ink"
+              className="group flex items-start gap-3 rounded-2xl border border-gray-100 bg-white p-5 transition-colors hover:border-ink"
             >
               <div className="min-w-0 flex-1">
                 <p className="font-semibold tracking-tight">{s.title}</p>

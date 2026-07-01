@@ -30,13 +30,15 @@ export default function Overlay({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 sm:items-center sm:p-4"
+      className="fixed inset-0 z-50 flex items-end justify-center bg-black/30 backdrop-blur-sm sm:items-center sm:p-4"
       onClick={dismissible ? onClose : undefined}
     >
       <div
-        className="relative max-h-[92vh] w-full max-w-lg overflow-y-auto rounded-t-2xl bg-white p-5 shadow-xl sm:rounded-2xl"
+        className="relative max-h-[92vh] w-full max-w-lg overflow-y-auto rounded-t-3xl bg-white p-5 shadow-2xl sm:rounded-3xl"
         onClick={(e) => e.stopPropagation()}
       >
+        {/* Poignée façon feuille iOS (mobile) */}
+        <div className="mx-auto mb-3 h-1 w-9 rounded-full bg-gray-300 sm:hidden" />
         <button
           onClick={onClose}
           aria-label="Fermer"

@@ -9,7 +9,7 @@ export default function Sidebar() {
   const pathname = usePathname();
 
   return (
-    <aside className="fixed left-0 top-0 z-30 hidden h-screen w-56 flex-col border-r border-gray-100 bg-white px-3 py-5 md:flex">
+    <aside className="fixed left-0 top-0 z-30 hidden h-screen w-56 flex-col border-r border-black/[0.06] bg-white/70 px-3 py-5 backdrop-blur-xl backdrop-saturate-150 md:flex">
       <div className="px-3 pb-6">
         <span className="text-lg font-semibold tracking-tight">Creative Space</span>
       </div>

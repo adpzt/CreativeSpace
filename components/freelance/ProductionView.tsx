@@ -64,7 +64,7 @@ export default function ProductionView() {
         <h2 className="mb-4 text-lg font-semibold tracking-tight">
           Checklist livraison finale
         </h2>
-        <ul className="divide-y divide-gray-100 overflow-hidden rounded-2xl border border-gray-100">
+        <ul className="divide-y divide-gray-100 overflow-hidden rounded-2xl border border-gray-100 bg-white">
           {LIVRAISON_CHECKLIST.map((it, i) => (
             <li key={i} className="flex items-start gap-3 px-4 py-3 text-sm">
               <span className="mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded border border-gray-300 text-muted">

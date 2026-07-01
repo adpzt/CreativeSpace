@@ -21,7 +21,7 @@ export default function SeuilsSection({ payments }: { payments: Payment[] }) {
       <h3 className="mb-4 text-base font-semibold tracking-tight">
         Seuils à surveiller
       </h3>
-      <div className="space-y-5 rounded-2xl border border-gray-100 p-5">
+      <div className="space-y-5 rounded-2xl border border-gray-100 bg-white p-5">
         <ThresholdBar
           label="Plafond micro-BNC"
           current={caYear}

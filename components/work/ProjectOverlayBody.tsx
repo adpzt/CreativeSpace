@@ -731,7 +731,7 @@ function ReadDeliverable({
 }) {
   const [prog, setProg] = useState(String(item.progress ?? 0));
   return (
-    <li className="flex items-center gap-2 rounded-xl border border-gray-100 px-3 py-2">
+    <li className="flex items-center gap-2 rounded-xl border border-gray-100 bg-white px-3 py-2">
       <button
         onClick={() => onToggle(item.id)}
         aria-label="Cocher"

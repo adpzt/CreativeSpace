@@ -59,6 +59,7 @@
 - **Méthode validée par Adrien** : quand il y a beaucoup de retours, les SÉPARER en blocs cohérents et livrer/valider par étapes (points de retour). Ne pas tout empiler sans validation.
 - **Mettre à jour context.md ET roadmap.md à chaque session** (cocher les cases, consigner décisions + retours + erreurs). Adrien y tient.
 - Les retours d'Adrien sont **pour desktop** pour l'instant ; le mobile sera revu plus tard.
+- **DESIGN SYSTEM iOS/Apple (01/07/2026)** : canvas gris `#F5F5F7` (body dans globals.css), les CARTES doivent avoir `bg-white` explicite (sinon elles apparaissent grises sur le canvas) - piège avec les cartes à bordure dynamique (`rounded-2xl border ${var}`) : penser à mettre bg-white dans le cas par défaut. Les champs (input/textarea/select) ont un fond blanc forcé dans globals.css (Tailwind preflight les rend transparents). Barres (Header/Sidebar/BottomNav) = verre dépoli : `bg-white/70 backdrop-blur-xl backdrop-saturate-150 border-black/[0.06]`. Overlays = feuille : `rounded-3xl`, fond `bg-black/30 backdrop-blur-sm`, poignée grise sur mobile. Home et Moi ont un hero (dégradé bleu->indigo pour Home). Style épuré, arrondis généreux, hairlines très légères.
 
 ---
 

@@ -60,7 +60,7 @@ export default function ClientsSection({
             <button
               key={client.id}
               onClick={() => setOpenId(client.id)}
-              className="rounded-2xl border border-gray-100 p-4 text-left transition-colors hover:border-gray-200 hover:bg-gray-50"
+              className="rounded-2xl border border-gray-100 bg-white p-4 text-left transition-colors hover:border-gray-200 hover:bg-gray-50"
             >
               <div className="flex items-center gap-2">
                 <p className="truncate font-medium">

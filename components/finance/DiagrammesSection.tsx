@@ -146,7 +146,7 @@ function ChartCard({
   const color = (i: number) => PROJECT_COLORS[i % PROJECT_COLORS.length];
 
   return (
-    <div className={`rounded-2xl border border-gray-100 p-5 ${className}`}>
+    <div className={`rounded-2xl border border-gray-100 bg-white p-5 ${className}`}>
       <div className="mb-4 flex items-center justify-between">
         <h3 className="text-sm font-semibold">{title}</h3>
         <button

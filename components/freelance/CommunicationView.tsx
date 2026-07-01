@@ -37,7 +37,7 @@ export default function CommunicationView() {
             return (
               <li
                 key={step.n}
-                className="overflow-hidden rounded-2xl border border-gray-100"
+                className="overflow-hidden rounded-2xl border border-gray-100 bg-white"
               >
                 <button
                   onClick={() => toggle(step.n)}
@@ -115,7 +115,7 @@ export default function CommunicationView() {
             <li
               key={s.id}
               id={s.id}
-              className="scroll-mt-24 rounded-2xl border border-gray-100 p-4"
+              className="scroll-mt-24 rounded-2xl border border-gray-100 bg-white p-4"
             >
               <div className="mb-2 flex items-start justify-between gap-3">
                 <p className="text-sm font-semibold">{s.title}</p>
@@ -134,7 +134,7 @@ export default function CommunicationView() {
           Le signal, et le réflexe à avoir.
         </p>
 
-        <ul className="divide-y divide-gray-100 overflow-hidden rounded-2xl border border-gray-100">
+        <ul className="divide-y divide-gray-100 overflow-hidden rounded-2xl border border-gray-100 bg-white">
           {RED_FLAGS.map((r, i) => (
             <li key={i} className="flex flex-col gap-1 px-4 py-3 sm:flex-row sm:gap-4">
               <span className="flex items-start gap-2 font-medium sm:w-1/2">

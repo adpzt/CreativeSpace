@@ -28,7 +28,7 @@ export default function TodayTasks({ blocks }: { blocks: CalendarBlock[] }) {
   }
 
   return (
-    <ul className="divide-y divide-gray-100 overflow-hidden rounded-2xl border border-gray-100">
+    <ul className="divide-y divide-gray-100 overflow-hidden rounded-2xl border border-gray-100 bg-white">
       {items.map((b) => (
         <li key={b.id} className="flex items-center gap-3 px-4 py-3">
           <button

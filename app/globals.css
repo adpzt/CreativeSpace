@@ -14,13 +14,19 @@ html {
 
 body {
   font-family: var(--font-inter), system-ui, -apple-system, sans-serif;
+  /* Canvas gris iOS ("grouped") : les cartes blanches ressortent proprement */
+  background-color: #f5f5f7;
+  color: #1a1a1a;
 }
 
-/* On évite le zoom auto sur les inputs au focus sur iOS (taille mini 16px) */
+/* On évite le zoom auto sur les inputs au focus sur iOS (taille mini 16px).
+   Fond blanc par défaut (Tailwind preflight rend les champs transparents, ce qui
+   les ferait apparaître gris sur le canvas). Les classes bg-* explicites priment. */
 input,
 textarea,
 select {
   font-size: 16px;
+  background-color: #ffffff;
 }
 
 @layer utilities {

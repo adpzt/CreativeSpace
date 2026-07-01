@@ -72,7 +72,7 @@ export default function ProspectsBoard({ prospects }: { prospects: Prospect[] })
             description="Ajoute les agences, entreprises ou comptes à démarcher."
           />
         ) : (
-          <ul className="divide-y divide-gray-100 overflow-hidden rounded-2xl border border-gray-100">
+          <ul className="divide-y divide-gray-100 overflow-hidden rounded-2xl border border-gray-100 bg-white">
             {prospects.map((p) => {
               const st = PROSPECT_STATUS[p.status];
               return (

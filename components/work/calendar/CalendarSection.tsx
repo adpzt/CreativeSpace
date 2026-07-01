@@ -383,7 +383,7 @@ export default function CalendarSection({
           <div className="hidden items-stretch gap-1.5 md:flex">
             <div className="flex-1 overflow-x-auto">
               <div
-                className="grid border-l border-t border-gray-100"
+                className="grid rounded-2xl border-l border-t border-gray-100 bg-white"
                 style={{
                   gridTemplateColumns: `100px repeat(${days.length}, minmax(0, 1fr))`,
                   minWidth: showWeekend ? 920 : undefined,
@@ -450,7 +450,7 @@ export default function CalendarSection({
             {days.map((d) => (
               <div
                 key={iso(d)}
-                className={`overflow-hidden rounded-2xl border ${
+                className={`overflow-hidden rounded-2xl border bg-white ${
                   isToday(d) ? "border-active/50" : "border-gray-100"
                 }`}
               >
@@ -493,7 +493,7 @@ export default function CalendarSection({
             ))}
             <button
               onClick={() => setShowWeekend((s) => !s)}
-              className="w-full rounded-xl border border-gray-100 py-2 text-sm font-medium text-muted hover:bg-gray-50 hover:text-ink"
+              className="w-full rounded-xl border border-gray-100 bg-white py-2 text-sm font-medium text-muted hover:bg-gray-50 hover:text-ink"
             >
               {showWeekend ? "Masquer le week-end" : "Voir le week-end"}
             </button>
@@ -717,7 +717,7 @@ function AddEntry({
               <li key={s.deliverable.id}>
                 <button
                   onClick={() => onPick(s)}
-                  className="flex w-full items-center gap-2 rounded-xl border border-gray-100 px-3 py-2 text-left text-sm transition-colors hover:border-ink"
+                  className="flex w-full items-center gap-2 rounded-xl border border-gray-100 bg-white px-3 py-2 text-left text-sm transition-colors hover:border-ink"
                 >
                   <span
                     className="h-2.5 w-2.5 shrink-0 rounded-full"

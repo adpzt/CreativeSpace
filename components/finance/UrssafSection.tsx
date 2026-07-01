@@ -215,7 +215,7 @@ export default function UrssafSection({
 function Tuto() {
   const [show, setShow] = useState(false);
   return (
-    <div className="mb-4 overflow-hidden rounded-2xl border border-gray-100">
+    <div className="mb-4 overflow-hidden rounded-2xl border border-gray-100 bg-white">
       <button
         onClick={() => setShow((s) => !s)}
         className="flex w-full items-center gap-2 px-4 py-3 text-left text-sm font-medium hover:bg-gray-50"
@@ -290,7 +290,7 @@ function MonthCard({
       ? "border-success/30 bg-green-50/40"
       : aDeclarer
         ? "border-pending/40 bg-orange-50/50"
-        : "border-gray-100";
+        : "border-gray-100 bg-white";
 
   return (
     <div
@@ -351,7 +351,7 @@ function RecapCard({
   accent?: boolean;
 }) {
   return (
-    <div className="rounded-2xl border border-gray-100 p-4">
+    <div className="rounded-2xl border border-gray-100 bg-white p-4">
       <p className="text-xs font-medium uppercase tracking-wide text-muted">
         {label}
       </p>

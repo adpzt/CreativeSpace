@@ -113,7 +113,7 @@ export default function ClientOverlayBody({
               {projects.map((p) => (
                 <li
                   key={p.id}
-                  className="flex items-center justify-between gap-2 rounded-xl border border-gray-100 px-3 py-2"
+                  className="flex items-center justify-between gap-2 rounded-xl border border-gray-100 bg-white px-3 py-2"
                 >
                   <span className="truncate text-sm font-medium">{p.name}</span>
                   <StatusBadge status={p.status} />

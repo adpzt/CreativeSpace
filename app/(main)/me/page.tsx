@@ -110,7 +110,7 @@ export default async function MePage() {
             Aucune mission encaissée pour l&apos;instant.
           </p>
         ) : (
-          <ul className="divide-y divide-gray-100 overflow-hidden rounded-2xl border border-gray-100">
+          <ul className="divide-y divide-gray-100 overflow-hidden rounded-2xl border border-gray-100 bg-white">
             {missions.map((m) => (
               <li key={m.id} className="flex items-center gap-3 px-4 py-3">
                 <div className="min-w-0 flex-1">

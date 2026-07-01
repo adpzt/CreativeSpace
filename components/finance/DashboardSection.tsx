@@ -162,7 +162,7 @@ export default function DashboardSection({
 
       {/* En attente : indicateur global, jamais rattaché à un mois */}
       {enAttente > 0 && (
-        <div className="mt-3 flex items-center gap-3 rounded-2xl border border-gray-100 p-4">
+        <div className="mt-3 flex items-center gap-3 rounded-2xl border border-gray-100 bg-white p-4">
           <span className="flex h-7 w-7 items-center justify-center rounded-full bg-gray-50 text-pending">
             <Clock className="h-4 w-4" />
           </span>

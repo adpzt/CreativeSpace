@@ -92,7 +92,7 @@ export default function SalaireSection({
                     net versé {formatEuro(totalNet)}
                   </span>
                 </div>
-                <ul className="divide-y divide-gray-100 overflow-hidden rounded-2xl border border-gray-100">
+                <ul className="divide-y divide-gray-100 overflow-hidden rounded-2xl border border-gray-100 bg-white">
                   {rows.map((s) => (
                     <li key={s.id}>
                       <button

@@ -255,7 +255,7 @@ export default async function HomePage() {
             Aucun projet actif.
           </p>
         ) : (
-          <ul className="divide-y divide-gray-100 overflow-hidden rounded-2xl border border-gray-100">
+          <ul className="divide-y divide-gray-100 overflow-hidden rounded-2xl border border-gray-100 bg-white">
             {activeProjects.map((p) => (
               <ProjectRow key={p.id} project={p} clientName={clientName(p.client_id)} />
             ))}
@@ -279,7 +279,7 @@ export default async function HomePage() {
               <div
                 key={dStr}
                 className={`rounded-xl border p-2 ${
-                  isToday ? "border-active/50 bg-blue-50/40" : "border-gray-100"
+                  isToday ? "border-active/50 bg-blue-50/40" : "border-gray-100 bg-white"
                 }`}
               >
                 <p className="mb-1.5 text-[11px] font-medium uppercase text-muted">

@@ -36,7 +36,7 @@ export default function DevisView() {
           Mention pénalités de retard
         </h2>
         <p className="mb-3 text-sm text-muted">À ajouter sur toutes les factures.</p>
-        <div className="rounded-2xl border border-gray-100 p-4">
+        <div className="rounded-2xl border border-gray-100 bg-white p-4">
           <div className="mb-2 flex justify-end">
             <CopyButton text={PENALITES_TEXT} />
           </div>
@@ -72,7 +72,7 @@ export default function DevisView() {
           </h2>
           <CopyButton text={CGP_FULL} label="Tout copier" />
         </div>
-        <div className="space-y-4 rounded-2xl border border-gray-100 p-5">
+        <div className="space-y-4 rounded-2xl border border-gray-100 bg-white p-5">
           {CGP_ARTICLES.map((a) => (
             <div key={a.n}>
               <p className="text-sm font-semibold">
@@ -89,7 +89,7 @@ export default function DevisView() {
 
 function CheckList({ items }: { items: string[] }) {
   return (
-    <ul className="divide-y divide-gray-100 overflow-hidden rounded-2xl border border-gray-100">
+    <ul className="divide-y divide-gray-100 overflow-hidden rounded-2xl border border-gray-100 bg-white">
       {items.map((it, i) => (
         <li key={i} className="flex items-start gap-3 px-4 py-3 text-sm">
           <span className="mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded border border-gray-300 text-muted">
