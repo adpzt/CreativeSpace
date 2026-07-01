@@ -33,12 +33,9 @@ export const PAYMENT_STATUS_ORDER: PaymentStatus[] = ["pending", "paid", "late"]
 // ============================================================================
 
 // --- URSSAF : cotisations sociales (BNC, prestations de services) ---
-// Taux plein 2026 = 25,6% du CA encaissé. (variable, réévalué chaque année)
+// Taux plein = 25,6% du CA encaissé. (variable, réévalué chaque année)
 export const URSSAF_COTISATION_BNC = 0.256;
-// Contribution à la formation professionnelle (CFP) : 0,2% du CA, JAMAIS réduite par l'ACRE.
-export const CFP_RATE = 0.002;
-// ACRE : pendant la période ACRE, les cotisations sociales sont réduites de 50%
-// (la CFP n'est pas concernée).
+// ACRE : exonération de 50% -> pendant l'ACRE le taux est de 12,8% (25,6% / 2).
 export const ACRE_REDUCTION = 0.5;
 // Fin de l'ACRE : dernier jour du 3e trimestre civil suivant le début d'activité.
 // Création juin 2026 -> fin ACRE le 31/03/2027 inclus (donc ACRE jusqu'à mars 2027).
@@ -52,12 +49,9 @@ export function isAcre(year: number, month: number): boolean {
   );
 }
 
-// Taux URSSAF total d'un mois = cotisations (réduites si ACRE) + CFP.
-// Pendant ACRE : 25,6%/2 + 0,2% = 13,0%. Après : 25,6% + 0,2% = 25,8%.
+// Taux URSSAF d'un mois : 12,8% pendant l'ACRE (exonération 50%), 25,6% après.
 export function urssafRate(year: number, month: number): number {
-  const cotisation =
-    URSSAF_COTISATION_BNC * (isAcre(year, month) ? ACRE_REDUCTION : 1);
-  return cotisation + CFP_RATE;
+  return URSSAF_COTISATION_BNC * (isAcre(year, month) ? ACRE_REDUCTION : 1);
 }
 
 // --- Seuils micro-entreprise (BNC, prestations de services) ---

@@ -315,7 +315,7 @@ Le calendrier étant le composant le plus critique, il est livré en DEUX temps 
 
 ### Étape 3.3 — URSSAF  [FAIT, refondu session 2]
 - [x] CA à déclarer PRÉ-CALCULÉ (net encaissé freelance du mois), non éditable
-- [x] Montant estimé URSSAF auto. TAUX réels : cotisations BNC 25,6% + CFP 0,2%, ACRE = -50% sur cotisations -> 13,0% jusqu'au 31/03/2027 puis 25,8%
+- [x] Montant estimé URSSAF auto. TAUX : 25,6% (BNC), ACRE -50% -> 12,8% jusqu'au 31/03/2027 puis 25,6%
 - [x] Bouton "déclaré" + rappel orange sur les mois passés encaissés non déclarés
 - [x] Tuto "Comment déclarer" + explication "c'est quoi le CA à déclarer"
 - [x] 3 vues : Mois (carrousel à flèches), 12 derniers mois (grille), Depuis le début (recap) - PLUS de navigation par année (cotisation mensuelle)

@@ -75,8 +75,8 @@ export default function UrssafSection({
   const tauxActuel = urssafRate(curY, curM);
   const tauxLabel =
     tauxActuel < 0.2
-      ? "13,0 % (ACRE jusqu'à mars 2027, puis 25,8 %)"
-      : "25,8 %";
+      ? "12,8 % (ACRE jusqu'à mars 2027, puis 25,6 %)"
+      : "25,6 %";
 
   // Total estimé sur tous les mois encaissés (depuis le début)
   const allMonths = new Map<string, { y: number; m: number; enc: number }>();
@@ -303,7 +303,7 @@ function MonthCard({
       <div className="mb-2 flex items-center justify-between gap-2">
         <span className="text-sm font-semibold">{label}</span>
         <span className="rounded-full bg-gray-100 px-2 py-0.5 text-[11px] font-medium text-gray-500">
-          {Math.round(rate * 100)}%
+          {(rate * 100).toFixed(1).replace(".", ",")}%
         </span>
       </div>
       <div className="space-y-0.5 text-sm">
