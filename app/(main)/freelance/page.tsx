@@ -1,4 +1,3 @@
-import { ExternalLink } from "lucide-react";
 import EditableField from "@/components/me/EditableField";
 import CommunicationView from "@/components/freelance/CommunicationView";
 import BriefView from "@/components/freelance/BriefView";
@@ -66,16 +65,16 @@ export default async function FreelancePage() {
             <p className="mb-2 text-[11px] font-bold uppercase tracking-[0.08em] text-muted">
               Liens pro
             </p>
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-wrap gap-1.5">
               {PRO_LINKS.map((l) => (
                 <a
                   key={l.label}
                   href={l.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1.5 rounded-xl border border-black/[0.08] px-3 py-1.5 text-[13px] font-medium transition-colors hover:border-black/20"
+                  title={l.label}
+                  className="inline-flex items-center rounded-lg border border-black/[0.08] px-2.5 py-1 text-[12px] font-medium text-ink-soft transition-colors hover:border-black/20 hover:text-ink"
                 >
-                  <ExternalLink className="h-3.5 w-3.5 text-muted" />
                   {l.label}
                 </a>
               ))}

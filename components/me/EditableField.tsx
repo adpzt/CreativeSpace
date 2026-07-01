@@ -45,11 +45,11 @@ export default function EditableField({
 
   return (
     <div
-      className={
+      className={`group ${
         flat ? "" : "rounded-2xl border border-black/[0.06] bg-white p-4"
-      }
+      }`}
     >
-      <p className="mb-1 text-[11px] font-medium uppercase tracking-wide text-muted">
+      <p className="mb-0.5 text-[11px] font-medium uppercase tracking-wide text-muted">
         {label}
       </p>
       {editing ? (
@@ -82,7 +82,7 @@ export default function EditableField({
               setEditing(true);
             }}
             aria-label="Modifier"
-            className="rounded-lg p-1.5 text-muted transition-colors hover:bg-black/5 hover:text-ink"
+            className="rounded-lg p-1.5 text-muted opacity-0 transition-all hover:bg-black/5 hover:text-ink focus:opacity-100 group-hover:opacity-100"
           >
             <Pencil className="h-3.5 w-3.5" />
           </button>
