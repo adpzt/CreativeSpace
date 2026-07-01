@@ -379,7 +379,8 @@ export default function CalendarSection({
           onDragStart={onDragStart}
           onDragEnd={onDragEnd}
         >
-          <div className="flex items-stretch gap-1.5">
+          {/* Desktop : grille jours x catégories */}
+          <div className="hidden items-stretch gap-1.5 md:flex">
             <div className="flex-1 overflow-x-auto">
               <div
                 className="grid border-l border-t border-gray-100"
@@ -441,6 +442,60 @@ export default function CalendarSection({
               ) : (
                 <ChevronsRight className="h-4 w-4" />
               )}
+            </button>
+          </div>
+
+          {/* Mobile : liste verticale par jour, 3 catégories par jour */}
+          <div className="space-y-3 md:hidden">
+            {days.map((d) => (
+              <div
+                key={iso(d)}
+                className={`overflow-hidden rounded-2xl border ${
+                  isToday(d) ? "border-active/50" : "border-gray-100"
+                }`}
+              >
+                <div
+                  className={`flex items-baseline gap-2 px-3 py-2 ${
+                    isToday(d) ? "bg-blue-50/50" : "bg-gray-50"
+                  }`}
+                >
+                  <span className="text-sm font-semibold capitalize">
+                    {format(d, "EEEE d", { locale: fr })}
+                  </span>
+                  {isToday(d) && (
+                    <span className="text-[11px] font-medium text-active">
+                      aujourd&apos;hui
+                    </span>
+                  )}
+                </div>
+                <div className="divide-y divide-gray-100">
+                  {CALENDAR_CATEGORIES.map((cat) => (
+                    <div key={cat.key} className="flex items-start gap-2 px-2 py-2">
+                      <span
+                        className="mt-1 w-16 shrink-0 text-[11px] font-semibold"
+                        style={{ color: cat.color }}
+                      >
+                        {cat.label}
+                      </span>
+                      <Cell
+                        dayIso={iso(d)}
+                        cat={cat.key}
+                        blocks={cellBlocks(iso(d), cat.key)}
+                        colorForBlock={colorForBlock}
+                        className="min-h-[40px] flex-1"
+                        onAdd={() => setAddCtx({ dayIso: iso(d), cat: cat.key })}
+                        onOpen={(id) => setNoteBlockId(id)}
+                      />
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
+            <button
+              onClick={() => setShowWeekend((s) => !s)}
+              className="w-full rounded-xl border border-gray-100 py-2 text-sm font-medium text-muted hover:bg-gray-50 hover:text-ink"
+            >
+              {showWeekend ? "Masquer le week-end" : "Voir le week-end"}
             </button>
           </div>
 
