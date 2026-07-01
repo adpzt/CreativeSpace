@@ -15,7 +15,7 @@ html {
 body {
   font-family: var(--font-inter), system-ui, -apple-system, sans-serif;
   background-color: #ffffff;
-  color: #1a1a1a;
+  color: #191919;
 }
 
 /* On évite le zoom auto sur les inputs au focus sur iOS (taille mini 16px).
@@ -47,4 +47,14 @@ select {
 }
 .animate-zoom-in {
   animation: zoomIn 160ms ease-out;
+}
+
+/* Accessibilité : couper animations et transitions si l'utilisateur le demande */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
+  }
 }

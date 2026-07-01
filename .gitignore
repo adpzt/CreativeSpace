@@ -34,3 +34,4 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+design_handoff_creative_space/
