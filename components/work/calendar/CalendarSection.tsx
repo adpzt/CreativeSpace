@@ -100,8 +100,6 @@ export default function CalendarSection({
   // 5 jours par défaut (Lun-Ven), week-end dépliable
   const days = showWeekend ? allDays : allDays.slice(0, 5);
   const isCurrentWeek = isSameWeek(refDate, new Date(), { weekStartsOn: 1 });
-  const todayIso = iso(new Date());
-  const isPastDay = (d: Date) => iso(d) < todayIso;
 
   const cellBlocks = (dayIso: string, cat: CalendarCategory) =>
     blocks.filter((b) => b.category === cat && b.date_start === dayIso);
@@ -386,6 +384,10 @@ export default function CalendarSection({
       </div>
 
       {view === "week" ? (
+        <>
+        {/* Deux DndContext SÉPARÉS (desktop / mobile) : sinon chaque bloc est
+            rendu 2x avec le même id -> dnd-kit attrape la copie cachée (rect 0,0
+            en haut-gauche) et le drop casse. Un seul est visible à la fois. */}
         <DndContext
           sensors={sensors}
           collisionDetection={closestCenter}
@@ -407,11 +409,7 @@ export default function CalendarSection({
                 <div
                   key={iso(d)}
                   className={`border-b border-r border-gray-100 px-2 py-2 text-center ${
-                    isToday(d)
-                      ? "bg-blue-50"
-                      : isPastDay(d)
-                        ? "bg-gray-100"
-                        : "bg-gray-50"
+                    isToday(d) ? "bg-blue-50" : "bg-gray-50"
                   }`}
                 >
                   <p className="text-[11px] uppercase text-muted">
@@ -419,11 +417,7 @@ export default function CalendarSection({
                   </p>
                   <p
                     className={`text-sm font-semibold ${
-                      isToday(d)
-                        ? "text-active"
-                        : isPastDay(d)
-                          ? "text-muted"
-                          : ""
+                      isToday(d) ? "text-active" : ""
                     }`}
                   >
                     {format(d, "d")}
@@ -446,13 +440,7 @@ export default function CalendarSection({
                       cat={cat.key}
                       blocks={cellBlocks(iso(d), cat.key)}
                       colorForBlock={colorForBlock}
-                      className={`min-h-[112px] border-b border-r border-gray-100 p-1.5 ${
-                        isToday(d)
-                          ? "bg-blue-50/30"
-                          : isPastDay(d)
-                            ? "bg-gray-50"
-                            : ""
-                      }`}
+                      className="min-h-[112px] border-b border-r border-gray-100 p-1.5"
                       onAdd={() => setAddCtx({ dayIso: iso(d), cat: cat.key })}
                       onOpen={(id) => setNoteBlockId(id)}
                       onToggle={(id) => {
@@ -478,26 +466,33 @@ export default function CalendarSection({
             </button>
           </div>
 
+          <DragOverlay>
+            {activeBlock ? (
+              <div className="rounded-lg border border-gray-200 bg-white px-2 py-1 text-xs shadow-md">
+                {activeBlock.title}
+              </div>
+            ) : null}
+          </DragOverlay>
+        </DndContext>
+
+        <DndContext
+          sensors={sensors}
+          collisionDetection={closestCenter}
+          onDragStart={onDragStart}
+          onDragEnd={onDragEnd}
+        >
           {/* Mobile : liste verticale par jour, 3 catégories par jour */}
           <div className="space-y-3 md:hidden">
             {days.map((d) => (
               <div
                 key={iso(d)}
-                className={`overflow-hidden rounded-2xl border ${
-                  isToday(d)
-                    ? "border-active/50 bg-white"
-                    : isPastDay(d)
-                      ? "border-gray-100 bg-gray-50"
-                      : "border-gray-100 bg-white"
+                className={`overflow-hidden rounded-2xl border bg-white ${
+                  isToday(d) ? "border-active/50" : "border-gray-100"
                 }`}
               >
                 <div
                   className={`flex items-baseline gap-2 px-3 py-2 ${
-                    isToday(d)
-                      ? "bg-blue-50/50"
-                      : isPastDay(d)
-                        ? "bg-gray-100"
-                        : "bg-gray-50"
+                    isToday(d) ? "bg-blue-50/50" : "bg-gray-50"
                   }`}
                 >
                   <span className="text-sm font-semibold capitalize">
@@ -552,6 +547,7 @@ export default function CalendarSection({
             ) : null}
           </DragOverlay>
         </DndContext>
+        </>
       ) : (
         <MonthView
           refDate={refDate}
@@ -721,9 +717,7 @@ function DraggableChip({
       {...listeners}
       onClick={handleClick}
       style={style}
-      className={`flex cursor-grab touch-none select-none items-start gap-1.5 rounded-lg px-2 py-1.5 text-xs ${
-        block.completed ? "bg-green-50" : "bg-gray-50"
-      }`}
+      className="flex cursor-grab touch-none select-none items-start gap-1.5 rounded-lg px-2 py-1 text-xs transition-colors hover:bg-gray-50"
     >
       {projectColor && (
         <span
