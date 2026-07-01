@@ -56,6 +56,7 @@ import type {
   Deliverable,
   ProjectWithDeliverables,
 } from "@/lib/types";
+import type { Note } from "@/app/(main)/notes/actions";
 
 const iso = (d: Date) => format(d, "yyyy-MM-dd");
 
@@ -66,10 +67,12 @@ export default function CalendarSection({
   initial,
   projects,
   clients,
+  notes = [],
 }: {
   initial: CalendarBlock[];
   projects: ProjectWithDeliverables[];
   clients: Client[];
+  notes?: Note[];
 }) {
   const [blocks, setBlocks] = useState<CalendarBlock[]>(initial);
   // Resynchronise avec les données serveur quand elles changent (ex : un
@@ -676,6 +679,9 @@ export default function CalendarSection({
           <AddEntry
             ctx={addCtx}
             suggestions={suggestionsFor(addCtx.cat)}
+            noteSuggestions={
+              addCtx.cat === "perso" ? notes.filter((n) => !n.done) : []
+            }
             clientLabel={clientCompanyOf}
             onCreate={(title, opts) => {
               create(addCtx.dayIso, addCtx.cat, title, opts);
@@ -683,6 +689,11 @@ export default function CalendarSection({
             }}
             onPick={(s) => {
               createFromDeliverable(addCtx.dayIso, addCtx.cat, s);
+              setAddCtx(null);
+            }}
+            onPickNote={(n) => {
+              const t = n.title?.trim() || n.content.split("\n")[0] || "Note";
+              create(addCtx.dayIso, addCtx.cat, t);
               setAddCtx(null);
             }}
           />
@@ -993,13 +1004,17 @@ function FormatControls({
 function AddEntry({
   ctx,
   suggestions,
+  noteSuggestions,
   clientLabel,
   onCreate,
   onPick,
+  onPickNote,
 }: {
   ctx: AddCtx;
   suggestions: Suggestion[];
+  noteSuggestions: Note[];
   clientLabel: (p: ProjectWithDeliverables) => string;
+  onPickNote: (n: Note) => void;
   onCreate: (
     title: string,
     opts: {
@@ -1108,6 +1123,32 @@ function AddEntry({
                   <span className="shrink-0 text-xs text-muted">
                     {clientLabel(s.project)}
                   </span>
+                </button>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {noteSuggestions.length > 0 && (
+        <div>
+          <p className="mb-2 text-xs font-medium uppercase tracking-wide text-muted">
+            Notes à planifier
+          </p>
+          <ul className="space-y-1.5">
+            {noteSuggestions.map((n) => (
+              <li key={n.id}>
+                <button
+                  onClick={() => onPickNote(n)}
+                  className="flex w-full items-center gap-2 rounded-xl border border-gray-100 bg-white px-3 py-2 text-left text-sm transition-colors hover:border-ink"
+                >
+                  <span className="h-2.5 w-2.5 shrink-0 rounded-full bg-[#EA580C]" />
+                  <span className="flex-1 truncate">
+                    {n.title?.trim() || n.content.split("\n")[0] || "Note"}
+                  </span>
+                  {n.theme && (
+                    <span className="shrink-0 text-xs text-muted">{n.theme}</span>
+                  )}
                 </button>
               </li>
             ))}
