@@ -4,11 +4,18 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { format, parseISO, isPast, isToday } from "date-fns";
 import { fr } from "date-fns/locale";
-import { Plus, Check, Trash2, ChevronDown, CalendarClock, Tag } from "lucide-react";
+import { Plus, Check, Trash2, ChevronDown, CalendarClock, Tag, RotateCcw } from "lucide-react";
 import Overlay from "@/components/ui/Overlay";
 import { Button } from "@/components/ui/Button";
 import NoteEditor from "@/components/notes/NoteEditor";
-import { createNote, updateNote, deleteNote, type Note } from "./actions";
+import {
+  createNote,
+  updateNote,
+  deleteNote,
+  restoreNote,
+  emptyTrash,
+  type Note,
+} from "./actions";
 import { PRIORITIES } from "@/lib/notes";
 
 const emptyNote = (): Note => ({
@@ -19,15 +26,25 @@ const emptyNote = (): Note => ({
   priority: "moyenne",
   theme: null,
   due_date: null,
+  deleted_at: null,
   created_at: "",
 });
 
-export default function NotesClient({ initialNotes }: { initialNotes: Note[] }) {
+export default function NotesClient({
+  initialNotes,
+  initialDeleted = [],
+}: {
+  initialNotes: Note[];
+  initialDeleted?: Note[];
+}) {
   const router = useRouter();
   const [notes, setNotes] = useState<Note[]>(initialNotes);
   useEffect(() => setNotes(initialNotes), [initialNotes]);
+  const [deleted, setDeleted] = useState<Note[]>(initialDeleted);
+  useEffect(() => setDeleted(initialDeleted), [initialDeleted]);
   const [editing, setEditing] = useState<Note | null>(null);
   const [showDone, setShowDone] = useState(false);
+  const [showTrash, setShowTrash] = useState(false);
 
   const isNew = editing?.id === "";
 
@@ -52,9 +69,27 @@ export default function NotesClient({ initialNotes }: { initialNotes: Note[] }) 
   }
 
   async function removeNote(id: string) {
-    setNotes((list) => list.filter((n) => n.id !== id));
+    const n = notes.find((x) => x.id === id);
+    setNotes((list) => list.filter((x) => x.id !== id));
+    if (n) setDeleted((list) => [{ ...n, deleted_at: new Date().toISOString() }, ...list]);
     setEditing(null);
     await deleteNote(id);
+    router.refresh();
+  }
+
+  async function restore(id: string) {
+    const n = deleted.find((x) => x.id === id);
+    setDeleted((list) => list.filter((x) => x.id !== id));
+    if (n) setNotes((list) => [{ ...n, deleted_at: null }, ...list]);
+    await restoreNote(id);
+    router.refresh();
+  }
+
+  async function clearTrash() {
+    if (!window.confirm("Vider la corbeille définitivement ?")) return;
+    setDeleted([]);
+    setShowTrash(false);
+    await emptyTrash();
     router.refresh();
   }
 
@@ -99,10 +134,21 @@ export default function NotesClient({ initialNotes }: { initialNotes: Note[] }) 
                 }`}
           </p>
         </div>
-        <Button onClick={() => setEditing(emptyNote())}>
-          <Plus className="h-4 w-4" />
-          Nouvelle note
-        </Button>
+        <div className="flex items-center gap-2">
+          {deleted.length > 0 && (
+            <button
+              onClick={() => setShowTrash(true)}
+              className="inline-flex items-center gap-1.5 rounded-xl border border-gray-200 px-3 py-2 text-sm font-medium text-muted hover:border-ink hover:text-ink"
+            >
+              <Trash2 className="h-4 w-4" />
+              {deleted.length}
+            </button>
+          )}
+          <Button onClick={() => setEditing(emptyNote())}>
+            <Plus className="h-4 w-4" />
+            Nouvelle note
+          </Button>
+        </div>
       </div>
 
       {active.length > 0 ? (
@@ -174,6 +220,49 @@ export default function NotesClient({ initialNotes }: { initialNotes: Note[] }) 
             onDelete={isNew ? undefined : () => removeNote(editing.id)}
             onCancel={() => setEditing(null)}
           />
+        </Overlay>
+      )}
+
+      {showTrash && (
+        <Overlay onClose={() => setShowTrash(false)}>
+          <div className="pr-8">
+            <div className="mb-4 flex items-center justify-between">
+              <h3 className="text-lg font-semibold tracking-tight">Corbeille</h3>
+              {deleted.length > 0 && (
+                <button
+                  onClick={clearTrash}
+                  className="text-xs font-medium text-urgent hover:underline"
+                >
+                  Vider la corbeille
+                </button>
+              )}
+            </div>
+            {deleted.length === 0 ? (
+              <p className="py-8 text-center text-sm text-muted">
+                La corbeille est vide.
+              </p>
+            ) : (
+              <ul className="space-y-2">
+                {deleted.map((n) => (
+                  <li
+                    key={n.id}
+                    className="flex items-center gap-3 rounded-xl border border-gray-100 px-3 py-2.5"
+                  >
+                    <span className="min-w-0 flex-1 truncate text-sm text-muted">
+                      {n.title?.trim() || n.content.split("\n")[0] || "Note"}
+                    </span>
+                    <button
+                      onClick={() => restore(n.id)}
+                      className="inline-flex shrink-0 items-center gap-1 text-xs font-medium text-active hover:underline"
+                    >
+                      <RotateCcw className="h-3.5 w-3.5" />
+                      Restaurer
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
         </Overlay>
       )}
     </div>

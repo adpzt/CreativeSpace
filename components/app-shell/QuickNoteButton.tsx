@@ -15,6 +15,7 @@ const emptyNote = (): Note => ({
   priority: "moyenne",
   theme: null,
   due_date: null,
+  deleted_at: null,
   created_at: "",
 });
 

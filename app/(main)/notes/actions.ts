@@ -13,16 +13,31 @@ export type Note = {
   priority: NotePriority;
   theme: string | null;
   due_date: string | null;
+  deleted_at: string | null;
   created_at: string;
 };
 
-// Récupère toutes les notes (tri fait côté client)
+// Notes actives (hors corbeille)
 export async function getNotes(): Promise<Note[]> {
   const supabase = createServerSupabase();
   const { data, error } = await supabase
     .from("notes")
     .select("*")
+    .is("deleted_at", null)
     .order("created_at", { ascending: false });
+
+  if (error) throw new Error(error.message);
+  return (data ?? []) as Note[];
+}
+
+// Notes dans la corbeille (plus récemment supprimées d'abord)
+export async function getDeletedNotes(): Promise<Note[]> {
+  const supabase = createServerSupabase();
+  const { data, error } = await supabase
+    .from("notes")
+    .select("*")
+    .not("deleted_at", "is", null)
+    .order("deleted_at", { ascending: false });
 
   if (error) throw new Error(error.message);
   return (data ?? []) as Note[];
@@ -55,11 +70,37 @@ export async function updateNote(
   revalidatePath("/work");
 }
 
-// Supprime une note
+// Suppression douce : la note va dans la corbeille
 export async function deleteNote(id: string): Promise<void> {
   const supabase = createServerSupabase();
-  const { error } = await supabase.from("notes").delete().eq("id", id);
+  const { error } = await supabase
+    .from("notes")
+    .update({ deleted_at: new Date().toISOString() })
+    .eq("id", id);
   if (error) throw new Error(error.message);
   revalidatePath("/notes");
   revalidatePath("/work");
+}
+
+// Restaure une note depuis la corbeille
+export async function restoreNote(id: string): Promise<void> {
+  const supabase = createServerSupabase();
+  const { error } = await supabase
+    .from("notes")
+    .update({ deleted_at: null })
+    .eq("id", id);
+  if (error) throw new Error(error.message);
+  revalidatePath("/notes");
+  revalidatePath("/work");
+}
+
+// Vide la corbeille (suppression définitive)
+export async function emptyTrash(): Promise<void> {
+  const supabase = createServerSupabase();
+  const { error } = await supabase
+    .from("notes")
+    .delete()
+    .not("deleted_at", "is", null);
+  if (error) throw new Error(error.message);
+  revalidatePath("/notes");
 }

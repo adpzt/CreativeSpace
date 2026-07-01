@@ -1,4 +1,4 @@
-import { getNotes } from "./actions";
+import { getNotes, getDeletedNotes } from "./actions";
 import NotesClient from "./NotesClient";
 
 // On force le rechargement des données a chaque ouverture de la page,
@@ -6,6 +6,6 @@ import NotesClient from "./NotesClient";
 export const dynamic = "force-dynamic";
 
 export default async function NotesPage() {
-  const notes = await getNotes();
-  return <NotesClient initialNotes={notes} />;
+  const [notes, deleted] = await Promise.all([getNotes(), getDeletedNotes()]);
+  return <NotesClient initialNotes={notes} initialDeleted={deleted} />;
 }
