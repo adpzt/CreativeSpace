@@ -14,6 +14,9 @@ export default function NotePanel({
   onTitleSave,
   meta,
   footer,
+  titleBold,
+  titleItalic,
+  titleColor,
 }: {
   title: string;
   initialValue: string;
@@ -22,6 +25,10 @@ export default function NotePanel({
   onTitleSave?: (title: string) => void | Promise<void>;
   meta?: ReactNode;
   footer?: ReactNode;
+  // Aperçu live de la mise en forme du titre (calendrier)
+  titleBold?: boolean;
+  titleItalic?: boolean;
+  titleColor?: string | null;
 }) {
   const [shown, setShown] = useState(false);
   const [value, setValue] = useState(initialValue);
@@ -110,11 +117,14 @@ export default function NotePanel({
             <input
               value={titleVal}
               onChange={(e) => setTitleVal(e.target.value)}
-              className="w-full bg-transparent text-2xl font-semibold tracking-tight outline-none placeholder:text-muted"
+              className={`w-full bg-transparent text-3xl tracking-tight outline-none placeholder:text-muted ${
+                titleBold ? "font-bold" : "font-semibold"
+              } ${titleItalic ? "italic" : ""}`}
+              style={titleColor ? { color: titleColor } : undefined}
               placeholder="Titre"
             />
           ) : (
-            <h2 className="text-2xl font-semibold tracking-tight">{title}</h2>
+            <h2 className="text-3xl font-semibold tracking-tight">{title}</h2>
           )}
 
           {meta && <div className="mt-4 space-y-2 text-sm">{meta}</div>}

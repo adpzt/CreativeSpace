@@ -703,7 +703,11 @@ export default function CalendarSection({
       {/* Page façon Notion d'une tâche : titre + notes + Terminé / Supprimer */}
       {noteBlock && (
         <NotePanel
+          key={noteBlock.id}
           title={noteBlock.title}
+          titleBold={noteBlock.bold}
+          titleItalic={noteBlock.italic}
+          titleColor={noteBlock.text_color}
           onTitleSave={(v) => saveTitle(noteBlock.id, v)}
           meta={noteBlockMeta}
           initialValue={noteOf(noteBlock)}
