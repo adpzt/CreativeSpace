@@ -2,10 +2,12 @@
 
 import { useEffect, useRef, useState } from "react";
 import type { ReactNode } from "react";
-import { X, Check, Loader2 } from "lucide-react";
+import { X, Check, Loader2, Pencil } from "lucide-react";
+import RichText from "@/components/notes/RichText";
 
-// Panneau façon Notion : glisse depuis la droite. Grand titre (éditable),
-// propriétés (meta), barre de séparation, zone de notes, footer optionnel.
+// Panneau façon Notion : glisse depuis la droite. S'ouvre en LECTURE (grand
+// titre, propriétés, contenu aéré) ; le crayon bascule en ÉDITION (titre en
+// focus + RichText pour le contenu). Le contenu est stocké en HTML.
 export default function NotePanel({
   title,
   initialValue,
@@ -31,6 +33,7 @@ export default function NotePanel({
   titleColor?: string | null;
 }) {
   const [shown, setShown] = useState(false);
+  const [mode, setMode] = useState<"view" | "edit">("view");
   const [value, setValue] = useState(initialValue);
   const [titleVal, setTitleVal] = useState(title);
   const [status, setStatus] = useState<"idle" | "saving" | "saved">("idle");
@@ -56,6 +59,7 @@ export default function NotePanel({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Autosave du contenu (débounce). Le RichText renvoie du HTML.
   useEffect(() => {
     if (value === lastSaved.current) return;
     setStatus("saving");
@@ -71,6 +75,7 @@ export default function NotePanel({
     return () => clearTimeout(t);
   }, [value, onSave]);
 
+  // Autosave du titre (si éditable)
   useEffect(() => {
     if (!onTitleSave) return;
     if (titleVal === lastTitle.current) return;
@@ -83,60 +88,99 @@ export default function NotePanel({
     return () => clearTimeout(t);
   }, [titleVal, onTitleSave]);
 
+  const titleClasses = `${titleBold === false ? "font-semibold" : "font-bold"} ${
+    titleItalic ? "italic" : ""
+  }`;
+  const titleStyle = titleColor ? { color: titleColor } : undefined;
+
   return (
     <div className="fixed inset-0 z-[60] flex justify-end">
       <div
-        className={`absolute inset-0 bg-black/20 transition-opacity duration-200 ${
+        className={`absolute inset-0 bg-black/[0.32] backdrop-blur-[3px] transition-opacity duration-200 ${
           shown ? "opacity-100" : "opacity-0"
         }`}
         onClick={close}
       />
       <div
-        className={`relative flex h-full w-full max-w-lg flex-col bg-white shadow-xl transition-transform duration-200 ease-out ${
+        className={`relative flex h-full w-full max-w-lg flex-col bg-white shadow-float transition-transform duration-200 ease-ios ${
           shown ? "translate-x-0" : "translate-x-full"
         }`}
       >
-        {/* Barre du haut : statut + fermeture */}
-        <div className="flex items-center justify-end gap-2 px-4 pt-3">
-          {status === "saving" && (
-            <Loader2 className="h-3.5 w-3.5 animate-spin text-muted" />
+        {/* Barre du haut : crayon / retour à gauche, statut + fermeture à droite */}
+        <div className="flex items-center justify-between gap-2 px-4 pt-3">
+          {mode === "view" ? (
+            <button
+              onClick={() => setMode("edit")}
+              aria-label="Modifier"
+              title="Modifier"
+              className="flex h-8 w-8 items-center justify-center rounded-[9px] bg-[#F4F4F5] text-ink-soft transition-colors hover:bg-black/10 hover:text-ink"
+            >
+              <Pencil className="h-4 w-4" />
+            </button>
+          ) : (
+            <button
+              onClick={() => setMode("view")}
+              className="inline-flex items-center gap-1.5 rounded-full bg-[#EFF4FF] px-2.5 py-1 text-[11px] font-semibold text-[#1D4ED8] transition-colors hover:bg-[#E0EAFF]"
+            >
+              <Check className="h-3 w-3" />
+              Terminé
+            </button>
           )}
-          {status === "saved" && <Check className="h-3.5 w-3.5 text-success" />}
-          <button
-            onClick={close}
-            aria-label="Fermer"
-            className="rounded-lg p-1.5 text-muted hover:bg-gray-100"
-          >
-            <X className="h-4 w-4" />
-          </button>
+          <div className="flex items-center gap-2">
+            {status === "saving" && (
+              <Loader2 className="h-3.5 w-3.5 animate-spin text-muted" />
+            )}
+            {status === "saved" && (
+              <Check className="h-3.5 w-3.5 text-success" />
+            )}
+            <button
+              onClick={close}
+              aria-label="Fermer"
+              className="rounded-lg p-1.5 text-muted transition-colors hover:bg-gray-100"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          </div>
         </div>
 
         {/* Contenu */}
-        <div className="flex-1 overflow-y-auto px-8 pb-8">
-          {onTitleSave ? (
+        <div className="flex-1 overflow-y-auto px-8 pb-8 pt-2">
+          {mode === "edit" && onTitleSave ? (
             <input
+              autoFocus
               value={titleVal}
               onChange={(e) => setTitleVal(e.target.value)}
-              className={`w-full bg-transparent text-3xl tracking-tight outline-none placeholder:text-muted ${
-                titleBold ? "font-bold" : "font-semibold"
-              } ${titleItalic ? "italic" : ""}`}
-              style={titleColor ? { color: titleColor } : undefined}
+              className={`w-full rounded-lg bg-transparent text-[34px] leading-tight tracking-tight outline-none placeholder:text-muted focus:outline-2 focus:outline-offset-[6px] focus:outline-active/35 ${titleClasses}`}
+              style={titleStyle}
               placeholder="Titre"
             />
           ) : (
-            <h2 className="text-3xl font-semibold tracking-tight">{title}</h2>
+            <h2
+              className={`text-[34px] leading-tight tracking-tight ${titleClasses}`}
+              style={titleStyle}
+            >
+              {titleVal.trim() || <span className="text-muted">Sans titre</span>}
+            </h2>
           )}
 
-          {meta && <div className="mt-4 space-y-2 text-sm">{meta}</div>}
+          {meta && <div className="mt-5 space-y-2 text-sm">{meta}</div>}
 
-          <div className="my-5 border-t border-gray-100" />
+          <div className="my-5 border-t border-black/[0.06]" />
 
-          <textarea
-            value={value}
-            onChange={(e) => setValue(e.target.value)}
-            placeholder="Écris ici... (titres, specs, liens, brief...)"
-            className="min-h-[45vh] w-full resize-none border-0 p-0 text-sm leading-relaxed outline-none placeholder:text-muted"
-          />
+          {mode === "edit" ? (
+            <RichText
+              value={value}
+              onChange={setValue}
+              placeholder="Écris ici… (sélectionne du texte pour le mettre en gras, italique ou en couleur)"
+            />
+          ) : value.trim() ? (
+            <div
+              className="whitespace-pre-wrap text-[15.5px] leading-relaxed text-[#3F3F46] [&_b]:font-semibold"
+              dangerouslySetInnerHTML={{ __html: value }}
+            />
+          ) : (
+            <p className="text-[15.5px] text-muted">Aucun détail.</p>
+          )}
         </div>
 
         {footer && (
