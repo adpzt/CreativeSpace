@@ -1,6 +1,8 @@
 import type { Config } from "tailwindcss";
 
 const config: Config = {
+  // Bascule clair/sombre par classe `dark` sur <html> (appliquée côté serveur).
+  darkMode: "class",
   content: [
     "./pages/**/*.{js,ts,jsx,tsx,mdx}",
     "./components/**/*.{js,ts,jsx,tsx,mdx}",
@@ -14,17 +16,29 @@ const config: Config = {
         sans: ["var(--font-inter)", "system-ui", "sans-serif"],
       },
       colors: {
-        // Texte
-        ink: "#191919", // texte principal (noir doux)
-        "ink-soft": "#52525B", // texte secondaire
-        muted: "#9CA3AF", // gris : archivé, secondaire
+        // Tokens pilotés par variables CSS (voir globals.css :root / .dark).
+        // Forme "rgb(var(--x) / <alpha-value>)" pour garder les modificateurs
+        // d'opacité Tailwind (ex. ring-active/12, border-success/30).
+        // En clair, les valeurs restent IDENTIQUES aux anciens hex.
 
-        // Couleurs FONCTIONNELLES (sémantique conservée)
-        urgent: "#DC2626", // rouge : urgent, retard, alerte
-        success: "#16A34A", // vert : validé, payé, terminé
-        active: "#2563EB", // bleu : en cours, actif
-        pending: "#EA580C", // orange : en attente, à surveiller
-        amber: { DEFAULT: "#D97706" }, // ambre : priorité moyenne (notes)
+        // Neutres de surface / fond
+        bg: "rgb(var(--bg) / <alpha-value>)", // fond de page
+        surface: "rgb(var(--surface) / <alpha-value>)", // surface carte
+        "surface-2": "rgb(var(--surface-2) / <alpha-value>)", // survol / élévation
+        hairline: "var(--hairline)", // bordure fine (alpha déjà inclus)
+        "hairline-strong": "var(--hairline-strong)",
+
+        // Texte
+        ink: "rgb(var(--ink) / <alpha-value>)", // texte principal (noir doux)
+        "ink-soft": "rgb(var(--ink-soft) / <alpha-value>)", // texte secondaire
+        muted: "rgb(var(--muted) / <alpha-value>)", // gris : archivé, secondaire
+
+        // Couleurs FONCTIONNELLES (sémantique conservée, nuance auto en dark)
+        urgent: "rgb(var(--urgent) / <alpha-value>)", // rouge : urgent, retard, alerte
+        success: "rgb(var(--success) / <alpha-value>)", // vert : validé, payé, terminé
+        active: "rgb(var(--active) / <alpha-value>)", // bleu : en cours, actif
+        pending: "rgb(var(--pending) / <alpha-value>)", // orange : en attente
+        amber: "rgb(var(--amber) / <alpha-value>)", // ambre : priorité moyenne (notes)
       },
       boxShadow: {
         card: "0 1px 2px rgba(0,0,0,0.04), 0 6px 16px -8px rgba(0,0,0,0.10)",

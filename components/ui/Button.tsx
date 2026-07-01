@@ -4,11 +4,15 @@ import type { ComponentProps, ReactNode } from "react";
 type Variant = "primary" | "secondary" | "ghost" | "danger";
 
 const VARIANTS: Record<Variant, string> = {
-  primary: "bg-ink text-white hover:bg-[#2A2A2A] hover:-translate-y-px",
+  // Primaire : encre/blanc en clair, s'inverse en pill claire en nuit
+  // (bg-ink = clair en dark, text-bg = sombre en dark). Hover blanc en nuit.
+  primary:
+    "bg-ink text-bg hover:bg-[#2A2A2A] hover:-translate-y-px dark:hover:bg-white",
   secondary:
-    "bg-white text-ink border border-black/[0.12] hover:bg-[#FAFAFA] hover:-translate-y-px",
-  ghost: "text-ink-soft hover:bg-black/5 hover:text-ink",
-  danger: "bg-urgent text-white hover:bg-[#B91C1C] hover:-translate-y-px",
+    "bg-surface text-ink border border-hairline-strong hover:bg-surface-2 hover:-translate-y-px",
+  ghost: "text-ink-soft hover:bg-black/5 hover:text-ink dark:hover:bg-white/[0.06]",
+  danger:
+    "bg-urgent text-white hover:bg-[#B91C1C] hover:-translate-y-px dark:text-[#160404]",
 };
 
 const BASE =

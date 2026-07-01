@@ -3,9 +3,49 @@
 @tailwind utilities;
 
 /*
-  Theme clair uniquement pour la v1 (le dark mode viendra plus tard).
-  Style minimaliste iOS-like : noir sur blanc, couleurs fonctionnelles seulement.
+  Thème clair + sombre. Tokens en variables CSS (canaux RGB, espacés) pour que
+  les modificateurs d'opacité Tailwind marchent : rgb(var(--x) / <alpha-value>).
+  Bascule via la classe `dark` sur <html> (posée côté serveur, sans flash).
+  En clair, les valeurs sont identiques à l'ancien système (noir sur blanc).
 */
+
+:root {
+  /* Neutres - clair */
+  --bg: 255 255 255;
+  --surface: 255 255 255;
+  --surface-2: 246 246 247; /* #F6F6F7 */
+  --ink: 25 25 25; /* #191919 */
+  --ink-soft: 82 82 91; /* #52525B */
+  --muted: 156 163 175; /* #9CA3AF */
+  --hairline: rgba(0, 0, 0, 0.06);
+  --hairline-strong: rgba(0, 0, 0, 0.12);
+
+  /* Fonctionnelles - clair */
+  --active: 37 99 235; /* #2563EB */
+  --success: 22 163 74; /* #16A34A */
+  --pending: 234 88 12; /* #EA580C */
+  --urgent: 220 38 38; /* #DC2626 */
+  --amber: 217 119 6; /* #D97706 */
+}
+
+.dark {
+  /* Neutres - nuit (surfaces montent par la lumière, pas par l'ombre) */
+  --bg: 12 13 16; /* #0C0D10 */
+  --surface: 21 23 27; /* #15171B */
+  --surface-2: 27 30 35; /* #1B1E23 */
+  --ink: 243 244 246; /* #F3F4F6 */
+  --ink-soft: 161 161 170; /* #A1A1AA */
+  --muted: 113 113 122; /* #71717A */
+  --hairline: rgba(255, 255, 255, 0.08);
+  --hairline-strong: rgba(255, 255, 255, 0.12);
+
+  /* Fonctionnelles - nuit (éclaircies pour le contraste sur fond sombre) */
+  --active: 91 157 249; /* #5B9DF9 */
+  --success: 63 207 142; /* #3FCF8E */
+  --pending: 245 146 78; /* #F5924E */
+  --urgent: 242 109 109; /* #F26D6D */
+  --amber: 242 178 74; /* #F2B24A */
+}
 
 html {
   -webkit-font-smoothing: antialiased;
@@ -14,18 +54,35 @@ html {
 
 body {
   font-family: var(--font-inter), system-ui, -apple-system, sans-serif;
-  background-color: #ffffff;
-  color: #191919;
+  background-color: rgb(var(--bg));
+  color: rgb(var(--ink));
+}
+
+/* Surfaces à dégradé (cartes / feuilles) : unie en clair, montée en nuit */
+.cs-card-surface {
+  background: rgb(var(--surface));
+}
+.dark .cs-card-surface {
+  background: linear-gradient(180deg, #1a1d22, #141519);
+}
+
+/* Verre dépoli des barres (sidebar / header / bottom-nav) */
+.cs-glass {
+  background: rgba(255, 255, 255, 0.7);
+}
+.dark .cs-glass {
+  background: rgba(18, 20, 24, 0.55);
 }
 
 /* On évite le zoom auto sur les inputs au focus sur iOS (taille mini 16px).
-   Fond blanc par défaut (Tailwind preflight rend les champs transparents, ce qui
-   les ferait apparaître gris sur le canvas). Les classes bg-* explicites priment. */
+   Fond = surface du thème (blanc en clair, sombre en nuit). Les classes bg-*
+   explicites priment (spécificité classe > élément). */
 input,
 textarea,
 select {
   font-size: 16px;
-  background-color: #ffffff;
+  background-color: rgb(var(--surface));
+  color: rgb(var(--ink));
 }
 
 @layer utilities {

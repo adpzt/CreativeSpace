@@ -11,7 +11,7 @@ export default function BottomNav() {
   const items = NAV_ITEMS.filter((item) => item.primary);
 
   return (
-    <nav className="fixed bottom-0 left-0 z-30 flex w-full items-center justify-around border-t border-black/[0.06] bg-white/70 pb-[env(safe-area-inset-bottom)] backdrop-blur-xl backdrop-saturate-150 md:hidden">
+    <nav className="cs-glass fixed bottom-0 left-0 z-30 flex w-full items-center justify-around border-t border-hairline pb-[env(safe-area-inset-bottom)] backdrop-blur-xl backdrop-saturate-150 md:hidden">
       {items.map((item) => {
         const active = isActive(item.href, pathname);
         const Icon = item.icon;
