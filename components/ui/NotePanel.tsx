@@ -32,7 +32,6 @@ export default function NotePanel({
   titleItalic?: boolean;
   titleColor?: string | null;
 }) {
-  const [shown, setShown] = useState(false);
   const [mode, setMode] = useState<"view" | "edit">("view");
   const [value, setValue] = useState(initialValue);
   const [titleVal, setTitleVal] = useState(title);
@@ -41,12 +40,10 @@ export default function NotePanel({
   const lastTitle = useRef(title);
 
   function close() {
-    setShown(false);
-    setTimeout(onClose, 200);
+    onClose();
   }
 
   useEffect(() => {
-    setShown(true);
     document.body.style.overflow = "hidden";
     function onKey(e: KeyboardEvent) {
       if (e.key === "Escape") close();
@@ -94,18 +91,16 @@ export default function NotePanel({
   const titleStyle = titleColor ? { color: titleColor } : undefined;
 
   return (
-    <div className="fixed inset-0 z-[60] flex justify-end">
+    <div
+      className="fixed inset-0 z-[100] flex items-end justify-center bg-black/[0.32] backdrop-blur-[3px] animate-fade-in sm:items-center sm:p-4"
+      onClick={close}
+    >
       <div
-        className={`absolute inset-0 bg-black/[0.32] dark:bg-black/55 backdrop-blur-[3px] transition-opacity duration-200 ${
-          shown ? "opacity-100" : "opacity-0"
-        }`}
-        onClick={close}
-      />
-      <div
-        className={`relative flex h-full w-full max-w-lg flex-col bg-white dark:bg-surface shadow-float dark:shadow-[0_30px_70px_-14px_rgba(0,0,0,0.8)] transition-transform duration-200 ease-ios ${
-          shown ? "translate-x-0" : "translate-x-full"
-        }`}
+        onClick={(e) => e.stopPropagation()}
+        className="animate-sheet relative flex max-h-[92vh] w-full max-w-lg flex-col overflow-hidden rounded-t-3xl bg-white shadow-float sm:rounded-3xl"
       >
+        {/* Poignée façon feuille iOS (mobile) */}
+        <div className="mx-auto mt-3 h-[5px] w-10 shrink-0 rounded-full bg-black/[0.12] sm:hidden" />
         {/* Barre du haut : crayon / retour à gauche, statut + fermeture à droite */}
         <div className="flex items-center justify-between gap-2 px-4 pt-3">
           {mode === "view" ? (
