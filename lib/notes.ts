@@ -11,3 +11,14 @@ export const PRIORITIES: Record<
 };
 
 export const PRIORITY_ORDER: NotePriority[] = ["haute", "moyenne", "basse"];
+
+// Le contenu d'une note peut contenir du HTML simple (gras/italique/couleur).
+// Pour les aperçus (cartes, suggestions calendrier), on enlève les balises.
+export function stripHtml(html: string): string {
+  return html
+    .replace(/<br\s*\/?>/gi, "\n")
+    .replace(/<[^>]*>/g, "")
+    .replace(/&nbsp;/g, " ")
+    .replace(/&amp;/g, "&")
+    .trim();
+}

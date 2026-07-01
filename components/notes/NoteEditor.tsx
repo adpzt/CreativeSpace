@@ -6,6 +6,7 @@ import { Trash2, Flag, Tag, CalendarClock, Pencil } from "lucide-react";
 import { format, parseISO } from "date-fns";
 import { fr } from "date-fns/locale";
 import { Button } from "@/components/ui/Button";
+import RichText from "@/components/notes/RichText";
 import { PRIORITIES, PRIORITY_ORDER } from "@/lib/notes";
 import type { Note, NotePriority } from "@/app/(main)/notes/actions";
 
@@ -128,9 +129,10 @@ export default function NoteEditor({
 
         <div className="mt-5 border-t border-gray-100 pt-5">
           {current.content?.trim() ? (
-            <p className="whitespace-pre-wrap text-sm leading-relaxed">
-              {current.content}
-            </p>
+            <div
+              className="text-sm leading-relaxed [&_b]:font-semibold"
+              dangerouslySetInnerHTML={{ __html: current.content }}
+            />
           ) : (
             <p className="text-sm text-muted">Aucun détail.</p>
           )}
@@ -205,12 +207,10 @@ export default function NoteEditor({
       </div>
 
       <div className="border-t border-gray-100 pt-4">
-        <textarea
+        <RichText
           value={content}
-          onChange={(e) => setContent(e.target.value)}
-          rows={7}
-          placeholder="Écris ici… (détails, sous-tâches, liens)"
-          className="min-h-[28vh] w-full resize-none border-0 bg-transparent p-0 text-sm leading-relaxed outline-none placeholder:text-muted"
+          onChange={setContent}
+          placeholder="Écris ici… (sélectionne du texte pour le mettre en gras, italique ou en couleur)"
         />
       </div>
 

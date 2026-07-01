@@ -57,6 +57,7 @@ import type {
   ProjectWithDeliverables,
 } from "@/lib/types";
 import type { Note } from "@/app/(main)/notes/actions";
+import { stripHtml } from "@/lib/notes";
 
 const iso = (d: Date) => format(d, "yyyy-MM-dd");
 
@@ -464,6 +465,19 @@ export default function CalendarSection({
         </div>
 
         <div className="flex items-center gap-2">
+          {view === "week" && (
+            <button
+              onClick={() => setShowWeekend((s) => !s)}
+              className="hidden items-center gap-1 rounded-lg border border-gray-200 px-2.5 py-1 text-xs font-medium text-muted transition-colors hover:border-ink hover:text-ink md:inline-flex"
+            >
+              {showWeekend ? (
+                <ChevronsLeft className="h-3.5 w-3.5" />
+              ) : (
+                <ChevronsRight className="h-3.5 w-3.5" />
+              )}
+              Week-end
+            </button>
+          )}
           <div className="flex rounded-lg bg-gray-100 p-0.5 text-xs font-medium">
             <button
               onClick={() => setView("week")}
@@ -530,13 +544,9 @@ export default function CalendarSection({
               {CALENDAR_CATEGORIES.map((cat) => (
                 <div key={cat.key} className="contents">
                   <div
-                    className="flex items-center gap-1.5 border-b border-r border-gray-100 bg-gray-50 px-3 py-2 text-sm font-semibold"
+                    className="flex items-center border-b border-r border-gray-100 bg-gray-50 px-4 py-2 text-sm font-semibold"
                     style={{ color: cat.color }}
                   >
-                    <span
-                      className="h-2 w-2 shrink-0 rounded-full"
-                      style={{ backgroundColor: cat.color }}
-                    />
                     {cat.label}
                   </div>
                   {days.map((d) => (
@@ -559,17 +569,6 @@ export default function CalendarSection({
               ))}
               </div>
             </div>
-            <button
-              onClick={() => setShowWeekend((s) => !s)}
-              aria-label={showWeekend ? "Masquer le week-end" : "Voir le week-end"}
-              className="flex w-7 shrink-0 items-center justify-center rounded-lg border border-gray-100 text-muted transition-colors hover:bg-gray-50 hover:text-ink"
-            >
-              {showWeekend ? (
-                <ChevronsLeft className="h-4 w-4" />
-              ) : (
-                <ChevronsRight className="h-4 w-4" />
-              )}
-            </button>
           </div>
 
           <DragOverlay>
@@ -614,13 +613,9 @@ export default function CalendarSection({
                   {CALENDAR_CATEGORIES.map((cat) => (
                     <div key={cat.key} className="flex items-start gap-2 px-2 py-2">
                       <span
-                        className="mt-1 inline-flex w-20 shrink-0 items-center gap-1 text-[11px] font-semibold"
+                        className="mt-1 inline-flex w-20 shrink-0 items-center text-[11px] font-semibold"
                         style={{ color: cat.color }}
                       >
-                        <span
-                          className="h-1.5 w-1.5 shrink-0 rounded-full"
-                          style={{ backgroundColor: cat.color }}
-                        />
                         {cat.label}
                       </span>
                       <Cell
@@ -689,7 +684,8 @@ export default function CalendarSection({
               setAddCtx(null);
             }}
             onPickNote={(n) => {
-              const t = n.title?.trim() || n.content.split("\n")[0] || "Note";
+              const t =
+                n.title?.trim() || stripHtml(n.content || "").split("\n")[0] || "Note";
               create(addCtx.dayIso, addCtx.cat, t);
               setAddCtx(null);
             }}
@@ -1039,7 +1035,9 @@ function AddEntry({
                 >
                   <span className="h-2.5 w-2.5 shrink-0 rounded-full bg-[#EA580C]" />
                   <span className="flex-1 truncate">
-                    {n.title?.trim() || n.content.split("\n")[0] || "Note"}
+                    {n.title?.trim() ||
+                      stripHtml(n.content || "").split("\n")[0] ||
+                      "Note"}
                   </span>
                   {n.theme && (
                     <span className="shrink-0 text-xs text-muted">{n.theme}</span>

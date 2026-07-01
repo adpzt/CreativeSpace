@@ -16,7 +16,7 @@ import {
   emptyTrash,
   type Note,
 } from "./actions";
-import { PRIORITIES } from "@/lib/notes";
+import { PRIORITIES, stripHtml } from "@/lib/notes";
 
 const emptyNote = (): Note => ({
   id: "",
@@ -277,10 +277,11 @@ function NoteCard({
   onDelete: () => void;
 }) {
   const pr = PRIORITIES[note.priority];
-  const title = note.title?.trim() || note.content.split("\n")[0] || "Note";
+  const plain = stripHtml(note.content || "");
+  const title = note.title?.trim() || plain.split("\n")[0] || "Note";
   const preview = note.title?.trim()
-    ? note.content.trim()
-    : note.content.split("\n").slice(1).join(" ").trim();
+    ? plain
+    : plain.split("\n").slice(1).join(" ").trim();
   const due = note.due_date ? parseISO(note.due_date) : null;
   const overdue = due && !note.done && isPast(due) && !isToday(due);
 
