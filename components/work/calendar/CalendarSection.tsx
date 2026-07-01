@@ -510,70 +510,71 @@ export default function CalendarSection({
           onDragStart={onDragStart}
           onDragEnd={onDragEnd}
         >
-          {/* Desktop : grille jours x catégories */}
-          <div className="hidden items-stretch gap-1.5 md:flex">
-            <div className="flex-1 overflow-x-auto">
+          {/* Desktop : board avec tuiles (jours x catégories) */}
+          <div className="hidden md:block">
+            <div className="overflow-x-auto rounded-[20px] border border-black/[0.05] bg-[#FCFCFD] p-4">
               <div
-                className="grid rounded-2xl border-l border-t border-gray-100 bg-white"
+                className="grid gap-2"
                 style={{
-                  gridTemplateColumns: `100px repeat(${days.length}, minmax(0, 1fr))`,
+                  gridTemplateColumns: `132px repeat(${days.length}, minmax(0, 1fr))`,
                   minWidth: showWeekend ? 920 : undefined,
                 }}
               >
-                <div className="border-b border-r border-gray-100 bg-gray-50" />
-              {days.map((d) => (
-                <div
-                  key={iso(d)}
-                  className={`border-b border-r border-gray-100 px-2 py-2 text-center ${
-                    isToday(d) ? "bg-blue-50" : "bg-gray-50"
-                  }`}
-                >
-                  <p className="text-[11px] uppercase text-muted">
-                    {format(d, "EEE", { locale: fr })}
-                  </p>
-                  <p
-                    className={`text-sm font-semibold ${
-                      isToday(d) ? "text-active" : ""
-                    }`}
-                  >
-                    {format(d, "d")}
-                  </p>
-                </div>
-              ))}
-
-              {CALENDAR_CATEGORIES.map((cat) => (
-                <div key={cat.key} className="contents">
-                  <div
-                    className="flex items-center border-b border-r border-gray-100 bg-gray-50 px-4 py-2 text-sm font-semibold"
-                    style={{ color: cat.color }}
-                  >
-                    {cat.label}
+                <div />
+                {days.map((d) => (
+                  <div key={iso(d)} className="px-1 pb-1 text-center">
+                    <p className="text-[11px] font-medium uppercase tracking-wide text-muted">
+                      {format(d, "EEE", { locale: fr })}
+                    </p>
+                    <div className="mt-1">
+                      {isToday(d) ? (
+                        <span className="inline-flex items-center justify-center rounded-full bg-ink px-[10px] py-[3px] text-[12px] font-bold text-white">
+                          {format(d, "d")}
+                        </span>
+                      ) : (
+                        <span className="text-sm font-semibold">
+                          {format(d, "d")}
+                        </span>
+                      )}
+                    </div>
                   </div>
-                  {days.map((d) => (
-                    <Cell
-                      key={cat.key + iso(d)}
-                      dayIso={iso(d)}
-                      cat={cat.key}
-                      blocks={cellBlocks(iso(d), cat.key)}
-                      colorForBlock={colorForBlock}
-                      className="min-h-[112px] border-b border-r border-gray-100 p-1.5"
-                      onAdd={() => setAddCtx({ dayIso: iso(d), cat: cat.key })}
-                      onOpen={(id) => setNoteBlockId(id)}
-                      onToggle={(id) => {
-                        const b = blocks.find((x) => x.id === id);
-                        if (b) toggle(b);
-                      }}
-                    />
-                  ))}
-                </div>
-              ))}
+                ))}
+
+                {CALENDAR_CATEGORIES.map((cat) => (
+                  <div key={cat.key} className="contents">
+                    <div className="flex items-center">
+                      <span
+                        className="flex items-center rounded-xl border border-black/[0.06] bg-white px-[14px] py-2 text-[13px] font-semibold shadow-card"
+                        style={{ color: cat.color }}
+                      >
+                        {cat.label}
+                      </span>
+                    </div>
+                    {days.map((d) => (
+                      <Cell
+                        key={cat.key + iso(d)}
+                        dayIso={iso(d)}
+                        cat={cat.key}
+                        blocks={cellBlocks(iso(d), cat.key)}
+                        colorForBlock={colorForBlock}
+                        className="min-h-[92px] rounded-xl border border-black/[0.035] bg-[#F1F1F4] p-[7px]"
+                        onAdd={() => setAddCtx({ dayIso: iso(d), cat: cat.key })}
+                        onOpen={(id) => setNoteBlockId(id)}
+                        onToggle={(id) => {
+                          const b = blocks.find((x) => x.id === id);
+                          if (b) toggle(b);
+                        }}
+                      />
+                    ))}
+                  </div>
+                ))}
               </div>
             </div>
           </div>
 
           <DragOverlay>
             {activeBlock ? (
-              <div className="rounded-lg border border-gray-200 bg-white px-2 py-1 text-xs shadow-md">
+              <div className="rounded-[9px] bg-white px-[10px] py-2 text-[12.5px] font-semibold text-ink shadow-float">
                 {activeBlock.title}
               </div>
             ) : null}
@@ -646,7 +647,7 @@ export default function CalendarSection({
 
           <DragOverlay>
             {activeBlock ? (
-              <div className="rounded-lg border border-gray-200 bg-white px-2 py-1 text-xs shadow-md">
+              <div className="rounded-[9px] bg-white px-[10px] py-2 text-[12.5px] font-semibold text-ink shadow-float">
                 {activeBlock.title}
               </div>
             ) : null}
@@ -855,7 +856,7 @@ function DraggableChip({
       {...listeners}
       onClick={handleClick}
       style={style}
-      className="flex cursor-grab touch-none select-none items-start gap-1.5 rounded-lg px-2 py-1 text-xs transition-colors hover:bg-gray-50"
+      className="flex cursor-grab touch-none select-none items-start gap-2 rounded-[9px] bg-white px-[10px] py-2 text-[12.5px] font-semibold text-ink shadow-chip transition duration-[180ms] ease-ios hover:-translate-y-0.5"
     >
       {projectColor && (
         <span
