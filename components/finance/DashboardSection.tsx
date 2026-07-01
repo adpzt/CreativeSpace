@@ -182,12 +182,14 @@ export default function DashboardSection({
       )}
 
       {/* Règle d'encaissement (lève la confusion juin/juillet) */}
-      <p className="mt-3 flex items-start gap-1.5 text-xs text-muted">
+      <div className="mt-3 flex items-start gap-1.5 text-xs text-muted">
         <Info className="mt-0.5 h-3.5 w-3.5 shrink-0" />
-        Tout est compté au mois où l&apos;argent est <strong>encaissé</strong> (date de
-        réception), pas au mois de la facture. Un devis de juin payé en juillet compte
-        en juillet. L&apos;« en attente » ne compte nulle part tant qu&apos;il n&apos;est pas reçu.
-      </p>
+        <span>
+          Tout est compté au mois de l&apos;encaissement (date de réception), pas au
+          mois de la facture : un devis de juin payé en juillet compte en juillet.
+          L&apos;« en attente » ne compte nulle part tant qu&apos;il n&apos;est pas reçu.
+        </span>
+      </div>
     </section>
   );
 }

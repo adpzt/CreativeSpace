@@ -12,9 +12,10 @@ import type { Payment } from "@/lib/types";
 // Seuils de chiffre d'affaires à surveiller (purement freelance / micro-BNC).
 export default function SeuilsSection({ payments }: { payments: Payment[] }) {
   const y = String(new Date().getFullYear());
+  // Les seuils (micro-BNC, TVA) portent sur le CA FACTURÉ (brut), pas le net.
   const caYear = payments
     .filter((p) => p.status === "paid" && p.received_date?.startsWith(y))
-    .reduce((s, p) => s + (p.net_amount ?? 0), 0);
+    .reduce((s, p) => s + (p.gross_amount ?? p.net_amount ?? 0), 0);
 
   return (
     <section>

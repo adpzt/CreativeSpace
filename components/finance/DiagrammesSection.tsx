@@ -47,16 +47,35 @@ export default function DiagrammesSection({
     (p) => p.status === "paid" && p.received_date?.startsWith(y)
   );
 
-  // --- CA par provenance ---
+  // Argent réellement encaissé par revenu = net perçu MOINS les dépenses de la
+  // mission liée (déduites une seule fois par projet). Plancher à 0 pour l'affichage.
+  const missionExpOf = (projectId: string | null) => {
+    if (!projectId) return 0;
+    const proj = projects.find((x) => x.id === projectId);
+    return (proj?.mission_expenses ?? []).reduce((s, e) => s + (e.amount ?? 0), 0);
+  };
+  const earnedMap = new Map<string, number>();
+  const consumed = new Set<string>();
+  for (const p of paid) {
+    let e = net(p);
+    if (p.project_id && !consumed.has(p.project_id)) {
+      e -= missionExpOf(p.project_id);
+      consumed.add(p.project_id);
+    }
+    earnedMap.set(p.id, Math.max(0, e));
+  }
+  const earned = (p: Payment) => earnedMap.get(p.id) ?? net(p);
+
+  // --- Argent par provenance ---
   const bySource: Datum[] = PAYMENT_SOURCES.map((s) => ({
     name: s.label,
     value: paid
       .filter((p) => p.source === s.key)
-      .reduce((a, p) => a + net(p), 0),
+      .reduce((a, p) => a + earned(p), 0),
   })).filter((d) => d.value > 0);
   const noSource = paid
     .filter((p) => !p.source)
-    .reduce((a, p) => a + net(p), 0);
+    .reduce((a, p) => a + earned(p), 0);
   if (noSource > 0) bySource.push({ name: "Non précisée", value: noSource });
 
   // --- CA par type de mission ---
@@ -65,13 +84,13 @@ export default function DiagrammesSection({
   const typeTotals: Record<string, number> = {};
   for (const p of paid) {
     if (p.mission_type) {
-      typeTotals[p.mission_type] = (typeTotals[p.mission_type] ?? 0) + net(p);
+      typeTotals[p.mission_type] = (typeTotals[p.mission_type] ?? 0) + earned(p);
       continue;
     }
     const proj = projects.find((x) => x.id === p.project_id);
     const types =
       proj && proj.mission_types?.length ? proj.mission_types : ["Non précisé"];
-    const share = net(p) / types.length;
+    const share = earned(p) / types.length;
     for (const t of types) typeTotals[t] = (typeTotals[t] ?? 0) + share;
   }
   const byType: Datum[] = Object.entries(typeTotals)
@@ -86,7 +105,7 @@ export default function DiagrammesSection({
       name,
       value: paid
         .filter((p) => p.received_date?.startsWith(mym))
-        .reduce((a, p) => a + net(p), 0),
+        .reduce((a, p) => a + earned(p), 0),
     };
   });
 
@@ -96,7 +115,9 @@ export default function DiagrammesSection({
     <section>
       <div className="mb-4">
         <h2 className="text-xl font-semibold tracking-tight">Diagrammes</h2>
-        <p className="text-sm text-muted">CA encaissé {year}</p>
+        <p className="text-sm text-muted">
+          Argent réellement encaissé {year} (net des dépenses de mission)
+        </p>
       </div>
 
       {!hasData ? (
@@ -107,17 +128,17 @@ export default function DiagrammesSection({
       ) : (
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
           <ChartCard
-            title="CA par provenance"
+            title="Argent par provenance"
             data={bySource}
             kind="pie"
           />
           <ChartCard
-            title="CA par type de mission"
+            title="Argent par type de mission"
             data={byType}
             kind="pie"
           />
           <ChartCard
-            title="CA par mois"
+            title="Argent par mois"
             data={byMonth}
             kind="bar"
             className="lg:col-span-2"

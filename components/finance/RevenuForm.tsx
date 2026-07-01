@@ -177,16 +177,19 @@ export default function RevenuForm({
       </div>
 
       <div>
-        <label className={labelClass}>Argent gagné (€)</label>
+        <label className={labelClass}>Prix facturé (devis) (€)</label>
         <input
-          value={net}
-          onChange={(e) => setNet(e.target.value)}
+          value={gross}
+          onChange={(e) => setGross(e.target.value)}
           type="number"
           min={0}
           step="any"
-          placeholder="790"
+          placeholder="898"
           className={inputClass}
         />
+        <p className="mt-1 text-[11px] text-muted">
+          Le montant du devis. C&apos;est lui qui compte pour l&apos;URSSAF, l&apos;impôt et les seuils.
+        </p>
         <button
           type="button"
           onClick={() => setShowDetail((d) => !d)}
@@ -201,16 +204,20 @@ export default function RevenuForm({
         </button>
         {showDetail && (
           <div className="mt-3">
-            <label className={labelClass}>Prix sur le devis (€)</label>
+            <label className={labelClass}>Argent réellement touché (net) (€)</label>
             <input
-              value={gross}
-              onChange={(e) => setGross(e.target.value)}
+              value={net}
+              onChange={(e) => setNet(e.target.value)}
               type="number"
               min={0}
               step="any"
-              placeholder="898"
+              placeholder="790"
               className={inputClass}
             />
+            <p className="mt-1 text-[11px] text-muted">
+              Ce qui reste après commission (Malt…). Sert à ton « argent gagné » réel,
+              pas au fiscal.
+            </p>
           </div>
         )}
       </div>
