@@ -58,12 +58,13 @@ export default function UrssafSection({
   const [view, setView] = useState<View>("mois");
   const [focus, setFocus] = useState({ y: curY, m: curM });
 
-  // CA encaissé (net, freelance) d'un mois donné = base à déclarer
+  // CA à déclarer d'un mois = montant FACTURÉ (brut) des paiements encaissés ce
+  // mois-là. L'URSSAF se calcule sur le facturé, pas sur le net après commission.
   const encaisseOf = (y: number, m: number) => {
     const ym = `${y}-${String(m).padStart(2, "0")}`;
     return payments
       .filter((p) => p.status === "paid" && p.received_date?.startsWith(ym))
-      .reduce((s, p) => s + (p.net_amount ?? 0), 0);
+      .reduce((s, p) => s + (p.gross_amount ?? p.net_amount ?? 0), 0);
   };
   const rowOf = (y: number, m: number) =>
     rows.find((r) => r.year === y && r.month === m);
@@ -85,7 +86,7 @@ export default function UrssafSection({
     const m = Number(p.received_date.slice(5, 7));
     const key = `${y}-${m}`;
     const cur = allMonths.get(key) ?? { y, m, enc: 0 };
-    cur.enc += p.net_amount ?? 0;
+    cur.enc += p.gross_amount ?? p.net_amount ?? 0;
     allMonths.set(key, cur);
   }
   const monthsList = Array.from(allMonths.values());
@@ -195,7 +196,7 @@ export default function UrssafSection({
 
       {view === "debut" && (
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-          <RecapCard label="CA encaissé (total)" value={formatEuro(totalEncaisse)} />
+          <RecapCard label="CA facturé (total)" value={formatEuro(totalEncaisse)} />
           <RecapCard
             label="URSSAF estimée (total)"
             value={formatEuro(totalUrssaf)}
@@ -231,10 +232,11 @@ function Tuto() {
       {show && (
         <div className="space-y-3 border-t border-gray-100 px-4 py-3 text-sm text-gray-600">
           <p>
-            Le <strong>CA à déclarer</strong> = les sommes effectivement encaissées
-            dans le mois pour ton activité freelance (ce qui est tombé sur ton
-            compte). Pas le salaire, pas les devis non payés. Comme tu es en
-            franchise de TVA, c&apos;est un montant sans TVA. On te le pré-calcule.
+            Le <strong>CA à déclarer</strong> = le montant <strong>facturé</strong>{" "}
+            (le prix du devis, ex. 898 €) des missions encaissées dans le mois — pas
+            le net reçu après commission de plateforme. Pas le salaire, pas les devis
+            non payés. Comme tu es en franchise de TVA, c&apos;est un montant sans TVA.
+            On te le pré-calcule.
           </p>
           <ol className="list-inside list-decimal space-y-1">
             <li>Aller sur autoentrepreneur.urssaf.fr</li>
@@ -306,7 +308,7 @@ function MonthCard({
       </div>
       <div className="space-y-0.5 text-sm">
         <p className="flex items-center justify-between">
-          <span className="text-muted">CA encaissé</span>
+          <span className="text-muted">CA facturé</span>
           <span className="font-medium">{formatEuro(encaisse)}</span>
         </p>
         <p className="flex items-center justify-between">

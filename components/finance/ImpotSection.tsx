@@ -28,14 +28,15 @@ export default function ImpotSection({
   const now = new Date();
   const y = String(now.getFullYear());
   const ym = `${y}-${String(now.getMonth() + 1).padStart(2, "0")}`;
-  const net = (p: Payment) => p.net_amount ?? 0;
+  // CA fiscal = montant FACTURÉ (brut) ; l'abattement micro-BNC s'applique au CA.
+  const ca = (p: Payment) => p.gross_amount ?? p.net_amount ?? 0;
 
   const caYear = payments
     .filter((p) => p.status === "paid" && p.received_date?.startsWith(y))
-    .reduce((s, p) => s + net(p), 0);
+    .reduce((s, p) => s + ca(p), 0);
   const caMonth = payments
     .filter((p) => p.status === "paid" && p.received_date?.startsWith(ym))
-    .reduce((s, p) => s + net(p), 0);
+    .reduce((s, p) => s + ca(p), 0);
 
   const revenuImposableFreelance = caYear * (1 - MICRO_BNC_ABATTEMENT);
   const revenuImposableTotal = revenuImposableFreelance + salaryTaxable;

@@ -106,7 +106,8 @@ export default async function HomePage() {
         p.status === "paid" &&
         p.received_date?.startsWith(`${prevY}-${String(prevM).padStart(2, "0")}`)
     )
-    .reduce((s, p) => s + (p.net_amount ?? 0), 0);
+    // Base URSSAF = montant facturé (brut)
+    .reduce((s, p) => s + (p.gross_amount ?? p.net_amount ?? 0), 0);
   const prevDeclared = urssaf.find(
     (r) => r.year === prevY && r.month === prevM && r.completed
   );

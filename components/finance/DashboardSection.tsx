@@ -51,10 +51,16 @@ export default function DashboardSection({
   const [focus, setFocus] = useState({ y: curY, m: curM });
 
   const net = (p: Payment) => p.net_amount ?? 0;
+  // Base URSSAF = montant FACTURÉ (brut), pas le net après commission
+  const gross = (p: Payment) => p.gross_amount ?? p.net_amount ?? 0;
   const paidIn = (prefix: string) =>
     payments
       .filter((p) => p.status === "paid" && p.received_date?.startsWith(prefix))
       .reduce((s, p) => s + net(p), 0);
+  const grossIn = (prefix: string) =>
+    payments
+      .filter((p) => p.status === "paid" && p.received_date?.startsWith(prefix))
+      .reduce((s, p) => s + gross(p), 0);
   const depIn = (prefix: string) =>
     expenses
       .filter((e) => e.date?.startsWith(prefix))
@@ -74,7 +80,7 @@ export default function DashboardSection({
     const ym = `${focus.y}-${String(focus.m).padStart(2, "0")}`;
     ca = paidIn(ym);
     dep = depIn(ym);
-    urssaf = ca * urssafRate(focus.y, focus.m);
+    urssaf = grossIn(ym) * urssafRate(focus.y, focus.m);
     periodLabel = `${MONTHS[focus.m - 1]} ${focus.y}`;
   } else {
     const y = String(curY);
@@ -82,7 +88,7 @@ export default function DashboardSection({
     dep = depIn(y);
     urssaf = 0;
     for (let m = 1; m <= 12; m++) {
-      urssaf += paidIn(`${y}-${String(m).padStart(2, "0")}`) * urssafRate(curY, m);
+      urssaf += grossIn(`${y}-${String(m).padStart(2, "0")}`) * urssafRate(curY, m);
     }
     periodLabel = `Année ${curY}`;
   }
