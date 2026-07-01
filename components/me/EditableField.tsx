@@ -10,11 +10,14 @@ export default function EditableField({
   settingKey,
   initial,
   suffix,
+  flat,
 }: {
   label: string;
   settingKey: string;
   initial: string;
   suffix?: string;
+  // flat = ligne simple (label + valeur + copier), sans carte (profil Freelance)
+  flat?: boolean;
 }) {
   const [value, setValue] = useState(initial);
   const [editing, setEditing] = useState(false);
@@ -41,8 +44,12 @@ export default function EditableField({
   }
 
   return (
-    <div className="rounded-2xl border border-gray-100 dark:border-hairline bg-white dark:bg-surface p-4">
-      <p className="mb-1 text-xs font-medium uppercase tracking-wide text-muted">
+    <div
+      className={
+        flat ? "" : "rounded-2xl border border-black/[0.06] bg-white p-4"
+      }
+    >
+      <p className="mb-1 text-[11px] font-medium uppercase tracking-wide text-muted">
         {label}
       </p>
       {editing ? (
@@ -58,7 +65,7 @@ export default function EditableField({
               setEditing(false);
             }
           }}
-          className="w-full rounded-lg border border-gray-200 dark:border-hairline px-2.5 py-1.5 text-sm outline-none focus:border-active focus:ring-4 focus:ring-active/12"
+          className="w-full rounded-lg border border-black/10 px-2.5 py-1.5 text-sm outline-none focus:border-active focus:ring-4 focus:ring-active/12"
         />
       ) : (
         <div className="flex items-center gap-2">
@@ -75,7 +82,7 @@ export default function EditableField({
               setEditing(true);
             }}
             aria-label="Modifier"
-            className="rounded-lg p-1.5 text-muted hover:bg-gray-100 dark:hover:bg-white/[0.06] hover:text-ink"
+            className="rounded-lg p-1.5 text-muted transition-colors hover:bg-black/5 hover:text-ink"
           >
             <Pencil className="h-3.5 w-3.5" />
           </button>
@@ -84,10 +91,16 @@ export default function EditableField({
               onClick={copy}
               aria-label="Copier"
               className={`rounded-lg p-1.5 transition-colors ${
-                copied ? "text-success" : "text-muted hover:bg-gray-100 dark:hover:bg-white/[0.06] hover:text-ink"
+                copied
+                  ? "text-success"
+                  : "text-muted hover:bg-black/5 hover:text-ink"
               }`}
             >
-              {copied ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
+              {copied ? (
+                <Check className="h-3.5 w-3.5" />
+              ) : (
+                <Copy className="h-3.5 w-3.5" />
+              )}
             </button>
           )}
         </div>

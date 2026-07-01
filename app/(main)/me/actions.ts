@@ -28,5 +28,5 @@ export async function setMeSetting(key: string, value: string): Promise<void> {
     .from("profile")
     .upsert({ key, value }, { onConflict: "key" });
   if (error) throw new Error(error.message);
-  revalidatePath("/me");
+  revalidatePath("/freelance");
 }
