@@ -290,11 +290,13 @@ function NoteCard({
 
   return (
     <li
-      className="flex items-stretch overflow-hidden rounded-2xl border border-gray-100 bg-white"
+      className={`flex items-stretch overflow-hidden rounded-2xl border transition-shadow hover:shadow-md ${
+        note.done ? "border-gray-100 bg-white" : "shadow-sm"
+      }`}
       style={
         note.done
           ? undefined
-          : { borderLeft: `4px solid ${pr.color}` }
+          : { backgroundColor: `${pr.color}12`, borderColor: `${pr.color}33` }
       }
     >
       <div className="flex flex-1 items-start gap-3 p-3.5">

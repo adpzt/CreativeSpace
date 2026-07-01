@@ -540,11 +540,20 @@ export default function CalendarSection({
 
               {CALENDAR_CATEGORIES.map((cat) => (
                 <div key={cat.key} className="contents">
-                  <div
-                    className="flex items-center border-b border-r border-gray-100 px-3 py-2 text-sm font-semibold"
-                    style={{ color: cat.color, backgroundColor: `${cat.color}0F` }}
-                  >
-                    {cat.label}
+                  <div className="flex items-center border-b border-r border-gray-100 p-2">
+                    <span
+                      className="inline-flex items-center gap-1.5 rounded-xl px-2.5 py-1.5 text-sm font-semibold shadow-sm"
+                      style={{
+                        color: cat.color,
+                        background: `linear-gradient(135deg, ${cat.color}24, ${cat.color}0A)`,
+                      }}
+                    >
+                      <span
+                        className="h-2 w-2 rounded-full"
+                        style={{ backgroundColor: cat.color }}
+                      />
+                      {cat.label}
+                    </span>
                   </div>
                   {days.map((d) => (
                     <Cell
@@ -621,9 +630,16 @@ export default function CalendarSection({
                   {CALENDAR_CATEGORIES.map((cat) => (
                     <div key={cat.key} className="flex items-start gap-2 px-2 py-2">
                       <span
-                        className="mt-1 w-16 shrink-0 text-[11px] font-semibold"
-                        style={{ color: cat.color }}
+                        className="mt-0.5 inline-flex shrink-0 items-center gap-1 rounded-lg px-2 py-1 text-[11px] font-semibold"
+                        style={{
+                          color: cat.color,
+                          background: `linear-gradient(135deg, ${cat.color}24, ${cat.color}0A)`,
+                        }}
                       >
+                        <span
+                          className="h-1.5 w-1.5 rounded-full"
+                          style={{ backgroundColor: cat.color }}
+                        />
                         {cat.label}
                       </span>
                       <Cell

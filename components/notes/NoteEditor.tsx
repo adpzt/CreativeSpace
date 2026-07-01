@@ -1,15 +1,32 @@
 "use client";
 
 import { useState } from "react";
-import { Trash2 } from "lucide-react";
+import type { ReactNode } from "react";
+import { Trash2, Flag, Tag, CalendarClock } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { PRIORITIES, PRIORITY_ORDER } from "@/lib/notes";
 import type { Note, NotePriority } from "@/app/(main)/notes/actions";
 
-const labelClass =
-  "mb-1.5 block text-xs font-medium uppercase tracking-wide text-muted";
-const inputClass =
-  "w-full rounded-xl border border-gray-200 px-3.5 py-2.5 text-sm outline-none transition-colors focus:border-ink placeholder:text-muted";
+// Ligne de propriété façon Notion : icône + label discret + valeur
+function Row({
+  icon: Icon,
+  label,
+  children,
+}: {
+  icon: typeof Flag;
+  label: string;
+  children: ReactNode;
+}) {
+  return (
+    <div className="flex items-center gap-3 py-1">
+      <span className="flex w-28 shrink-0 items-center gap-2 text-sm text-muted">
+        <Icon className="h-4 w-4" />
+        {label}
+      </span>
+      <div className="min-w-0 flex-1">{children}</div>
+    </div>
+  );
+}
 
 // Éditeur de note réutilisable (page Notes + bouton flottant).
 // Enregistrement EXPLICITE : rien n'est sauvegardé tant qu'on ne valide pas.
@@ -52,63 +69,54 @@ export default function NoteEditor({
         className="w-full bg-transparent text-3xl font-bold tracking-tight outline-none placeholder:text-muted"
       />
 
-      <div>
-        <label className={labelClass}>Priorité</label>
-        <div className="flex gap-1.5">
-          {PRIORITY_ORDER.map((p) => {
-            const active = priority === p;
-            return (
-              <button
-                key={p}
-                type="button"
-                onClick={() => setPriority(p)}
-                className="flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-sm font-medium transition-colors"
-                style={{
-                  borderColor: active ? PRIORITIES[p].color : "#E5E7EB",
-                  color: active ? PRIORITIES[p].color : "#9CA3AF",
-                  backgroundColor: active ? `${PRIORITIES[p].color}14` : "transparent",
-                }}
-              >
-                <span
-                  className="h-2 w-2 rounded-full"
-                  style={{ backgroundColor: PRIORITIES[p].color }}
-                />
-                {PRIORITIES[p].label}
-              </button>
-            );
-          })}
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-        <div>
-          <label className={labelClass}>Thème</label>
+      {/* Propriétés façon Notion : label discret à gauche, valeur éditable inline */}
+      <div className="space-y-1">
+        <Row icon={Flag} label="Priorité">
+          <div className="flex gap-1.5">
+            {PRIORITY_ORDER.map((p) => {
+              const active = priority === p;
+              return (
+                <button
+                  key={p}
+                  type="button"
+                  onClick={() => setPriority(p)}
+                  className="flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium transition-colors"
+                  style={{
+                    color: active ? "#fff" : PRIORITIES[p].color,
+                    backgroundColor: active ? PRIORITIES[p].color : `${PRIORITIES[p].color}1A`,
+                  }}
+                >
+                  {PRIORITIES[p].label}
+                </button>
+              );
+            })}
+          </div>
+        </Row>
+        <Row icon={Tag} label="Thème">
           <input
             value={theme}
             onChange={(e) => setTheme(e.target.value)}
-            placeholder="Perso, admin, idée…"
-            className={inputClass}
+            placeholder="Ajouter un thème…"
+            className="w-full bg-transparent text-sm outline-none placeholder:text-muted"
           />
-        </div>
-        <div>
-          <label className={labelClass}>Échéance</label>
+        </Row>
+        <Row icon={CalendarClock} label="Échéance">
           <input
             type="date"
             value={due}
             onChange={(e) => setDue(e.target.value)}
-            className={inputClass}
+            className="bg-transparent text-sm outline-none placeholder:text-muted"
           />
-        </div>
+        </Row>
       </div>
 
-      <div>
-        <label className={labelClass}>Détails</label>
+      <div className="border-t border-gray-100 pt-4">
         <textarea
           value={content}
           onChange={(e) => setContent(e.target.value)}
-          rows={6}
-          placeholder="Écris ici…"
-          className={`${inputClass} resize-y leading-relaxed`}
+          rows={7}
+          placeholder="Écris ici… (détails, sous-tâches, liens)"
+          className="min-h-[30vh] w-full resize-none border-0 bg-transparent p-0 text-sm leading-relaxed outline-none placeholder:text-muted"
         />
       </div>
 
