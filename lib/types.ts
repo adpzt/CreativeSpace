@@ -155,6 +155,9 @@ export type CalendarBlock = {
   completed: boolean;
   notes: string | null;
   time: string | null; // 'HH:MM', optionnel (tri horaire)
+  bold: boolean;
+  italic: boolean;
+  text_color: string | null; // couleur du texte (mise en forme du bloc entier)
   project_id: string | null;
   deliverable_id: string | null;
   created_at: string;

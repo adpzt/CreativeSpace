@@ -156,14 +156,71 @@ export default function CalendarSection({
     return out;
   }
 
+  // ----- Annuler (Cmd/Ctrl+Z) -----
+  // Pile d'inverses : chaque mutation empile une fonction qui la défait.
+  const undoStack = useRef<Array<() => void | Promise<void>>>([]);
+  const undoing = useRef(false);
+  function pushUndo(fn: () => void | Promise<void>) {
+    if (undoing.current) return;
+    undoStack.current.push(fn);
+    if (undoStack.current.length > 50) undoStack.current.shift();
+  }
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      if ((e.metaKey || e.ctrlKey) && (e.key === "z" || e.key === "Z") && !e.shiftKey) {
+        const fn = undoStack.current.pop();
+        if (!fn) return;
+        e.preventDefault();
+        undoing.current = true;
+        Promise.resolve(fn()).finally(() => {
+          undoing.current = false;
+        });
+      }
+    }
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
+
+  // Patch d'un bloc SANS empiler d'annulation (utilisé par les inverses)
+  async function patchBlock(
+    id: string,
+    patch: Partial<Omit<CalendarBlock, "id" | "created_at">>
+  ) {
+    setBlocks((p) => p.map((x) => (x.id === id ? { ...x, ...patch } : x)));
+    await updateCalendarBlock(id, patch);
+  }
+  async function recreateBlock(b: CalendarBlock) {
+    const nb = await addCalendarBlock({
+      title: b.title,
+      date_start: b.date_start,
+      date_end: b.date_end,
+      category: b.category,
+      color: b.color,
+      time: b.time,
+      project_id: b.project_id,
+      deliverable_id: b.deliverable_id,
+    });
+    setBlocks((p) => [...p, nb]);
+  }
+  async function deleteBlockRaw(id: string) {
+    setBlocks((p) => p.filter((x) => x.id !== id));
+    await deleteCalendarBlock(id);
+  }
+
   // ----- Mutations -----
   async function create(
     dayIso: string,
     cat: CalendarCategory,
     title: string,
-    color: string | null = null,
-    time: string | null = null
+    opts: {
+      color?: string | null;
+      time?: string | null;
+      bold?: boolean;
+      italic?: boolean;
+      textColor?: string | null;
+    } = {}
   ) {
+    const { color = null, time = null, bold = false, italic = false, textColor = null } = opts;
     const tempId = `temp-${Math.random().toString(36).slice(2)}`;
     const temp: CalendarBlock = {
       id: tempId,
@@ -175,6 +232,9 @@ export default function CalendarSection({
       completed: false,
       notes: null,
       time,
+      bold,
+      italic,
+      text_color: textColor,
       project_id: null,
       deliverable_id: null,
       created_at: new Date().toISOString(),
@@ -188,21 +248,38 @@ export default function CalendarSection({
         category: cat,
         color,
         time,
+        bold,
+        italic,
+        text_color: textColor,
       });
       setBlocks((p) => p.map((x) => (x.id === tempId ? b : x)));
+      pushUndo(() => deleteBlockRaw(b.id));
     } catch {
       setBlocks((p) => p.filter((x) => x.id !== tempId));
     }
   }
   // Change la couleur (pastille) d'un bloc
   async function setColor(b: CalendarBlock, color: string | null) {
+    pushUndo(() => patchBlock(b.id, { color: b.color }));
     setBlocks((p) => p.map((x) => (x.id === b.id ? { ...x, color } : x)));
     await updateCalendarBlock(b.id, { color });
   }
   // Change l'heure d'un bloc (null = pas d'heure)
   async function setTime(b: CalendarBlock, time: string | null) {
+    pushUndo(() => patchBlock(b.id, { time: b.time }));
     setBlocks((p) => p.map((x) => (x.id === b.id ? { ...x, time } : x)));
     await updateCalendarBlock(b.id, { time });
+  }
+  // Mise en forme du texte du bloc (gras / italique / couleur du texte)
+  async function setFormat(
+    b: CalendarBlock,
+    patch: { bold?: boolean; italic?: boolean; text_color?: string | null }
+  ) {
+    pushUndo(() =>
+      patchBlock(b.id, { bold: b.bold, italic: b.italic, text_color: b.text_color })
+    );
+    setBlocks((p) => p.map((x) => (x.id === b.id ? { ...x, ...patch } : x)));
+    await updateCalendarBlock(b.id, patch);
   }
   async function createFromDeliverable(
     dayIso: string,
@@ -220,6 +297,9 @@ export default function CalendarSection({
       completed: false,
       notes: null,
       time: null,
+      bold: false,
+      italic: false,
+      text_color: null,
       project_id: s.project.id,
       deliverable_id: s.deliverable.id,
       created_at: new Date().toISOString(),
@@ -236,17 +316,20 @@ export default function CalendarSection({
         deliverable_id: s.deliverable.id,
       });
       setBlocks((p) => p.map((x) => (x.id === tempId ? b : x)));
+      pushUndo(() => deleteBlockRaw(b.id));
     } catch {
       setBlocks((p) => p.filter((x) => x.id !== tempId));
     }
   }
   async function toggle(b: CalendarBlock) {
     const completed = !b.completed;
+    pushUndo(() => patchBlock(b.id, { completed: b.completed }));
     setBlocks((p) => p.map((x) => (x.id === b.id ? { ...x, completed } : x)));
     await updateCalendarBlock(b.id, { completed });
   }
   async function saveTitle(id: string, title: string) {
     const b = blocks.find((x) => x.id === id);
+    if (b) pushUndo(() => patchBlock(id, { title: b.title }));
     setBlocks((p) => p.map((x) => (x.id === id ? { ...x, title } : x)));
     await updateCalendarBlock(id, { title });
     // Si le bloc est lié à un livrable, on renomme aussi le livrable
@@ -263,11 +346,20 @@ export default function CalendarSection({
     }
   }
   async function remove(id: string) {
+    const b = blocks.find((x) => x.id === id);
+    if (b) pushUndo(() => recreateBlock(b));
     setBlocks((p) => p.filter((x) => x.id !== id));
     setNoteBlockId(null);
     await deleteCalendarBlock(id);
   }
   async function move(b: CalendarBlock, dayIso: string, cat: CalendarCategory) {
+    pushUndo(() =>
+      patchBlock(b.id, {
+        date_start: b.date_start,
+        date_end: b.date_end,
+        category: b.category,
+      })
+    );
     setBlocks((p) =>
       p.map((x) =>
         x.id === b.id
@@ -585,8 +677,8 @@ export default function CalendarSection({
             ctx={addCtx}
             suggestions={suggestionsFor(addCtx.cat)}
             clientLabel={clientCompanyOf}
-            onCreate={(title, color, time) => {
-              create(addCtx.dayIso, addCtx.cat, title, color, time);
+            onCreate={(title, opts) => {
+              create(addCtx.dayIso, addCtx.cat, title, opts);
               setAddCtx(null);
             }}
             onPick={(s) => {
@@ -637,6 +729,18 @@ export default function CalendarSection({
                     retirer
                   </button>
                 )}
+              </div>
+              {/* Mise en forme du texte */}
+              <div className="flex items-center gap-3">
+                <span className="text-xs font-medium uppercase tracking-wide text-muted">
+                  Texte
+                </span>
+                <FormatControls
+                  bold={noteBlock.bold}
+                  italic={noteBlock.italic}
+                  textColor={noteBlock.text_color}
+                  onChange={(patch) => setFormat(noteBlock, patch)}
+                />
               </div>
               <div className="flex items-center justify-between">
                 <button
@@ -766,7 +870,12 @@ function DraggableChip({
       <span
         className={`flex-1 whitespace-normal break-words text-left ${
           block.completed ? "text-muted line-through" : ""
-        }`}
+        } ${block.bold ? "font-semibold" : ""} ${block.italic ? "italic" : ""}`}
+        style={
+          !block.completed && block.text_color
+            ? { color: block.text_color }
+            : undefined
+        }
       >
         {block.time && (
           <span className="mr-1 font-medium text-muted">{block.time}</span>
@@ -813,6 +922,74 @@ function ColorDots({
   );
 }
 
+// Contrôles de mise en forme du texte : gras / italique / couleur du texte.
+function FormatControls({
+  bold,
+  italic,
+  textColor,
+  onChange,
+}: {
+  bold: boolean;
+  italic: boolean;
+  textColor: string | null;
+  onChange: (patch: {
+    bold?: boolean;
+    italic?: boolean;
+    text_color?: string | null;
+  }) => void;
+}) {
+  return (
+    <div className="flex flex-wrap items-center gap-1.5">
+      <button
+        type="button"
+        onClick={() => onChange({ bold: !bold })}
+        aria-label="Gras"
+        className={`flex h-7 w-7 items-center justify-center rounded-lg border text-sm font-bold ${
+          bold ? "border-ink bg-gray-100" : "border-gray-200 hover:border-gray-400"
+        }`}
+      >
+        B
+      </button>
+      <button
+        type="button"
+        onClick={() => onChange({ italic: !italic })}
+        aria-label="Italique"
+        className={`flex h-7 w-7 items-center justify-center rounded-lg border text-sm italic ${
+          italic ? "border-ink bg-gray-100" : "border-gray-200 hover:border-gray-400"
+        }`}
+      >
+        i
+      </button>
+      <span className="mx-1 h-5 w-px bg-gray-200" />
+      {/* Couleur du texte : "défaut" (noir) + palette */}
+      <button
+        type="button"
+        onClick={() => onChange({ text_color: null })}
+        aria-label="Couleur par défaut"
+        className={`flex h-7 w-7 items-center justify-center rounded-full border text-[10px] ${
+          textColor === null ? "border-ink" : "border-gray-200 hover:border-gray-400"
+        }`}
+      >
+        A
+      </button>
+      {PROJECT_COLORS.map((c) => (
+        <button
+          key={c}
+          type="button"
+          onClick={() => onChange({ text_color: c })}
+          aria-label={`Texte ${c}`}
+          className={`h-7 w-7 rounded-full text-sm font-bold ${
+            textColor === c ? "ring-2 ring-ink ring-offset-1" : ""
+          }`}
+          style={{ color: c, backgroundColor: `${c}1A` }}
+        >
+          A
+        </button>
+      ))}
+    </div>
+  );
+}
+
 function AddEntry({
   ctx,
   suggestions,
@@ -823,16 +1000,29 @@ function AddEntry({
   ctx: AddCtx;
   suggestions: Suggestion[];
   clientLabel: (p: ProjectWithDeliverables) => string;
-  onCreate: (title: string, color: string | null, time: string | null) => void;
+  onCreate: (
+    title: string,
+    opts: {
+      color: string | null;
+      time: string | null;
+      bold: boolean;
+      italic: boolean;
+      textColor: string | null;
+    }
+  ) => void;
   onPick: (s: Suggestion) => void;
 }) {
   const [value, setValue] = useState("");
   const [color, setColor] = useState<string | null>(null);
   const [time, setTime] = useState("");
+  const [bold, setBold] = useState(false);
+  const [italic, setItalic] = useState(false);
+  const [textColor, setTextColor] = useState<string | null>(null);
   const catLabel =
     CALENDAR_CATEGORIES.find((c) => c.key === ctx.cat)?.label ?? "";
   const submit = () => {
-    if (value.trim()) onCreate(value.trim(), color, time || null);
+    if (value.trim())
+      onCreate(value.trim(), { color, time: time || null, bold, italic, textColor });
   };
   return (
     <div className="space-y-4 pr-8">
@@ -879,6 +1069,23 @@ function AddEntry({
             className="rounded-xl border border-gray-200 px-3 py-2 text-sm outline-none focus:border-ink"
           />
         </div>
+      </div>
+
+      {/* Mise en forme du texte */}
+      <div>
+        <p className="mb-1.5 text-xs font-medium uppercase tracking-wide text-muted">
+          Texte (optionnel)
+        </p>
+        <FormatControls
+          bold={bold}
+          italic={italic}
+          textColor={textColor}
+          onChange={(patch) => {
+            if (patch.bold !== undefined) setBold(patch.bold);
+            if (patch.italic !== undefined) setItalic(patch.italic);
+            if (patch.text_color !== undefined) setTextColor(patch.text_color);
+          }}
+        />
       </div>
 
       {suggestions.length > 0 && (
