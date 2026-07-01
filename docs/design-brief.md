@@ -120,9 +120,13 @@ Autres :
    nette entre les 3 (couleur légère / dégradé), lisible **au premier coup d'œil**.
 3. **Notes** : la grosse barre d'accent à gauche n'est pas belle → viser l'esthétique
    **Notes iPhone / post-it moderne "glass 2026"** (cartes douces, couleur subtile, jolies).
-4. **Panneau d'édition d'une tâche/note (NotePanel)** : titre trop petit, la page ne "remplit"
-   pas assez l'espace, éléments trop collés en haut/bas → viser une mise en page façon **Notion**
-   (grand titre, propriétés en lignes claires : date / priorité / thème / etc., beaucoup d'air).
+4. **Page d'une note / d'un livrable (NotePanel)** : titre trop petit, la page ne "remplit"
+   pas assez l'espace, éléments trop collés en haut/bas → viser une vraie **page façon Notion**
+   (très grand titre, **propriétés en lignes claires** : date / priorité / thème / % d'avancement /
+   etc., beaucoup d'air). Comportement voulu : **au clic sur l'élément → vue LECTURE** (belle page
+   Notion) ; l'**édition** ne s'active qu'au clic sur une icône crayon. Le **%** doit pouvoir
+   s'afficher même hors projet. (La logique lecture/édition sera codée côté React ; on attend de
+   toi la MISE EN PAGE des deux états.)
 5. Envie d'**animations subtiles et fluides** (hover de carte, apparition d'overlay, check qui
    se coche) sans jamais de lag.
 
