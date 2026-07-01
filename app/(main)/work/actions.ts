@@ -290,6 +290,7 @@ export async function addCalendarBlock(input: {
   date_end: string;
   category: CalendarCategory;
   color?: string | null;
+  time?: string | null;
   project_id?: string | null;
   deliverable_id?: string | null;
 }): Promise<CalendarBlock> {
@@ -302,6 +303,7 @@ export async function addCalendarBlock(input: {
       date_end: input.date_end,
       category: input.category,
       color: input.color ?? null,
+      time: input.time ?? null,
       project_id: input.project_id ?? null,
       deliverable_id: input.deliverable_id ?? null,
     })

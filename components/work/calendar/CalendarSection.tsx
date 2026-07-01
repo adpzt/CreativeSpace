@@ -101,8 +101,17 @@ export default function CalendarSection({
   const days = showWeekend ? allDays : allDays.slice(0, 5);
   const isCurrentWeek = isSameWeek(refDate, new Date(), { weekStartsOn: 1 });
 
+  // Tri d'une case : d'abord par heure (00:01 -> 23:59), puis les blocs sans
+  // heure par ordre de création.
   const cellBlocks = (dayIso: string, cat: CalendarCategory) =>
-    blocks.filter((b) => b.category === cat && b.date_start === dayIso);
+    blocks
+      .filter((b) => b.category === cat && b.date_start === dayIso)
+      .sort((a, b) => {
+        if (a.time && b.time) return a.time.localeCompare(b.time);
+        if (a.time) return -1;
+        if (b.time) return 1;
+        return a.created_at.localeCompare(b.created_at);
+      });
   const dayBlocks = (dayIso: string) =>
     blocks.filter((b) => dayIso >= b.date_start && dayIso <= b.date_end);
 
@@ -152,7 +161,8 @@ export default function CalendarSection({
     dayIso: string,
     cat: CalendarCategory,
     title: string,
-    color: string | null = null
+    color: string | null = null,
+    time: string | null = null
   ) {
     const tempId = `temp-${Math.random().toString(36).slice(2)}`;
     const temp: CalendarBlock = {
@@ -164,6 +174,7 @@ export default function CalendarSection({
       color,
       completed: false,
       notes: null,
+      time,
       project_id: null,
       deliverable_id: null,
       created_at: new Date().toISOString(),
@@ -176,6 +187,7 @@ export default function CalendarSection({
         date_end: dayIso,
         category: cat,
         color,
+        time,
       });
       setBlocks((p) => p.map((x) => (x.id === tempId ? b : x)));
     } catch {
@@ -186,6 +198,11 @@ export default function CalendarSection({
   async function setColor(b: CalendarBlock, color: string | null) {
     setBlocks((p) => p.map((x) => (x.id === b.id ? { ...x, color } : x)));
     await updateCalendarBlock(b.id, { color });
+  }
+  // Change l'heure d'un bloc (null = pas d'heure)
+  async function setTime(b: CalendarBlock, time: string | null) {
+    setBlocks((p) => p.map((x) => (x.id === b.id ? { ...x, time } : x)));
+    await updateCalendarBlock(b.id, { time });
   }
   async function createFromDeliverable(
     dayIso: string,
@@ -202,6 +219,7 @@ export default function CalendarSection({
       color: s.project.color,
       completed: false,
       notes: null,
+      time: null,
       project_id: s.project.id,
       deliverable_id: s.deliverable.id,
       created_at: new Date().toISOString(),
@@ -567,8 +585,8 @@ export default function CalendarSection({
             ctx={addCtx}
             suggestions={suggestionsFor(addCtx.cat)}
             clientLabel={clientCompanyOf}
-            onCreate={(title, color) => {
-              create(addCtx.dayIso, addCtx.cat, title, color);
+            onCreate={(title, color, time) => {
+              create(addCtx.dayIso, addCtx.cat, title, color, time);
               setAddCtx(null);
             }}
             onPick={(s) => {
@@ -599,6 +617,26 @@ export default function CalendarSection({
                   value={noteBlock.color}
                   onChange={(c) => setColor(noteBlock, c)}
                 />
+              </div>
+              {/* Heure du bloc */}
+              <div className="flex items-center gap-3">
+                <span className="text-xs font-medium uppercase tracking-wide text-muted">
+                  Heure
+                </span>
+                <input
+                  type="time"
+                  value={noteBlock.time ?? ""}
+                  onChange={(e) => setTime(noteBlock, e.target.value || null)}
+                  className="rounded-lg border border-gray-200 px-2.5 py-1 text-sm outline-none focus:border-ink"
+                />
+                {noteBlock.time && (
+                  <button
+                    onClick={() => setTime(noteBlock, null)}
+                    className="text-xs text-muted hover:text-ink hover:underline"
+                  >
+                    retirer
+                  </button>
+                )}
               </div>
               <div className="flex items-center justify-between">
                 <button
@@ -730,6 +768,9 @@ function DraggableChip({
           block.completed ? "text-muted line-through" : ""
         }`}
       >
+        {block.time && (
+          <span className="mr-1 font-medium text-muted">{block.time}</span>
+        )}
         {block.title}
       </span>
     </div>
@@ -782,15 +823,16 @@ function AddEntry({
   ctx: AddCtx;
   suggestions: Suggestion[];
   clientLabel: (p: ProjectWithDeliverables) => string;
-  onCreate: (title: string, color: string | null) => void;
+  onCreate: (title: string, color: string | null, time: string | null) => void;
   onPick: (s: Suggestion) => void;
 }) {
   const [value, setValue] = useState("");
   const [color, setColor] = useState<string | null>(null);
+  const [time, setTime] = useState("");
   const catLabel =
     CALENDAR_CATEGORIES.find((c) => c.key === ctx.cat)?.label ?? "";
   const submit = () => {
-    if (value.trim()) onCreate(value.trim(), color);
+    if (value.trim()) onCreate(value.trim(), color, time || null);
   };
   return (
     <div className="space-y-4 pr-8">
@@ -818,12 +860,25 @@ function AddEntry({
         </button>
       </div>
 
-      {/* Pastille optionnelle */}
-      <div>
-        <p className="mb-1.5 text-xs font-medium uppercase tracking-wide text-muted">
-          Pastille (optionnel)
-        </p>
-        <ColorDots value={color} onChange={setColor} />
+      {/* Pastille + heure optionnelles */}
+      <div className="flex flex-wrap items-end justify-between gap-4">
+        <div>
+          <p className="mb-1.5 text-xs font-medium uppercase tracking-wide text-muted">
+            Pastille (optionnel)
+          </p>
+          <ColorDots value={color} onChange={setColor} />
+        </div>
+        <div>
+          <p className="mb-1.5 text-xs font-medium uppercase tracking-wide text-muted">
+            Heure (optionnel)
+          </p>
+          <input
+            type="time"
+            value={time}
+            onChange={(e) => setTime(e.target.value)}
+            className="rounded-xl border border-gray-200 px-3 py-2 text-sm outline-none focus:border-ink"
+          />
+        </div>
       </div>
 
       {suggestions.length > 0 && (
