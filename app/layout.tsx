@@ -20,7 +20,7 @@ export const viewport: Viewport = {
   initialScale: 1,
   maximumScale: 1,
   userScalable: false,
-  themeColor: "#f5f5f7",
+  themeColor: "#ffffff",
 };
 
 export default function RootLayout({
@@ -30,7 +30,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="fr" className={inter.variable}>
-      <body className="min-h-screen bg-[#f5f5f7] font-sans text-ink antialiased">
+      <body className="min-h-screen bg-white font-sans text-ink antialiased">
         {children}
       </body>
     </html>
