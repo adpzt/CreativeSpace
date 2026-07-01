@@ -42,7 +42,7 @@ import {
 import Overlay from "@/components/ui/Overlay";
 import NotePanel from "@/components/ui/NotePanel";
 import DeliverableNoteMeta from "@/components/work/DeliverableNoteMeta";
-import { CALENDAR_CATEGORIES } from "@/lib/work";
+import { CALENDAR_CATEGORIES, PROJECT_COLORS } from "@/lib/work";
 import {
   addCalendarBlock,
   updateCalendarBlock,
@@ -112,8 +112,9 @@ export default function CalendarSection({
   const deliverableById = new Map<string, Deliverable>();
   projects.forEach((p) => p.deliverables.forEach((d) => deliverableById.set(d.id, d)));
 
+  // Couleur de pastille : celle choisie sur le bloc, sinon celle du projet lié.
   const colorForBlock = (b: CalendarBlock) =>
-    b.project_id ? projectById.get(b.project_id)?.color ?? null : null;
+    b.color ?? (b.project_id ? projectById.get(b.project_id)?.color ?? null : null);
 
   // Note effective d'un bloc (celle du livrable si lié, sinon celle du bloc)
   function noteOf(b: CalendarBlock): string {
@@ -149,7 +150,12 @@ export default function CalendarSection({
   }
 
   // ----- Mutations -----
-  async function create(dayIso: string, cat: CalendarCategory, title: string) {
+  async function create(
+    dayIso: string,
+    cat: CalendarCategory,
+    title: string,
+    color: string | null = null
+  ) {
     const tempId = `temp-${Math.random().toString(36).slice(2)}`;
     const temp: CalendarBlock = {
       id: tempId,
@@ -157,7 +163,7 @@ export default function CalendarSection({
       date_start: dayIso,
       date_end: dayIso,
       category: cat,
-      color: null,
+      color,
       completed: false,
       notes: null,
       project_id: null,
@@ -171,11 +177,17 @@ export default function CalendarSection({
         date_start: dayIso,
         date_end: dayIso,
         category: cat,
+        color,
       });
       setBlocks((p) => p.map((x) => (x.id === tempId ? b : x)));
     } catch {
       setBlocks((p) => p.filter((x) => x.id !== tempId));
     }
+  }
+  // Change la couleur (pastille) d'un bloc
+  async function setColor(b: CalendarBlock, color: string | null) {
+    setBlocks((p) => p.map((x) => (x.id === b.id ? { ...x, color } : x)));
+    await updateCalendarBlock(b.id, { color });
   }
   async function createFromDeliverable(
     dayIso: string,
@@ -559,8 +571,8 @@ export default function CalendarSection({
             ctx={addCtx}
             suggestions={suggestionsFor(addCtx.cat)}
             clientLabel={clientCompanyOf}
-            onCreate={(title) => {
-              create(addCtx.dayIso, addCtx.cat, title);
+            onCreate={(title, color) => {
+              create(addCtx.dayIso, addCtx.cat, title, color);
               setAddCtx(null);
             }}
             onPick={(s) => {
@@ -581,25 +593,37 @@ export default function CalendarSection({
           onSave={(v) => saveNote(noteBlock, v)}
           onClose={() => setNoteBlockId(null)}
           footer={
-            <div className="flex items-center justify-between">
-              <button
-                onClick={() => toggle(noteBlock)}
-                className={`inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium ${
-                  noteBlock.completed
-                    ? "bg-green-50 text-success"
-                    : "text-muted hover:bg-gray-100 hover:text-ink"
-                }`}
-              >
-                <Check className="h-3.5 w-3.5" />
-                {noteBlock.completed ? "Terminé" : "Terminé ?"}
-              </button>
-              <button
-                onClick={() => remove(noteBlock.id)}
-                aria-label="Supprimer"
-                className="rounded-lg p-1.5 text-muted hover:bg-red-50 hover:text-urgent"
-              >
-                <Trash2 className="h-4 w-4" />
-              </button>
+            <div className="space-y-3">
+              {/* Couleur de la pastille du bloc */}
+              <div className="flex items-center gap-3">
+                <span className="text-xs font-medium uppercase tracking-wide text-muted">
+                  Pastille
+                </span>
+                <ColorDots
+                  value={noteBlock.color}
+                  onChange={(c) => setColor(noteBlock, c)}
+                />
+              </div>
+              <div className="flex items-center justify-between">
+                <button
+                  onClick={() => toggle(noteBlock)}
+                  className={`inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium ${
+                    noteBlock.completed
+                      ? "bg-green-50 text-success"
+                      : "text-muted hover:bg-gray-100 hover:text-ink"
+                  }`}
+                >
+                  <Check className="h-3.5 w-3.5" />
+                  {noteBlock.completed ? "Terminé" : "Terminé ?"}
+                </button>
+                <button
+                  onClick={() => remove(noteBlock.id)}
+                  aria-label="Supprimer"
+                  className="rounded-lg p-1.5 text-muted hover:bg-red-50 hover:text-urgent"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </button>
+              </div>
             </div>
           }
         />
@@ -718,6 +742,42 @@ function DraggableChip({
   );
 }
 
+// Sélecteur de couleur de pastille : "aucune" + la palette projet.
+function ColorDots({
+  value,
+  onChange,
+}: {
+  value: string | null;
+  onChange: (c: string | null) => void;
+}) {
+  return (
+    <div className="flex flex-wrap items-center gap-1.5">
+      <button
+        type="button"
+        onClick={() => onChange(null)}
+        aria-label="Aucune pastille"
+        className={`flex h-6 w-6 items-center justify-center rounded-full border text-[10px] text-muted ${
+          value === null ? "border-ink" : "border-gray-200 hover:border-gray-400"
+        }`}
+      >
+        /
+      </button>
+      {PROJECT_COLORS.map((c) => (
+        <button
+          key={c}
+          type="button"
+          onClick={() => onChange(c)}
+          aria-label={`Couleur ${c}`}
+          className={`h-6 w-6 rounded-full ring-offset-1 transition ${
+            value === c ? "ring-2 ring-ink" : ""
+          }`}
+          style={{ backgroundColor: c }}
+        />
+      ))}
+    </div>
+  );
+}
+
 function AddEntry({
   ctx,
   suggestions,
@@ -728,12 +788,16 @@ function AddEntry({
   ctx: AddCtx;
   suggestions: Suggestion[];
   clientLabel: (p: ProjectWithDeliverables) => string;
-  onCreate: (title: string) => void;
+  onCreate: (title: string, color: string | null) => void;
   onPick: (s: Suggestion) => void;
 }) {
   const [value, setValue] = useState("");
+  const [color, setColor] = useState<string | null>(null);
   const catLabel =
     CALENDAR_CATEGORIES.find((c) => c.key === ctx.cat)?.label ?? "";
+  const submit = () => {
+    if (value.trim()) onCreate(value.trim(), color);
+  };
   return (
     <div className="space-y-4 pr-8">
       <h3 className="text-lg font-semibold tracking-tight">
@@ -746,18 +810,26 @@ function AddEntry({
           value={value}
           onChange={(e) => setValue(e.target.value)}
           onKeyDown={(e) => {
-            if (e.key === "Enter" && value.trim()) onCreate(value.trim());
+            if (e.key === "Enter") submit();
           }}
-          placeholder="Nouvelle tâche..."
+          placeholder="Tâche, note, arrêt maladie, /…"
           className="flex-1 rounded-xl border border-gray-200 px-3.5 py-2.5 text-sm outline-none focus:border-ink"
         />
         <button
-          onClick={() => value.trim() && onCreate(value.trim())}
+          onClick={submit}
           aria-label="Ajouter"
           className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-ink text-white transition-opacity hover:opacity-90"
         >
           <CornerDownLeft className="h-4 w-4" />
         </button>
+      </div>
+
+      {/* Pastille optionnelle */}
+      <div>
+        <p className="mb-1.5 text-xs font-medium uppercase tracking-wide text-muted">
+          Pastille (optionnel)
+        </p>
+        <ColorDots value={color} onChange={setColor} />
       </div>
 
       {suggestions.length > 0 && (
