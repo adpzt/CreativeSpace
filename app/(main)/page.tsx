@@ -25,7 +25,6 @@ import TodayTasks from "@/components/home/TodayTasks";
 import FollowerCounter from "@/components/home/FollowerCounter";
 import { ButtonLink } from "@/components/ui/Button";
 import { formatEuro, CATEGORY_COLOR } from "@/lib/work";
-import { INCOME_TAX_BRACKETS, MICRO_BNC_ABATTEMENT } from "@/lib/finance";
 
 export const dynamic = "force-dynamic";
 
@@ -129,9 +128,6 @@ export default async function HomePage() {
   const tvaAlert = todayStr < "2026-09-01";
 
   // --- KPI ---
-  const aEncaisser = payments
-    .filter((p) => p.status !== "paid")
-    .reduce((s, p) => s + (p.net_amount ?? 0), 0);
   const nextDeadline = activeProjects
     .filter((p) => p.end_date)
     .map((p) => parseISO(p.end_date as string))
@@ -156,15 +152,29 @@ export default async function HomePage() {
   const caMonthNet = payments
     .filter((p) => p.status === "paid" && p.received_date?.startsWith(ym))
     .reduce((s, p) => s + (p.net_amount ?? 0), 0);
-  const objectifMensuel = Math.round(
-    INCOME_TAX_BRACKETS[0].upTo / (1 - MICRO_BNC_ABATTEMENT) / 12
-  );
 
   // --- URSSAF : jours avant la prochaine déclaration + montant à déclarer ---
   const daysUntilDecl = differenceInCalendarDays(endOfMonth(now), now);
   const grossMonth = payments
     .filter((p) => p.status === "paid" && p.received_date?.startsWith(ym))
     .reduce((s, p) => s + (p.gross_amount ?? p.net_amount ?? 0), 0);
+
+  // Dernière déclaration URSSAF cochée (montant + date) pour le KPI "CA du mois"
+  const lastDeclared = urssaf
+    .filter((r) => r.completed && r.declared_at)
+    .sort((a, b) => (b.declared_at ?? "").localeCompare(a.declared_at ?? ""))[0];
+
+  // --- Objectif annuel (bento) : net encaissé sur juin 2026 -> juin 2027 vs 1400 x 12 ---
+  const caPeriode = payments
+    .filter(
+      (p) =>
+        p.status === "paid" &&
+        p.received_date &&
+        p.received_date >= "2026-06-01" &&
+        p.received_date <= "2027-06-30"
+    )
+    .reduce((s, p) => s + (p.net_amount ?? 0), 0);
+  const objectifPeriode = 1400 * 12;
 
   // --- Liste "À traiter" (données réelles, priorité en haut) ---
   const aTraiter: Traite[] = [
@@ -297,14 +307,24 @@ export default async function HomePage() {
         <Kpi
           icon={Wallet}
           tint="pending"
-          label="À encaisser"
-          value={formatEuro(aEncaisser)}
+          label="CA du mois"
+          value={formatEuro(caMonthNet)}
+          sub={
+            lastDeclared
+              ? `URSSAF déclarée ${formatEuro(lastDeclared.amount ?? 0)} le ${format(
+                  parseISO(lastDeclared.declared_at as string),
+                  "d MMM",
+                  { locale: fr }
+                )}`
+              : "URSSAF : rien déclaré"
+          }
         />
         <Kpi
           icon={CheckCircle2}
           tint="success"
           label="Tâches du jour"
           value={`${todayDone}/${todayTotal}`}
+          progress={todayTotal > 0 ? todayDone / todayTotal : 0}
         />
         <Kpi
           icon={CalendarClock}
@@ -388,29 +408,27 @@ export default async function HomePage() {
           Objectifs
         </h2>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          {/* Encaissé ce mois vs objectif mensuel (à ne pas dépasser) */}
+          {/* Encaissé (net) sur l'objectif annuel juin 2026 -> juin 2027 */}
           <div className="flex flex-col rounded-2xl border border-black/[0.06] bg-white p-5 shadow-card">
             <div className="flex items-center gap-2">
               <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-green-50 text-success">
                 <TrendingUp className="h-4 w-4" />
               </span>
-              <span className="text-[13px] text-muted">Encaissé · ce mois-ci</span>
+              <span className="text-[13px] text-muted">Encaissé (net) · objectif</span>
             </div>
             <p className="mt-3 text-[30px] font-extrabold leading-none tracking-[-0.02em]">
-              {formatEuro(caMonthNet)}
+              {formatEuro(caPeriode)}
             </p>
             <div className="mt-3 h-2 w-full overflow-hidden rounded-full bg-black/[0.07]">
               <div
-                className={`h-full rounded-full ${
-                  caMonthNet > objectifMensuel ? "bg-urgent" : "bg-active"
-                }`}
+                className="h-full rounded-full bg-success"
                 style={{
-                  width: `${Math.min(100, Math.round((caMonthNet / objectifMensuel) * 100))}%`,
+                  width: `${Math.min(100, Math.round((caPeriode / objectifPeriode) * 100))}%`,
                 }}
               />
             </div>
             <p className="mt-1.5 text-[12px] text-muted">
-              sur {formatEuro(objectifMensuel)} / mois à ne pas dépasser (avant impôt)
+              sur {formatEuro(objectifPeriode)} · juin 2026 → juin 2027
             </p>
           </div>
 
@@ -510,12 +528,14 @@ function Kpi({
   label,
   value,
   sub,
+  progress,
 }: {
   icon: LucideIcon;
   tint: keyof typeof KPI_TINT;
   label: string;
   value: string;
   sub?: string;
+  progress?: number;
 }) {
   return (
     <div className="animate-rise flex flex-col rounded-2xl border border-black/[0.06] bg-white p-5 shadow-card">
@@ -527,8 +547,22 @@ function Kpi({
         </span>
         <span className="text-[13px] text-muted">{label}</span>
       </div>
-      <p className="text-[32px] font-bold leading-none tracking-tight">{value}</p>
-      {sub && <p className="mt-1.5 truncate text-[12px] text-muted">{sub}</p>}
+      <div className="flex flex-wrap items-baseline gap-x-2">
+        <p className="text-[32px] font-bold leading-none tracking-tight">{value}</p>
+        {sub && (
+          <span className="min-w-0 flex-1 truncate text-[12px] text-muted">
+            {sub}
+          </span>
+        )}
+      </div>
+      {progress !== undefined && (
+        <div className="mt-3 h-1.5 w-full overflow-hidden rounded-full bg-black/[0.07]">
+          <div
+            className="h-full rounded-full bg-success transition-[width] duration-300"
+            style={{ width: `${Math.round(Math.min(1, progress) * 100)}%` }}
+          />
+        </div>
+      )}
     </div>
   );
 }
