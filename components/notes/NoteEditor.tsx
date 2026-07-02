@@ -2,11 +2,12 @@
 
 import { useState } from "react";
 import type { ReactNode } from "react";
-import { Trash2, Flag, Tag, CalendarClock, Pencil } from "lucide-react";
+import { Trash2, Flag, Tag, CalendarClock, Pencil, Smile } from "lucide-react";
 import { format, parseISO } from "date-fns";
 import { fr } from "date-fns/locale";
 import { Button } from "@/components/ui/Button";
 import RichText from "@/components/notes/RichText";
+import { EmojiPicker, ThemePicker } from "@/components/notes/pickers";
 import { PRIORITIES, PRIORITY_ORDER } from "@/lib/notes";
 import type { Note, NotePriority } from "@/app/(main)/notes/actions";
 
@@ -56,6 +57,7 @@ export default function NoteEditor({
   const [priority, setPriority] = useState<NotePriority>(note.priority);
   const [theme, setTheme] = useState(note.theme ?? "");
   const [due, setDue] = useState(note.due_date ?? "");
+  const [emoji, setEmoji] = useState(note.emoji ?? "");
 
   async function save() {
     const isDraft = current.id === "";
@@ -70,6 +72,7 @@ export default function NoteEditor({
       priority,
       theme: theme.trim() || null,
       due_date: due || null,
+      emoji: emoji.trim() || null,
     };
     const saved = await onPersist(current.id, fields);
     setCurrent(saved);
@@ -93,7 +96,8 @@ export default function NoteEditor({
           </button>
         </div>
 
-        <h2 className="text-[34px] font-bold leading-tight tracking-tight">
+        <h2 className="flex items-center gap-2.5 text-[34px] font-bold leading-tight tracking-tight">
+          {current.emoji && <span className="shrink-0">{current.emoji}</span>}
           {current.title?.trim() || (
             <span className="text-muted">Sans titre</span>
           )}
@@ -194,12 +198,10 @@ export default function NoteEditor({
           </div>
         </Row>
         <Row icon={Tag} label="Thème">
-          <input
-            value={theme}
-            onChange={(e) => setTheme(e.target.value)}
-            placeholder="Ajouter un thème…"
-            className="w-full bg-transparent outline-none placeholder:text-muted"
-          />
+          <ThemePicker value={theme} onChange={(v) => setTheme(v ?? "")} />
+        </Row>
+        <Row icon={Smile} label="Emoji">
+          <EmojiPicker value={emoji} onChange={setEmoji} />
         </Row>
         <Row icon={CalendarClock} label="Échéance">
           <input

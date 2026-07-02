@@ -2,7 +2,13 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { format, parseISO, isPast, isToday } from "date-fns";
+import {
+  format,
+  parseISO,
+  isPast,
+  isToday,
+  differenceInCalendarDays,
+} from "date-fns";
 import { fr } from "date-fns/locale";
 import { Plus, Check, Trash2, ChevronDown, RotateCcw } from "lucide-react";
 import Overlay from "@/components/ui/Overlay";
@@ -23,8 +29,8 @@ import { PRIORITIES, postitBg, stripHtml } from "@/lib/notes";
 // date, etc. sans devenir une tâche).
 const isPostit = (n: Note) => !n.is_task;
 
-// Un post-it est "vide" si rien n'a été renseigné (pour le nettoyer à la fermeture)
-const isEmptyPostit = (n: Note) =>
+// Une note est "vide" si rien n'a été renseigné (pour la nettoyer à la fermeture)
+const isEmptyNote = (n: Note) =>
   !n.title?.trim() &&
   !stripHtml(n.content || "").trim() &&
   !n.theme?.trim() &&
@@ -47,12 +53,16 @@ export default function NotesClient({
   const [showDone, setShowDone] = useState(false);
   const [showTrash, setShowTrash] = useState(false);
 
-  const isNew = editing?.id === "";
-
   const active = notes.filter((n) => !n.done);
-  const postits = active
-    .filter(isPostit)
-    .sort((a, b) => b.created_at.localeCompare(a.created_at));
+  // Post-it triés par échéance la plus proche d'abord (datés avant non datés).
+  const postits = active.filter(isPostit).sort((a, b) => {
+    if (a.due_date && b.due_date) return a.due_date.localeCompare(b.due_date);
+    if (a.due_date) return -1;
+    if (b.due_date) return 1;
+    return b.created_at.localeCompare(a.created_at);
+  });
+  // Le premier post-it daté (échéance la plus proche) est mis en avant.
+  const featuredId = postits[0]?.due_date ? postits[0].id : null;
   // Tâches : échéance la plus proche en haut, puis récence
   const todo = active
     .filter((n) => !isPostit(n))
@@ -134,11 +144,18 @@ export default function NotesClient({
     setEditing(created);
   }
 
-  // Fermeture de l'éditeur post-it : on supprime s'il est resté vide.
-  function closePostit() {
+  // Nouvelle tâche : note vide (is_task=true) -> ouvre l'éditeur de tâche.
+  async function createBlankTask() {
+    const created = await createNote("", true);
+    setNotes((list) => [created, ...list]);
+    setEditing(created);
+  }
+
+  // Fermeture de l'éditeur : on supprime la note si elle est restée vide.
+  function closeEditing() {
     const cur = editing;
     setEditing(null);
-    if (cur && isEmptyPostit(cur)) {
+    if (cur && isEmptyNote(cur)) {
       setNotes((list) => list.filter((n) => n.id !== cur.id));
       deleteNote(cur.id);
     }
@@ -185,19 +202,23 @@ export default function NotesClient({
             Aucun post-it. Note une idée rapide.
           </p>
         ) : (
-          <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+          <div className="grid grid-cols-2 gap-5 md:grid-cols-4">
             {postits.map((n, i) => {
               const hasTitle = !!n.title?.trim();
               const bodyHtml = n.content?.trim() || "";
-              const dateStr = n.due_date || n.created_at;
+              const featured = n.id === featuredId;
               return (
                 <button
                   key={n.id}
                   onClick={() => setEditing(n)}
-                  className={`relative flex min-h-[150px] flex-col rounded-2xl p-4 text-left shadow-card transition-transform duration-150 ease-ios hover:-translate-y-0.5 ${postitBg(
+                  className={`relative flex flex-col rounded-2xl p-4 text-left shadow-card transition-transform duration-150 ease-ios hover:-translate-y-0.5 ${postitBg(
                     n.color,
                     i
-                  )} ${i % 2 ? "rotate-[0.7deg]" : "-rotate-[0.7deg]"}`}
+                  )} ${
+                    featured
+                      ? "min-h-[190px] ring-2 ring-[#F59E0B]/60 shadow-[0_0_26px_rgba(245,158,11,0.35)] md:col-span-2"
+                      : "min-h-[150px]"
+                  } ${i % 2 ? "rotate-[0.6deg]" : "-rotate-[0.6deg]"}`}
                 >
                   {/* Emoji épinglé : dépasse légèrement du coin du post-it */}
                   {n.emoji && (
@@ -206,23 +227,32 @@ export default function NotesClient({
                     </span>
                   )}
                   <div className="flex-1 overflow-hidden">
-                    {/* Titre : grand, met en avant le sujet du post-it */}
+                    {/* Titre : très grand, il domine le post-it */}
                     {hasTitle && (
-                      <p className="mb-1 break-words text-[18px] font-bold leading-snug text-ink">
+                      <p
+                        className={`mb-1.5 break-words font-extrabold leading-[1.05] tracking-tight text-ink ${
+                          featured ? "text-[34px]" : "text-[27px]"
+                        }`}
+                      >
                         {n.title}
                       </p>
                     )}
+                    {/* Corps : nettement plus petit que le titre */}
                     {(bodyHtml || !hasTitle) && (
                       <div
-                        className="whitespace-pre-wrap break-words text-[14.5px] leading-relaxed text-ink/85 [&_b]:font-semibold [&_strong]:font-semibold"
+                        className="whitespace-pre-wrap break-words text-[11px] leading-snug text-ink/70 [&_b]:font-semibold [&_strong]:font-semibold"
                         dangerouslySetInnerHTML={{ __html: bodyHtml || "Note" }}
                       />
                     )}
                   </div>
                   <div className="mt-3 flex items-end justify-between gap-2">
-                    {dateStr ? (
-                      <span className="text-[12px] text-ink/45">
-                        {format(parseISO(dateStr), "d MMM", { locale: fr })}
+                    {n.due_date ? (
+                      <span
+                        className={`text-[12px] font-medium ${
+                          featured ? "text-[#B45309]" : "text-ink/45"
+                        }`}
+                      >
+                        {format(parseISO(n.due_date), "d MMM yyyy", { locale: fr })}
                       </span>
                     ) : (
                       <span />
@@ -242,9 +272,18 @@ export default function NotesClient({
 
       {/* À faire */}
       <section>
-        <h2 className="mb-4 text-[11px] font-bold uppercase tracking-[0.08em] text-muted">
-          À faire
-        </h2>
+        <div className="mb-4 flex items-center justify-between">
+          <h2 className="text-[11px] font-bold uppercase tracking-[0.08em] text-muted">
+            À faire
+          </h2>
+          <button
+            onClick={createBlankTask}
+            className="inline-flex items-center gap-1.5 rounded-full bg-ink px-3.5 py-1.5 text-sm font-semibold text-white transition-transform duration-150 ease-ios hover:-translate-y-px active:scale-[0.97]"
+          >
+            <Plus className="h-4 w-4" />
+            Tâche
+          </button>
+        </div>
         {todo.length === 0 ? (
           <p className="rounded-2xl border border-dashed border-black/[0.12] px-4 py-8 text-center text-sm text-muted">
             Rien à faire. Ajoute une tâche (avec un titre ou une échéance).
@@ -284,7 +323,7 @@ export default function NotesClient({
 
       {editing &&
         (isPostit(editing) ? (
-          <Overlay onClose={closePostit}>
+          <Overlay onClose={closeEditing}>
             <PostitEditor
               key={editing.id}
               note={editing}
@@ -293,13 +332,13 @@ export default function NotesClient({
             />
           </Overlay>
         ) : (
-          <Overlay onClose={() => setEditing(null)}>
+          <Overlay onClose={closeEditing}>
             <NoteEditor
               note={editing}
-              isNew={isNew}
+              isNew={isEmptyNote(editing)}
               onPersist={persist}
-              onDelete={isNew ? undefined : () => removeNote(editing.id)}
-              onClose={() => setEditing(null)}
+              onDelete={() => removeNote(editing.id)}
+              onClose={closeEditing}
             />
           </Overlay>
         ))}
@@ -359,6 +398,13 @@ const PRIO_BADGE: Record<NotePriority, string> = {
   basse: "bg-slate-100 text-[#475569]",
 };
 
+// Teinte de ligne quand l'échéance est proche (<= 7 j) : couleur de l'importance.
+const PRIO_ROW: Record<NotePriority, string> = {
+  haute: "bg-red-50/70",
+  moyenne: "bg-amber-50/70",
+  basse: "bg-blue-50/70",
+};
+
 // Tableau "À faire" : Importance · Idée · Date · Thème (façon Notion, épuré).
 function NoteTable({
   notes,
@@ -410,9 +456,16 @@ function NoteTableRow({
     !note.done && due && (isToday(due) || overdue)
       ? "text-urgent font-semibold"
       : "text-ink-soft";
+  // Échéance dans <= 7 jours (ou dépassée) et non faite -> ligne teintée.
+  const daysUntil = due ? differenceInCalendarDays(due, new Date()) : null;
+  const near = !note.done && daysUntil !== null && daysUntil <= 7;
 
   return (
-    <div className="grid grid-cols-[34px_104px_1fr_140px_150px] items-center gap-3 border-b border-black/[0.05] px-4 py-3 transition-colors last:border-0 hover:bg-black/[0.015]">
+    <div
+      className={`grid grid-cols-[34px_104px_1fr_140px_150px] items-center gap-3 border-b border-black/[0.05] px-4 py-3 transition-colors last:border-0 ${
+        near ? PRIO_ROW[note.priority] : "hover:bg-black/[0.015]"
+      }`}
+    >
       {/* Case à cocher */}
       <button
         onClick={onToggle}

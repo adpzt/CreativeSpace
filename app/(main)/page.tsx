@@ -18,6 +18,7 @@ import {
 import type { LucideIcon } from "lucide-react";
 import { getCalendarBlocks, getProjects, getClients } from "./work/actions";
 import { getPayments, getUrssaf, getExpenses } from "./finance/actions";
+import { getNotes } from "./notes/actions";
 import { getMeSettings } from "./me/actions";
 import TodayTasks from "@/components/home/TodayTasks";
 import { InstagramWidget, BehanceWidget } from "@/components/home/SocialWidgets";
@@ -41,7 +42,7 @@ type Traite = {
 };
 
 export default async function HomePage() {
-  const [blocks, projects, clients, payments, urssaf, expenses, settings] =
+  const [blocks, projects, clients, payments, urssaf, expenses, notes, settings] =
     await Promise.all([
       getCalendarBlocks(),
       getProjects(),
@@ -49,6 +50,7 @@ export default async function HomePage() {
       getPayments(),
       getUrssaf(),
       getExpenses(),
+      getNotes(),
       getMeSettings(),
     ]);
 
@@ -245,6 +247,41 @@ export default async function HomePage() {
           },
         ]
       : []),
+    // Tâches (To do) dont l'échéance est dans <= 7 jours (ou dépassée)
+    ...notes
+      .filter(
+        (n) =>
+          n.is_task &&
+          !n.done &&
+          n.due_date &&
+          differenceInCalendarDays(parseISO(n.due_date), now) <= 7
+      )
+      .map((n) => {
+        const d = differenceInCalendarDays(parseISO(n.due_date as string), now);
+        const level: Traite["level"] =
+          n.priority === "haute" || d < 0
+            ? "urgent"
+            : n.priority === "moyenne"
+              ? "warning"
+              : "info";
+        const when =
+          d < 0
+            ? "en retard"
+            : d === 0
+              ? "aujourd'hui"
+              : d === 1
+                ? "demain"
+                : `dans ${d} j`;
+        return {
+          key: `task-${n.id}`,
+          level,
+          text: `${n.emoji ? n.emoji + " " : ""}${
+            n.title?.trim() || "Tâche"
+          } · ${when}`,
+          href: "/work",
+          cta: "Voir",
+        };
+      }),
   ];
 
   // Tri par priorité : urgent d'abord, puis à surveiller, puis info.
