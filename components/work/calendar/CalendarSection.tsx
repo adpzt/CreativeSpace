@@ -89,7 +89,7 @@ export default function CalendarSection({
     setBlocks(initial);
   }, [initial]);
   const [refDate, setRefDate] = useState<Date>(new Date());
-  const [view, setView] = useState<"week" | "month">("week");
+  const [view, setView] = useState<"week" | "month" | "list">("week");
   const [showWeekend, setShowWeekend] = useState(false);
   const [activeId, setActiveId] = useState<string | null>(null);
   const [addCtx, setAddCtx] = useState<AddCtx | null>(null);
@@ -428,10 +428,11 @@ export default function CalendarSection({
     );
   })();
 
-  const label =
-    view === "week"
-      ? `Semaine du ${format(weekStart, "d MMMM", { locale: fr })}`
-      : format(refDate, "MMMM yyyy", { locale: fr });
+  // Semaine ET liste naviguent par semaine ; seul "mois" navigue par mois.
+  const weekMode = view !== "month";
+  const label = weekMode
+    ? `Semaine du ${format(weekStart, "d MMMM", { locale: fr })}`
+    : format(refDate, "MMMM yyyy", { locale: fr });
 
   return (
     <section>
@@ -441,7 +442,7 @@ export default function CalendarSection({
           <button
             onClick={() =>
               setRefDate((d) =>
-                view === "week" ? addWeeks(d, -1) : addMonths(d, -1)
+                weekMode ? addWeeks(d, -1) : addMonths(d, -1)
               )
             }
             aria-label="Précédent"
@@ -452,7 +453,7 @@ export default function CalendarSection({
           <button
             onClick={() =>
               setRefDate((d) =>
-                view === "week" ? addWeeks(d, 1) : addMonths(d, 1)
+                weekMode ? addWeeks(d, 1) : addMonths(d, 1)
               )
             }
             aria-label="Suivant"
@@ -461,7 +462,7 @@ export default function CalendarSection({
             <ChevronRight className="h-4 w-4" />
           </button>
           <span className="ml-1 text-[15px] font-semibold first-letter:uppercase">{label}</span>
-          {!isCurrentWeek && view === "week" && (
+          {!isCurrentWeek && weekMode && (
             <button
               onClick={() => setRefDate(new Date())}
               className="ml-2 rounded-lg bg-blue-50 dark:bg-active/15 px-2 py-1 text-xs font-medium text-active hover:bg-blue-100 dark:hover:bg-active/25"
@@ -472,7 +473,7 @@ export default function CalendarSection({
         </div>
 
         <div className="flex items-center gap-2">
-          {view === "week" && (
+          {weekMode && (
             <button
               onClick={() => setShowWeekend((s) => !s)}
               className="hidden items-center gap-1 rounded-lg border border-gray-200 dark:border-hairline px-2.5 py-1 text-xs font-medium text-muted transition-colors hover:border-ink hover:text-ink md:inline-flex"
@@ -489,15 +490,23 @@ export default function CalendarSection({
             <button
               onClick={() => setView("week")}
               className={`rounded-md px-2.5 py-1 ${
-                view === "week" ? "bg-white dark:bg-surface shadow-sm" : "text-muted"
+                view === "week" ? "bg-white shadow-sm" : "text-muted"
               }`}
             >
               Semaine
             </button>
             <button
+              onClick={() => setView("list")}
+              className={`rounded-md px-2.5 py-1 ${
+                view === "list" ? "bg-white shadow-sm" : "text-muted"
+              }`}
+            >
+              Liste
+            </button>
+            <button
               onClick={() => setView("month")}
               className={`rounded-md px-2.5 py-1 ${
-                view === "month" ? "bg-white dark:bg-surface shadow-sm" : "text-muted"
+                view === "month" ? "bg-white shadow-sm" : "text-muted"
               }`}
             >
               Mois
@@ -506,7 +515,73 @@ export default function CalendarSection({
         </div>
       </div>
 
-      {view === "week" ? (
+      {view === "list" ? (
+        <DndContext
+          sensors={sensors}
+          collisionDetection={closestCenter}
+          onDragStart={onDragStart}
+          onDragEnd={onDragEnd}
+        >
+          {/* Vue LISTE (desktop + mobile) : une carte par jour, catégories empilées */}
+          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+            {days.map((d) => (
+              <div
+                key={iso(d)}
+                className={`overflow-hidden rounded-2xl border bg-white shadow-card ${
+                  isToday(d) ? "border-active/40" : "border-black/[0.06]"
+                }`}
+              >
+                <div
+                  className={`flex items-baseline gap-2 px-3.5 py-2.5 ${
+                    isToday(d) ? "bg-blue-50" : "bg-[#F6F6F7]"
+                  }`}
+                >
+                  <span className="text-sm font-bold capitalize">
+                    {format(d, "EEEE d", { locale: fr })}
+                  </span>
+                  {isToday(d) && (
+                    <span className="text-[11px] font-semibold text-active">
+                      aujourd&apos;hui
+                    </span>
+                  )}
+                </div>
+                <div className="divide-y divide-black/[0.05]">
+                  {CALENDAR_CATEGORIES.map((cat) => (
+                    <div key={cat.key} className="flex items-start gap-2 px-2.5 py-2">
+                      <span
+                        className="mt-1 inline-flex w-20 shrink-0 items-center text-[11px] font-semibold"
+                        style={{ color: cat.color }}
+                      >
+                        {cat.label}
+                      </span>
+                      <Cell
+                        dayIso={iso(d)}
+                        cat={cat.key}
+                        blocks={cellBlocks(iso(d), cat.key)}
+                        colorForBlock={colorForBlock}
+                        className="min-h-[40px] flex-1"
+                        onAdd={() => setAddCtx({ dayIso: iso(d), cat: cat.key })}
+                        onOpen={(id) => setNoteBlockId(id)}
+                        onToggle={(id) => {
+                          const b = blocks.find((x) => x.id === id);
+                          if (b) toggle(b);
+                        }}
+                      />
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+          <DragOverlay>
+            {activeBlock ? (
+              <div className="rounded-[9px] bg-white px-[10px] py-2 text-[12.5px] font-semibold text-ink shadow-float">
+                {activeBlock.title}
+              </div>
+            ) : null}
+          </DragOverlay>
+        </DndContext>
+      ) : view === "week" ? (
         <>
         {/* Deux DndContext SÉPARÉS (desktop / mobile) : sinon chaque bloc est
             rendu 2x avec le même id -> dnd-kit attrape la copie cachée (rect 0,0
