@@ -266,8 +266,9 @@ export default function ProjectOverlayBody({
   if (!editing) {
     return (
       <>
-        <div className="pr-8">
-          <div className="flex items-center gap-2.5">
+        <div>
+          {/* seule la ligne du titre garde une marge à droite pour la croix */}
+          <div className="flex items-center gap-2.5 pr-10">
             {colorVal && (
               <span
                 className="h-3.5 w-3.5 shrink-0 rounded-full"
