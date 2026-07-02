@@ -4,8 +4,14 @@ import { revalidatePath } from "next/cache";
 import { createServerSupabase } from "@/lib/supabase/server";
 import { PRO_FIELDS, TJM_KEY } from "@/lib/me";
 
-// Clés de réglages de la page Moi (stockées dans la table profile)
-const ME_KEYS = [...PRO_FIELDS.map((f) => f.key), TJM_KEY];
+// Clés de réglages (stockées dans la table profile). Inclut les compteurs
+// d'abonnés affichés sur l'accueil (saisis à la main).
+const ME_KEYS = [
+  ...PRO_FIELDS.map((f) => f.key),
+  TJM_KEY,
+  "me_ig_followers",
+  "me_be_followers",
+];
 
 export async function getMeSettings(): Promise<Record<string, string>> {
   const supabase = createServerSupabase();

@@ -4,7 +4,7 @@ import {
   parseISO,
   startOfWeek,
   addDays,
-  subDays,
+  endOfMonth,
   differenceInCalendarDays,
 } from "date-fns";
 import { fr } from "date-fns/locale";
@@ -15,16 +15,17 @@ import {
   CalendarClock,
   TrendingUp,
   Compass,
-  Sparkles,
-  AtSign,
   ArrowUpRight,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { getCalendarBlocks, getProjects, getClients } from "./work/actions";
 import { getPayments, getUrssaf } from "./finance/actions";
+import { getMeSettings } from "./me/actions";
 import TodayTasks from "@/components/home/TodayTasks";
+import FollowerCounter from "@/components/home/FollowerCounter";
 import { ButtonLink } from "@/components/ui/Button";
 import { formatEuro, CATEGORY_COLOR } from "@/lib/work";
+import { INCOME_TAX_BRACKETS, MICRO_BNC_ABATTEMENT } from "@/lib/finance";
 
 export const dynamic = "force-dynamic";
 
@@ -42,13 +43,15 @@ type Traite = {
 };
 
 export default async function HomePage() {
-  const [blocks, projects, clients, payments, urssaf] = await Promise.all([
-    getCalendarBlocks(),
-    getProjects(),
-    getClients(),
-    getPayments(),
-    getUrssaf(),
-  ]);
+  const [blocks, projects, clients, payments, urssaf, settings] =
+    await Promise.all([
+      getCalendarBlocks(),
+      getProjects(),
+      getClients(),
+      getPayments(),
+      getUrssaf(),
+      getMeSettings(),
+    ]);
 
   const now = new Date();
   const todayStr = format(now, "yyyy-MM-dd");
@@ -124,20 +127,39 @@ export default async function HomePage() {
   const aEncaisser = payments
     .filter((p) => p.status !== "paid")
     .reduce((s, p) => s + (p.net_amount ?? 0), 0);
-  const todoToday = todayBlocks.filter((b) => !b.completed).length;
   const nextDeadline = activeProjects
     .filter((p) => p.end_date)
     .map((p) => parseISO(p.end_date as string))
     .filter((d) => differenceInCalendarDays(d, now) >= 0)
     .sort((a, b) => a.getTime() - b.getTime())[0];
 
-  // Encaissé sur les 30 derniers jours (widget objectif)
-  const since30 = format(subDays(now, 30), "yyyy-MM-dd");
-  const encaisse30 = payments
-    .filter(
-      (p) => p.status === "paid" && p.received_date && p.received_date >= since30
-    )
+  const todayTotal = todayBlocks.length;
+  const todayDone = todayBlocks.filter((b) => b.completed).length;
+
+  // Projet lié à la prochaine échéance (pour réunir date + nom)
+  const nextDeadlineProject = activeProjects
+    .filter((p) => p.end_date && differenceInCalendarDays(parseISO(p.end_date), now) >= 0)
+    .sort(
+      (a, b) =>
+        parseISO(a.end_date as string).getTime() -
+        parseISO(b.end_date as string).getTime()
+    )[0];
+
+  // --- Objectif mensuel (widget) : CA freelance encaissé ce mois vs le CA/mois
+  // à ne pas dépasser pour rester non imposable (= seuil / 0,66 / 12). ---
+  const ym = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+  const caMonthNet = payments
+    .filter((p) => p.status === "paid" && p.received_date?.startsWith(ym))
     .reduce((s, p) => s + (p.net_amount ?? 0), 0);
+  const objectifMensuel = Math.round(
+    INCOME_TAX_BRACKETS[0].upTo / (1 - MICRO_BNC_ABATTEMENT) / 12
+  );
+
+  // --- URSSAF : jours avant la prochaine déclaration + montant à déclarer ---
+  const daysUntilDecl = differenceInCalendarDays(endOfMonth(now), now);
+  const grossMonth = payments
+    .filter((p) => p.status === "paid" && p.received_date?.startsWith(ym))
+    .reduce((s, p) => s + (p.gross_amount ?? p.net_amount ?? 0), 0);
 
   // --- Liste "À traiter" (données réelles, priorité en haut) ---
   const aTraiter: Traite[] = [
@@ -174,6 +196,19 @@ export default async function HomePage() {
             text: `URSSAF de ${MONTHS[prevM - 1]} non déclarée`,
             href: "/finance",
             cta: "Déclarer",
+          },
+        ]
+      : []),
+    ...(grossMonth > 0
+      ? [
+          {
+            key: "urssaf-decl",
+            level: "info" as const,
+            text: `Déclaration URSSAF dans ${daysUntilDecl} j · ${formatEuro(
+              grossMonth
+            )} à déclarer`,
+            href: "/finance",
+            cta: "Voir",
           },
         ]
       : []),
@@ -247,14 +282,31 @@ export default async function HomePage() {
 
       {/* KPI */}
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-        <Kpi icon={Briefcase} tint="active" label="Projets actifs" value={String(activeProjects.length)} />
-        <Kpi icon={Wallet} tint="pending" label="À encaisser" value={formatEuro(aEncaisser)} />
-        <Kpi icon={CheckCircle2} tint="success" label="Tâches du jour" value={String(todoToday)} />
+        <Kpi
+          icon={Briefcase}
+          tint="active"
+          label="Projets actifs"
+          value={String(activeProjects.length)}
+          sub={activeProjects[0]?.name}
+        />
+        <Kpi
+          icon={Wallet}
+          tint="pending"
+          label="À encaisser"
+          value={formatEuro(aEncaisser)}
+        />
+        <Kpi
+          icon={CheckCircle2}
+          tint="success"
+          label="Tâches du jour"
+          value={`${todayDone}/${todayTotal}`}
+        />
         <Kpi
           icon={CalendarClock}
           tint="urgent"
           label="Prochaine échéance"
           value={nextDeadline ? format(nextDeadline, "d MMM", { locale: fr }) : "—"}
+          sub={nextDeadlineProject?.name}
         />
       </div>
 
@@ -330,18 +382,67 @@ export default async function HomePage() {
         <h2 className="mb-3 text-[11px] font-bold uppercase tracking-[0.08em] text-muted">
           Objectifs
         </h2>
-        <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-          {/* Encaissé 30 jours */}
-          <div className="col-span-2 flex flex-col justify-between rounded-2xl border border-black/[0.06] bg-white p-5 shadow-card">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          {/* Encaissé ce mois vs objectif mensuel (à ne pas dépasser) */}
+          <div className="flex flex-col rounded-2xl border border-black/[0.06] bg-white p-5 shadow-card">
             <div className="flex items-center gap-2">
               <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-green-50 text-success">
                 <TrendingUp className="h-4 w-4" />
               </span>
-              <span className="text-[13px] text-muted">Encaissé · 30 derniers jours</span>
+              <span className="text-[13px] text-muted">Encaissé · ce mois-ci</span>
             </div>
             <p className="mt-3 text-[30px] font-extrabold leading-none tracking-[-0.02em]">
-              {formatEuro(encaisse30)}
+              {formatEuro(caMonthNet)}
             </p>
+            <div className="mt-3 h-2 w-full overflow-hidden rounded-full bg-black/[0.07]">
+              <div
+                className={`h-full rounded-full ${
+                  caMonthNet > objectifMensuel ? "bg-urgent" : "bg-active"
+                }`}
+                style={{
+                  width: `${Math.min(100, Math.round((caMonthNet / objectifMensuel) * 100))}%`,
+                }}
+              />
+            </div>
+            <p className="mt-1.5 text-[12px] text-muted">
+              sur {formatEuro(objectifMensuel)} / mois à ne pas dépasser (avant impôt)
+            </p>
+          </div>
+
+          {/* Compteurs abonnés (éditables) */}
+          <FollowerCounter
+            instagram={settings["me_ig_followers"] ?? ""}
+            behance={settings["me_be_followers"] ?? ""}
+          />
+
+          {/* Inspiration : carte à dégradé animé + marques */}
+          <div className="animate-drift rounded-2xl border border-black/[0.06] bg-[linear-gradient(120deg,#EEF2FF,#F5E9FF,#FFEAE1)] bg-[length:180%_180%] p-5 shadow-card">
+            <p className="text-[13px] font-medium text-ink-soft">Trouver de l&apos;inspiration</p>
+            <div className="mt-3 flex flex-wrap gap-2">
+              {[
+                {
+                  label: "Instagram",
+                  url: "https://www.instagram.com",
+                  cls: "bg-[linear-gradient(45deg,#F58529,#DD2A7B,#8134AF)]",
+                  mark: "Ig",
+                },
+                { label: "Behance", url: "https://www.behance.net", cls: "bg-[#1769FF]", mark: "Bē" },
+                { label: "Dribbble", url: "https://dribbble.com", cls: "bg-[#EA4C89]", mark: "Dr" },
+                { label: "Pinterest", url: "https://www.pinterest.fr", cls: "bg-[#E60023]", mark: "Pin" },
+              ].map((b) => (
+                <a
+                  key={b.label}
+                  href={b.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  title={b.label}
+                  className={`inline-flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-semibold text-white transition-transform hover:-translate-y-0.5 ${b.cls}`}
+                >
+                  <span className="text-[13px] font-bold">{b.mark}</span>
+                  {b.label}
+                </a>
+              ))}
+            </div>
           </div>
 
           {/* Trouver des clients */}
@@ -352,51 +453,6 @@ export default async function HomePage() {
             title="Trouver des clients"
             sub="Prospecter"
           />
-
-          {/* Inspiration */}
-          <div className="flex flex-col rounded-2xl border border-black/[0.06] bg-white p-5 shadow-card">
-            <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-purple-50 text-[#9333EA]">
-              <Sparkles className="h-4 w-4" />
-            </span>
-            <p className="mt-3 text-[15px] font-semibold">Inspiration</p>
-            <div className="mt-2 flex flex-wrap gap-1.5">
-              {[
-                { label: "Behance", url: "https://www.behance.net" },
-                { label: "Pinterest", url: "https://www.pinterest.fr" },
-                { label: "Dribbble", url: "https://dribbble.com" },
-              ].map((l) => (
-                <a
-                  key={l.label}
-                  href={l.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="rounded-lg border border-black/[0.08] px-2.5 py-1 text-[12px] font-medium text-ink-soft transition-colors hover:border-black/20 hover:text-ink"
-                >
-                  {l.label}
-                </a>
-              ))}
-            </div>
-          </div>
-
-          {/* Instagram */}
-          <a
-            href="https://instagram.com/pztdesign"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="group col-span-2 flex items-center justify-between gap-3 rounded-2xl border border-black/[0.06] bg-white p-5 shadow-card transition duration-[180ms] ease-ios hover:-translate-y-0.5 hover:shadow-lift"
-          >
-            <div>
-              <div className="flex items-center gap-2">
-                <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-pink-50 text-[#DB2777]">
-                  <AtSign className="h-4 w-4" />
-                </span>
-                <span className="text-[13px] text-muted">Abonnés Instagram</span>
-              </div>
-              <p className="mt-2 text-[15px] font-semibold">Connecter mon compte</p>
-              <p className="text-[12px] text-muted">Suivi des abonnés à venir</p>
-            </div>
-            <ArrowUpRight className="h-5 w-5 shrink-0 text-muted transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:text-ink" />
-          </a>
         </div>
       </section>
     </div>
@@ -448,14 +504,16 @@ function Kpi({
   tint,
   label,
   value,
+  sub,
 }: {
   icon: LucideIcon;
   tint: keyof typeof KPI_TINT;
   label: string;
   value: string;
+  sub?: string;
 }) {
   return (
-    <div className="animate-rise rounded-2xl border border-black/[0.06] bg-white p-5 shadow-card">
+    <div className="animate-rise flex flex-col rounded-2xl border border-black/[0.06] bg-white p-5 shadow-card">
       <div className="mb-3 flex items-center gap-2">
         <span
           className={`flex h-7 w-7 items-center justify-center rounded-lg ${KPI_TINT[tint]}`}
@@ -465,6 +523,7 @@ function Kpi({
         <span className="text-[13px] text-muted">{label}</span>
       </div>
       <p className="text-[32px] font-bold leading-none tracking-tight">{value}</p>
+      {sub && <p className="mt-1.5 truncate text-[12px] text-muted">{sub}</p>}
     </div>
   );
 }

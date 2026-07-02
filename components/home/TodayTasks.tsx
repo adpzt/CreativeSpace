@@ -12,10 +12,13 @@ import type {
   Project,
 } from "@/lib/types";
 
-const CAT: Record<CalendarCategory, { label: string; className: string }> = {
-  freelance: { label: "Freelance", className: "text-active" },
-  entreprise: { label: "Entreprise", className: "text-success" },
-  perso: { label: "Perso", className: "text-pending" },
+const CAT: Record<
+  CalendarCategory,
+  { label: string; className: string; order: number }
+> = {
+  freelance: { label: "Freelance", className: "text-active", order: 0 },
+  entreprise: { label: "Entreprise", className: "text-success", order: 1 },
+  perso: { label: "Perso", className: "text-pending", order: 2 },
 };
 
 // Tâches du jour (blocs du calendrier), cochables directement depuis le Home.
@@ -29,7 +32,17 @@ export default function TodayTasks({
   clients?: Client[];
 }) {
   const router = useRouter();
-  const [items, setItems] = useState(blocks);
+  // Tri : par catégorie (Freelance -> Entreprise -> Perso), puis par heure (les
+  // blocs avec heure d'abord). Regroupe les mêmes catégories ensemble.
+  const sorted = [...blocks].sort((a, b) => {
+    const c = CAT[a.category].order - CAT[b.category].order;
+    if (c !== 0) return c;
+    if (a.time && b.time) return a.time.localeCompare(b.time);
+    if (a.time) return -1;
+    if (b.time) return 1;
+    return 0;
+  });
+  const [items, setItems] = useState(sorted);
 
   const clientOf = (block: CalendarBlock): string | null => {
     const clientId = projects.find((p) => p.id === block.project_id)?.client_id;
@@ -71,6 +84,12 @@ export default function TodayTasks({
             >
               {b.completed && <Check className="h-3.5 w-3.5" />}
             </button>
+            {/* Heure EN PREMIER (comme le semainier) */}
+            {b.time && (
+              <span className="w-11 shrink-0 text-[13px] font-bold tabular-nums text-ink">
+                {b.time.replace(":00", "h").replace(":", "h")}
+              </span>
+            )}
             <span
               className="h-2 w-2 shrink-0 rounded-full"
               style={{ background: b.color || CATEGORY_COLOR[b.category] }}
@@ -83,11 +102,6 @@ export default function TodayTasks({
               {b.title}
             </span>
             <div className="flex shrink-0 items-center gap-2">
-              {b.time && (
-                <span className="text-[13px] font-medium text-muted">
-                  {b.time}
-                </span>
-              )}
               {cat && (
                 <span className={`text-[12px] font-semibold ${cat.className}`}>
                   {cat.label}
