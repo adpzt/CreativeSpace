@@ -3,13 +3,14 @@
 import { useState } from "react";
 import { Trash2 } from "lucide-react";
 import RichText from "@/components/notes/RichText";
+import { POSTIT_COLORS, postitBg } from "@/lib/notes";
 import type { Note } from "@/app/(main)/notes/actions";
 
 // Petite palette d'emojis pour "épingler" un post-it.
 const EMOJIS = ["📌", "⭐", "🔥", "💡", "✅", "⚠️", "❤️", "📷", "🎨", "🚀", "📝", "🎯"];
 
-// Éditeur de post-it : texte enrichi (gras…), thème, emoji (épingle) et date.
-// Sauvegarde chaque champ à la volée via `save`.
+// Éditeur de post-it : titre, texte enrichi (gras…), thème, emoji (épingle),
+// date et couleur. Sauvegarde chaque champ à la volée via `save`.
 export default function PostitEditor({
   note,
   save,
@@ -19,13 +20,24 @@ export default function PostitEditor({
   save: (fields: Partial<Note>) => void;
   onDelete: () => void;
 }) {
+  const [title, setTitle] = useState(note.title ?? "");
   const [content, setContent] = useState(note.content ?? "");
   const [theme, setTheme] = useState(note.theme ?? "");
   const [emoji, setEmoji] = useState(note.emoji ?? "");
   const [due, setDue] = useState(note.due_date ?? "");
+  const [color, setColor] = useState(note.color ?? "");
 
   return (
-    <div className="space-y-5 pr-8">
+    <div className={`-m-7 space-y-5 rounded-3xl p-7 pr-12 ${postitBg(color || null)}`}>
+      {/* Titre (grand) */}
+      <input
+        value={title}
+        onChange={(e) => setTitle(e.target.value)}
+        onBlur={() => save({ title: title.trim() || null })}
+        placeholder="Titre"
+        className="w-full bg-transparent text-[26px] font-bold leading-tight tracking-tight text-ink outline-none placeholder:text-ink/30"
+      />
+
       {/* Emoji (épingle) */}
       <div>
         <p className="mb-2 text-xs font-medium uppercase tracking-wide text-muted">
@@ -90,7 +102,7 @@ export default function PostitEditor({
         <p className="mb-2 text-xs font-medium uppercase tracking-wide text-muted">
           Note
         </p>
-        <div className="rounded-2xl bg-[#FEF3C7] p-4">
+        <div className="rounded-2xl bg-white/70 p-4">
           <RichText
             value={content}
             onChange={(html) => {
@@ -99,6 +111,32 @@ export default function PostitEditor({
             }}
             placeholder="Une idée, un rappel… (sélectionne du texte pour le mettre en gras)"
           />
+        </div>
+      </div>
+
+      {/* Couleur du post-it */}
+      <div>
+        <p className="mb-2 text-xs font-medium uppercase tracking-wide text-muted">
+          Couleur
+        </p>
+        <div className="flex flex-wrap items-center gap-2">
+          {POSTIT_COLORS.map((c) => (
+            <button
+              key={c.key}
+              type="button"
+              onClick={() => {
+                setColor(c.key);
+                save({ color: c.key });
+              }}
+              aria-label={`Couleur ${c.key}`}
+              className={`h-8 w-8 rounded-full border transition ${
+                color === c.key
+                  ? "border-ink ring-2 ring-ink ring-offset-1"
+                  : "border-black/10 hover:border-black/30"
+              }`}
+              style={{ backgroundColor: c.swatch }}
+            />
+          ))}
         </div>
       </div>
 

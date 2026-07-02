@@ -6,7 +6,6 @@ import { format, parseISO, isPast, isToday } from "date-fns";
 import { fr } from "date-fns/locale";
 import { Plus, Check, Trash2, ChevronDown, RotateCcw } from "lucide-react";
 import Overlay from "@/components/ui/Overlay";
-import { Button } from "@/components/ui/Button";
 import NoteEditor from "@/components/notes/NoteEditor";
 import PostitEditor from "@/components/notes/PostitEditor";
 import {
@@ -18,15 +17,19 @@ import {
   type Note,
   type NotePriority,
 } from "./actions";
-import { PRIORITIES, stripHtml } from "@/lib/notes";
+import { PRIORITIES, postitBg, stripHtml } from "@/lib/notes";
 
-// Couleurs des post-it (cyclées par index), léger désalignement.
-const POSTIT = ["bg-[#FEF3C7]", "bg-[#DBEAFE]", "bg-[#FCE7F3]", "bg-[#DCFCE7]"];
+// Post-it vs tâche : porté par `is_task` (un post-it peut avoir un titre, une
+// date, etc. sans devenir une tâche).
+const isPostit = (n: Note) => !n.is_task;
 
-// Un post-it = note libre (sans titre). Une tâche = note avec un titre.
-// (La date n'entre PLUS dans le critère : un post-it peut avoir une date et
-// rester un post-it.)
-const isPostit = (n: Note) => !n.title?.trim();
+// Un post-it est "vide" si rien n'a été renseigné (pour le nettoyer à la fermeture)
+const isEmptyPostit = (n: Note) =>
+  !n.title?.trim() &&
+  !stripHtml(n.content || "").trim() &&
+  !n.theme?.trim() &&
+  !n.emoji &&
+  !n.due_date;
 
 export default function NotesClient({
   initialNotes,
@@ -41,8 +44,6 @@ export default function NotesClient({
   const [deleted, setDeleted] = useState<Note[]>(initialDeleted);
   useEffect(() => setDeleted(initialDeleted), [initialDeleted]);
   const [editing, setEditing] = useState<Note | null>(null);
-  const [composing, setComposing] = useState(false);
-  const [draft, setDraft] = useState("");
   const [showDone, setShowDone] = useState(false);
   const [showTrash, setShowTrash] = useState(false);
 
@@ -125,14 +126,22 @@ export default function NotesClient({
     updateNote(id, fields);
   }
 
-  // Post-it = note libre (contenu seul, sans titre ni échéance) -> zone "Notes rapides".
-  async function addPostit() {
-    const text = draft.trim();
-    setComposing(false);
-    setDraft("");
-    if (!text) return;
-    const created = await createNote(text);
+  // Nouveau post-it : on crée une note vide (is_task=false) puis on ouvre
+  // l'éditeur complet (titre, notes, thème, date, emoji, couleur).
+  async function createBlankPostit() {
+    const created = await createNote("", false);
     setNotes((list) => [created, ...list]);
+    setEditing(created);
+  }
+
+  // Fermeture de l'éditeur post-it : on supprime s'il est resté vide.
+  function closePostit() {
+    const cur = editing;
+    setEditing(null);
+    if (cur && isEmptyPostit(cur)) {
+      setNotes((list) => list.filter((n) => n.id !== cur.id));
+      deleteNote(cur.id);
+    }
     router.refresh();
   }
 
@@ -164,10 +173,7 @@ export default function NotesClient({
             Notes rapides
           </h2>
           <button
-            onClick={() => {
-              setDraft("");
-              setComposing(true);
-            }}
+            onClick={createBlankPostit}
             className="inline-flex items-center gap-1.5 rounded-full bg-ink px-3.5 py-1.5 text-sm font-semibold text-white transition-transform duration-150 ease-ios hover:-translate-y-px active:scale-[0.97]"
           >
             <Plus className="h-4 w-4" />
@@ -181,15 +187,17 @@ export default function NotesClient({
         ) : (
           <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
             {postits.map((n, i) => {
-              const html = n.content?.trim() ? n.content : "Note";
+              const hasTitle = !!n.title?.trim();
+              const bodyHtml = n.content?.trim() || "";
               const dateStr = n.due_date || n.created_at;
               return (
                 <button
                   key={n.id}
                   onClick={() => setEditing(n)}
-                  className={`relative flex min-h-[150px] flex-col rounded-2xl p-4 text-left shadow-card transition-transform duration-150 ease-ios hover:-translate-y-0.5 ${
-                    POSTIT[i % POSTIT.length]
-                  } ${i % 2 ? "rotate-[0.7deg]" : "-rotate-[0.7deg]"}`}
+                  className={`relative flex min-h-[150px] flex-col rounded-2xl p-4 text-left shadow-card transition-transform duration-150 ease-ios hover:-translate-y-0.5 ${postitBg(
+                    n.color,
+                    i
+                  )} ${i % 2 ? "rotate-[0.7deg]" : "-rotate-[0.7deg]"}`}
                 >
                   {/* Emoji épinglé : dépasse légèrement du coin du post-it */}
                   {n.emoji && (
@@ -197,10 +205,20 @@ export default function NotesClient({
                       {n.emoji}
                     </span>
                   )}
-                  <div
-                    className="flex-1 overflow-hidden whitespace-pre-wrap break-words text-[15px] leading-relaxed text-ink [&_b]:font-semibold [&_strong]:font-semibold"
-                    dangerouslySetInnerHTML={{ __html: html }}
-                  />
+                  <div className="flex-1 overflow-hidden">
+                    {/* Titre : grand, met en avant le sujet du post-it */}
+                    {hasTitle && (
+                      <p className="mb-1 break-words text-[18px] font-bold leading-snug text-ink">
+                        {n.title}
+                      </p>
+                    )}
+                    {(bodyHtml || !hasTitle) && (
+                      <div
+                        className="whitespace-pre-wrap break-words text-[14.5px] leading-relaxed text-ink/85 [&_b]:font-semibold [&_strong]:font-semibold"
+                        dangerouslySetInnerHTML={{ __html: bodyHtml || "Note" }}
+                      />
+                    )}
+                  </div>
                   <div className="mt-3 flex items-end justify-between gap-2">
                     {dateStr ? (
                       <span className="text-[12px] text-ink/45">
@@ -210,7 +228,7 @@ export default function NotesClient({
                       <span />
                     )}
                     {n.theme?.trim() && (
-                      <span className="rounded-full bg-black/[0.06] px-2 py-0.5 text-[11px] font-medium text-ink/70">
+                      <span className="rounded-full bg-black/[0.08] px-2 py-0.5 text-[11px] font-medium text-ink/70">
                         {n.theme.trim()}
                       </span>
                     )}
@@ -264,40 +282,9 @@ export default function NotesClient({
         </section>
       )}
 
-      {composing && (
-        <Overlay onClose={() => setComposing(false)}>
-          <div className="pr-8">
-            <h3 className="mb-3 text-[17px] font-bold tracking-tight">
-              Nouveau post-it
-            </h3>
-            <textarea
-              autoFocus
-              value={draft}
-              onChange={(e) => setDraft(e.target.value)}
-              onKeyDown={(e) => {
-                if ((e.metaKey || e.ctrlKey) && e.key === "Enter") addPostit();
-              }}
-              placeholder="Une idée, un rappel…"
-              className="min-h-[140px] w-full resize-none rounded-2xl bg-[#FEF3C7] p-4 text-[15px] leading-relaxed text-ink outline-none placeholder:text-ink/40"
-            />
-            <div className="mt-3 flex justify-end gap-2">
-              <Button variant="ghost" onClick={() => setComposing(false)}>
-                Annuler
-              </Button>
-              <Button onClick={addPostit}>Ajouter</Button>
-            </div>
-          </div>
-        </Overlay>
-      )}
-
       {editing &&
-        (isPostit(editing) && !isNew ? (
-          <Overlay
-            onClose={() => {
-              setEditing(null);
-              router.refresh();
-            }}
-          >
+        (isPostit(editing) ? (
+          <Overlay onClose={closePostit}>
             <PostitEditor
               key={editing.id}
               note={editing}

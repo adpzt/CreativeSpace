@@ -16,6 +16,8 @@ const emptyNote = (): Note => ({
   theme: null,
   due_date: null,
   emoji: null,
+  color: null,
+  is_task: true,
   deleted_at: null,
   created_at: "",
 });
@@ -27,7 +29,7 @@ export default function QuickNoteButton() {
 
   async function persist(id: string, fields: Partial<Note>): Promise<Note> {
     if (!id) {
-      const created = await createNote(fields.content ?? "");
+      const created = await createNote(fields.content ?? "", true);
       await updateNote(created.id, fields);
       router.refresh();
       return { ...created, ...fields } as Note;

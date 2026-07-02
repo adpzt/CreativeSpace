@@ -14,6 +14,8 @@ export type Note = {
   theme: string | null;
   due_date: string | null;
   emoji: string | null;
+  color: string | null;
+  is_task: boolean;
   deleted_at: string | null;
   created_at: string;
 };
@@ -45,11 +47,12 @@ export async function getDeletedNotes(): Promise<Note[]> {
 }
 
 // Crée une note. `content` seul = compatible avec le bouton "Note rapide".
-export async function createNote(content = ""): Promise<Note> {
+// `isTask` : true = tâche (tableau À faire), false = post-it (note rapide).
+export async function createNote(content = "", isTask = false): Promise<Note> {
   const supabase = createServerSupabase();
   const { data, error } = await supabase
     .from("notes")
-    .insert({ content })
+    .insert({ content, is_task: isTask })
     .select()
     .single();
 
