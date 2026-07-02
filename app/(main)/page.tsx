@@ -9,7 +9,6 @@ import {
 } from "date-fns";
 import { fr } from "date-fns/locale";
 import {
-  Briefcase,
   Wallet,
   CheckCircle2,
   CalendarClock,
@@ -22,6 +21,7 @@ import { getNotes } from "./notes/actions";
 import { getMeSettings } from "./me/actions";
 import TodayTasks from "@/components/home/TodayTasks";
 import OverdueAlert from "@/components/home/OverdueAlert";
+import InfoWidget from "@/components/home/InfoWidget";
 import { InstagramWidget, BehanceWidget } from "@/components/home/SocialWidgets";
 import { ButtonLink } from "@/components/ui/Button";
 import { formatEuro, CATEGORY_COLOR } from "@/lib/work";
@@ -130,7 +130,6 @@ export default async function HomePage() {
     (r) => r.year === prevY && r.month === prevM && r.completed
   );
   const urssafAlert = prevEncaisse > 0 && !prevDeclared;
-  const tvaAlert = todayStr < "2026-09-01";
 
   // --- KPI ---
   const nextDeadline = activeProjects
@@ -211,9 +210,7 @@ export default async function HomePage() {
     ...soon.map(({ project, days }) => ({
       key: `soon-${project.id}`,
       level: (days <= 2 ? "urgent" : "warning") as "urgent" | "warning",
-      text: `Deadline ${
-        days === 0 ? "aujourd'hui" : days === 1 ? "demain" : `dans ${days} j`
-      } · ${project.name}`,
+      text: project.name,
       href: "/work",
       cta: "Ouvrir",
       days,
@@ -235,24 +232,10 @@ export default async function HomePage() {
           {
             key: "urssaf-decl",
             level: "info" as const,
-            text: `Déclaration URSSAF dans ${daysUntilDecl} j · ${formatEuro(
-              grossMonth
-            )} à déclarer`,
+            text: `URSSAF à déclarer · ${formatEuro(grossMonth)}`,
             href: "/finance",
             cta: "Voir",
             days: daysUntilDecl,
-          },
-        ]
-      : []),
-    ...(tvaAlert
-      ? [
-          {
-            key: "tva",
-            level: "info" as const,
-            text: "Mention TVA à changer au 1er septembre",
-            href: "/freelance",
-            cta: "Voir",
-            days: 900,
           },
         ]
       : []),
@@ -273,20 +256,10 @@ export default async function HomePage() {
             : n.priority === "moyenne"
               ? "warning"
               : "info";
-        const when =
-          d < 0
-            ? "en retard"
-            : d === 0
-              ? "aujourd'hui"
-              : d === 1
-                ? "demain"
-                : `dans ${d} j`;
         return {
           key: `task-${n.id}`,
           level,
-          text: `${n.emoji ? n.emoji + " " : ""}${
-            n.title?.trim() || "Tâche"
-          } · ${when}`,
+          text: `${n.emoji ? n.emoji + " " : ""}${n.title?.trim() || "Tâche"}`,
           href: "/work",
           cta: "Voir",
           days: d,
@@ -299,6 +272,10 @@ export default async function HomePage() {
 
   // Éléments en retard : popup à l'arrivée + emoji urgent.
   const overdue = aTraiter.filter((a) => a.days < 0);
+  const hasUrgent = aTraiter.some((a) => a.days <= 0);
+  // Libellé "J-X" / "Aujourd'hui" / "En retard" (null si pas de date réelle)
+  const jLabel = (d: number) =>
+    d < 0 ? "En retard" : d === 0 ? "Aujourd'hui" : d >= 900 ? null : `J-${d}`;
 
   return (
     <div className="space-y-10">
@@ -321,73 +298,61 @@ export default async function HomePage() {
         </div>
       </header>
 
-      {/* À traiter : priorité, en haut, aligné à gauche, texte simple */}
+      {/* À traiter : un seul rectangle compact (rouge si urgence) */}
       {aTraiter.length > 0 && (
         <section>
-          <h2 className="mb-4 text-[11px] font-bold uppercase tracking-[0.08em] text-muted">
+          <h2 className="mb-3 text-[11px] font-bold uppercase tracking-[0.08em] text-muted">
             À traiter
           </h2>
-          <ul className="space-y-2.5">
+          <div
+            className={`overflow-hidden rounded-2xl border shadow-card ${
+              hasUrgent
+                ? "border-urgent/25 bg-red-50/60"
+                : "border-black/[0.06] bg-white"
+            }`}
+          >
             {aTraiter.map((a) => {
-              const color =
-                a.level === "urgent"
-                  ? "text-urgent"
-                  : a.level === "warning"
-                    ? "text-pending"
-                    : "text-active";
               const dot =
-                a.level === "urgent"
+                a.days <= 0
                   ? "bg-urgent"
-                  : a.level === "warning"
+                  : a.level === "warning" || a.days <= 2
                     ? "bg-pending"
-                    : "bg-active";
+                    : a.level === "urgent"
+                      ? "bg-urgent"
+                      : "bg-active";
+              const prefixColor =
+                a.days <= 0
+                  ? "text-urgent"
+                  : a.days <= 2
+                    ? "text-pending"
+                    : "text-muted";
               const isLate = a.days < 0;
-              // J-2 -> J0 (et retard) : ligne mise en avant
-              const highlight = a.days <= 2;
+              const prefix = jLabel(a.days);
               return (
-                <li
+                <Link
                   key={a.key}
-                  className={`flex flex-wrap items-center gap-x-3 gap-y-1 rounded-xl ${
-                    highlight
-                      ? isLate
-                        ? "bg-red-50 px-3 py-2.5"
-                        : "bg-orange-50/70 px-3 py-2.5"
-                      : ""
-                  }`}
+                  href={a.href}
+                  className="flex items-center gap-3 border-b border-black/[0.06] px-4 py-3 transition-colors last:border-0 hover:bg-black/[0.03]"
                 >
                   <span className={`h-2.5 w-2.5 shrink-0 rounded-full ${dot}`} />
-                  <span
-                    className={
-                      highlight
-                        ? "text-[18px] font-bold"
-                        : "text-[16px] font-medium"
-                    }
-                  >
+                  <span className="min-w-0 flex-1 truncate text-[15px]">
                     {isLate && "🚨 "}
-                    {a.text}
+                    {prefix && (
+                      <span className={`font-bold ${prefixColor}`}>
+                        {prefix} :{" "}
+                      </span>
+                    )}
+                    <span className="font-medium">{a.text}</span>
                   </span>
-                  <Link
-                    href={a.href}
-                    className={`text-[15px] font-semibold ${color} hover:underline`}
-                  >
-                    {a.cta} ›
-                  </Link>
-                </li>
+                </Link>
               );
             })}
-          </ul>
+          </div>
         </section>
       )}
 
       {/* KPI */}
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-        <Kpi
-          icon={Briefcase}
-          tint="active"
-          label="Projets actifs"
-          value={String(activeProjects.length)}
-          subList={activeProjects.map((p) => p.name)}
-        />
         <Kpi
           icon={Wallet}
           tint="pending"
@@ -409,13 +374,33 @@ export default async function HomePage() {
           value={`${todayDone}/${todayTotal}`}
           progress={todayTotal > 0 ? todayDone / todayTotal : 0}
         />
-        <Kpi
-          icon={CalendarClock}
-          tint="urgent"
-          label="Prochaine échéance"
-          value={nextDeadline ? format(nextDeadline, "d MMM", { locale: fr }) : "—"}
-          sub={nextDeadlineProject?.name}
-        />
+        {/* Projet à finir : le nom du projet mis en avant */}
+        <div className="animate-rise flex flex-col rounded-2xl border border-black/[0.06] bg-white p-5 shadow-card">
+          <div className="mb-3 flex items-center gap-2">
+            <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-red-50 text-urgent">
+              <CalendarClock className="h-4 w-4" />
+            </span>
+            <span className="text-[13px] font-medium text-ink-soft">
+              Projet à finir
+            </span>
+          </div>
+          {nextDeadlineProject ? (
+            <>
+              <p className="text-[19px] font-bold leading-tight tracking-tight text-ink">
+                {nextDeadlineProject.name}
+              </p>
+              {nextDeadline && (
+                <p className="mt-1.5 text-[13px] font-medium text-ink-soft">
+                  échéance {format(nextDeadline, "d MMM yyyy", { locale: fr })}
+                </p>
+              )}
+            </>
+          ) : (
+            <p className="text-[19px] font-bold text-muted">—</p>
+          )}
+        </div>
+        {/* Information à venir : widget entièrement modifiable */}
+        <InfoWidget initial={settings} />
       </div>
 
       {/* Aujourd'hui */}

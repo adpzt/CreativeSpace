@@ -2,16 +2,22 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { format, parseISO } from "date-fns";
+import { fr } from "date-fns/locale";
 import {
   Plus,
   FolderOpen,
   ChevronDown,
+  ChevronLeft,
+  ChevronRight,
   Users,
   Search,
   Pencil,
+  Pin,
   Mail,
   Phone,
 } from "lucide-react";
+import { updateProject } from "@/app/(main)/work/actions";
 import Overlay from "@/components/ui/Overlay";
 import { Button } from "@/components/ui/Button";
 import ProgressBar from "@/components/ui/ProgressBar";
@@ -85,20 +91,47 @@ export default function ProjectsSection({
   const [creatingClient, setCreatingClient] = useState(false);
   const [filter, setFilter] = useState<Filter>("active");
   const [menuOpen, setMenuOpen] = useState(false);
+  const [page, setPage] = useState(0);
+  // État local des épingles (MAJ optimiste)
+  const [pins, setPins] = useState<Record<string, boolean>>({});
 
   const clientCompany = (id: string | null) => {
     const c = clients.find((x) => x.id === id);
     return c ? c.company || c.name : null;
   };
+  const isPinned = (p: ProjectWithDeliverables) => pins[p.id] ?? p.pinned;
 
   const openProject = projects.find((p) => p.id === openId) ?? null;
   const openClient = clients.find((c) => c.id === openClientId) ?? null;
 
-  const visible =
+  const filtered =
     filter === "active"
       ? projects.filter((p) => !HIDDEN_BY_DEFAULT.includes(p.status))
       : projects.filter((p) => p.status === filter);
+  // Tri : épinglés d'abord, puis par échéance la plus proche (sans date = fin).
+  const visible = [...filtered].sort((a, b) => {
+    const pa = isPinned(a) ? 0 : 1;
+    const pb = isPinned(b) ? 0 : 1;
+    if (pa !== pb) return pa - pb;
+    if (a.end_date && b.end_date) return a.end_date.localeCompare(b.end_date);
+    if (a.end_date) return -1;
+    if (b.end_date) return 1;
+    return b.created_at.localeCompare(a.created_at);
+  });
   const filterLabel = filter === "active" ? "Tous" : PROJECT_STATUS[filter].label;
+
+  // Pagination : 3 projets visibles à la fois, flèches discrètes au-delà.
+  const PER_PAGE = 3;
+  const pageCount = Math.max(1, Math.ceil(visible.length / PER_PAGE));
+  const safePage = Math.min(page, pageCount - 1);
+  const pageProjects = visible.slice(safePage * PER_PAGE, safePage * PER_PAGE + PER_PAGE);
+
+  function togglePin(p: ProjectWithDeliverables) {
+    const next = !isPinned(p);
+    setPins((m) => ({ ...m, [p.id]: next }));
+    setPage(0);
+    updateProject(p.id, { pinned: next });
+  }
 
   function close() {
     setOpenId(null);
@@ -184,66 +217,123 @@ export default function ProjectsSection({
       ) : visible.length === 0 ? (
         <p className="text-sm text-muted">Aucun projet dans ce tri.</p>
       ) : (
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {visible.map((p) => {
-            const cat = p.category ? CATEGORY[p.category] : null;
-            const company = clientCompany(p.client_id) || p.org;
-            const closed = p.status === "closed";
-            return (
-              <button
-                key={p.id}
-                onClick={() => setOpenId(p.id)}
-                // Contour = couleur choisie sur le projet (sinon hairline neutre)
-                style={p.color ? { borderColor: p.color } : undefined}
-                className={`group flex flex-col rounded-2xl border bg-white p-5 text-left shadow-card transition duration-[180ms] ease-ios hover:-translate-y-1 hover:shadow-lift ${
-                  p.color ? "" : "border-black/[0.06]"
-                } ${closed ? "opacity-[0.82] hover:opacity-100" : ""}`}
-              >
-                <p className="text-[17px] font-semibold leading-snug">{p.name}</p>
+        <div className="flex items-stretch gap-2">
+          {/* Flèche gauche discrète (si plus de 3 projets) */}
+          {pageCount > 1 && (
+            <button
+              onClick={() => setPage((p) => Math.max(0, p - 1))}
+              disabled={safePage === 0}
+              aria-label="Projets précédents"
+              className="flex w-8 shrink-0 items-center justify-center rounded-xl text-muted transition-colors hover:bg-black/5 hover:text-ink disabled:opacity-25 disabled:hover:bg-transparent"
+            >
+              <ChevronLeft className="h-5 w-5" />
+            </button>
+          )}
 
-                <p className="mb-3 mt-1 truncate text-[13px] text-muted">
-                  {company}
-                  {company && cat ? " · " : ""}
-                  {cat && (
-                    <span className={`font-medium ${cat.className}`}>
-                      {cat.label}
-                    </span>
-                  )}
-                </p>
+          <div className="grid flex-1 grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {pageProjects.map((p) => {
+              const cat = p.category ? CATEGORY[p.category] : null;
+              const company = clientCompany(p.client_id) || p.org;
+              const closed = p.status === "closed";
+              const pinned = isPinned(p);
+              const due = p.end_date
+                ? format(parseISO(p.end_date), "d MMM", { locale: fr })
+                : null;
+              return (
+                <div key={p.id} className="group relative">
+                  <button
+                    onClick={() => setOpenId(p.id)}
+                    // Contour = couleur choisie sur le projet (sinon hairline neutre)
+                    style={p.color ? { borderColor: p.color } : undefined}
+                    className={`flex h-full w-full flex-col rounded-2xl border bg-white p-5 text-left shadow-card transition duration-[180ms] ease-ios hover:-translate-y-1 hover:shadow-lift ${
+                      p.color ? "" : "border-black/[0.06]"
+                    } ${closed ? "opacity-[0.82] hover:opacity-100" : ""}`}
+                  >
+                    {/* Ligne du haut : espace épingle (gauche) + échéance (droite) */}
+                    <div className="mb-1.5 flex h-4 items-center justify-between">
+                      <span className="w-5" />
+                      {due && (
+                        <span className="text-[11px] font-medium text-muted">
+                          {due}
+                        </span>
+                      )}
+                    </div>
 
-                {/* Types de mission + statut (contour) à droite, sur la même ligne */}
-                <div className="mb-4 flex flex-wrap items-center gap-1.5">
-                  {p.mission_types.slice(0, 4).map((t) => (
-                    <span
-                      key={t}
-                      className="rounded-md bg-[#F1F1F4] px-2 py-0.5 text-[11px] font-medium text-ink-soft"
-                    >
-                      {t}
-                    </span>
-                  ))}
-                  <span
-                    className={`ml-auto inline-flex items-center whitespace-nowrap rounded-full border px-2.5 py-1 text-[12px] font-semibold ${
-                      STATUS_OUTLINE[p.status]
+                    <p className="text-[17px] font-semibold leading-snug">{p.name}</p>
+
+                    <p className="mb-3 mt-1 truncate text-[13px] text-muted">
+                      {company}
+                      {company && cat ? " · " : ""}
+                      {cat && (
+                        <span className={`font-medium ${cat.className}`}>
+                          {cat.label}
+                        </span>
+                      )}
+                    </p>
+
+                    {/* Types de mission + statut (contour) à droite */}
+                    <div className="mb-4 flex flex-wrap items-center gap-1.5">
+                      {p.mission_types.slice(0, 4).map((t) => (
+                        <span
+                          key={t}
+                          className="rounded-md bg-[#F1F1F4] px-2 py-0.5 text-[11px] font-medium text-ink-soft"
+                        >
+                          {t}
+                        </span>
+                      ))}
+                      <span
+                        className={`ml-auto inline-flex items-center whitespace-nowrap rounded-full border px-2.5 py-1 text-[12px] font-semibold ${
+                          STATUS_OUTLINE[p.status]
+                        }`}
+                      >
+                        {PROJECT_STATUS[p.status].label}
+                      </span>
+                    </div>
+
+                    <div className="mt-auto flex items-center gap-3 pt-1">
+                      <div className="flex-1">
+                        <ProgressBar
+                          percent={projectProgress(p.deliverables)}
+                          showLabel={false}
+                        />
+                      </div>
+                      <span className="text-sm font-semibold text-ink-soft">
+                        {projectProgress(p.deliverables)}%
+                      </span>
+                    </div>
+                  </button>
+
+                  {/* Épingle (au-dessus de la card ; visible si épinglé ou au survol) */}
+                  <button
+                    onClick={() => togglePin(p)}
+                    aria-label={pinned ? "Désépingler" : "Épingler"}
+                    title={pinned ? "Désépingler" : "Épingler"}
+                    className={`absolute left-3 top-3 z-10 rounded-lg p-1 transition ${
+                      pinned
+                        ? "text-active"
+                        : "text-muted opacity-0 hover:bg-black/5 hover:text-ink group-hover:opacity-100"
                     }`}
                   >
-                    {PROJECT_STATUS[p.status].label}
-                  </span>
-                </div>
-
-                <div className="mt-auto flex items-center gap-3 pt-1">
-                  <div className="flex-1">
-                    <ProgressBar
-                      percent={projectProgress(p.deliverables)}
-                      showLabel={false}
+                    <Pin
+                      className={`h-4 w-4 ${pinned ? "fill-current" : ""}`}
                     />
-                  </div>
-                  <span className="text-sm font-semibold text-ink-soft">
-                    {projectProgress(p.deliverables)}%
-                  </span>
+                  </button>
                 </div>
-              </button>
-            );
-          })}
+              );
+            })}
+          </div>
+
+          {/* Flèche droite discrète */}
+          {pageCount > 1 && (
+            <button
+              onClick={() => setPage((p) => Math.min(pageCount - 1, p + 1))}
+              disabled={safePage >= pageCount - 1}
+              aria-label="Projets suivants"
+              className="flex w-8 shrink-0 items-center justify-center rounded-xl text-muted transition-colors hover:bg-black/5 hover:text-ink disabled:opacity-25 disabled:hover:bg-transparent"
+            >
+              <ChevronRight className="h-5 w-5" />
+            </button>
+          )}
         </div>
       )}
 

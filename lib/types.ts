@@ -100,6 +100,7 @@ export type Project = {
   org: string | null; // entreprise/école (entreprise ou établissement, pas un client)
   notes: string | null;
   comm_notes: string | null;
+  pinned: boolean;
   created_at: string;
 };
 

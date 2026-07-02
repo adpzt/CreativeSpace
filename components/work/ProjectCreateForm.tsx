@@ -601,6 +601,8 @@ export default function ProjectCreateForm({
 
       {noteRow && (
         <NotePanel
+          side
+          alwaysEdit
           title={noteRow.name || "Livrable"}
           initialValue={noteRow.notes}
           onSave={(v) => updateRow(noteRow.tempId, { notes: v })}

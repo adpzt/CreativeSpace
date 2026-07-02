@@ -15,6 +15,13 @@ const ME_KEYS = [
   "me_ig_last_post",
   "me_be_followers",
   "me_be_appreciations",
+  // Widget "Information à venir" (modifiable) de l'accueil
+  "info_title",
+  "info_text",
+  "info_emoji",
+  "info_date",
+  "info_theme",
+  "info_color",
 ];
 
 export async function getMeSettings(): Promise<Record<string, string>> {
