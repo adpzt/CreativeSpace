@@ -75,9 +75,9 @@ export default function NotesClient({
   const blocs = active
     .filter(isBloc)
     .sort((a, b) => b.created_at.localeCompare(a.created_at));
-  // Tâches : échéance la plus proche en haut, puis récence
+  // Tâches (À faire) : uniquement is_task ; échéance la plus proche en haut
   const todo = active
-    .filter((n) => !isPostit(n))
+    .filter((n) => n.is_task)
     .sort((a, b) => {
       if (a.due_date && b.due_date && a.due_date !== b.due_date)
         return a.due_date.localeCompare(b.due_date);
@@ -86,7 +86,7 @@ export default function NotesClient({
       return b.created_at.localeCompare(a.created_at);
     });
   const done = notes
-    .filter((n) => n.done)
+    .filter((n) => n.done && n.is_task)
     .sort((a, b) => b.created_at.localeCompare(a.created_at));
 
   function toggleDone(n: Note, v: boolean) {
@@ -123,25 +123,7 @@ export default function NotesClient({
     router.refresh();
   }
 
-  async function persist(id: string, fields: Partial<Note>): Promise<Note> {
-    if (!id) {
-      const created = await createNote(fields.content ?? "");
-      await updateNote(created.id, fields);
-      const full = { ...created, ...fields } as Note;
-      setNotes((list) => [full, ...list]);
-      setEditing(full);
-      router.refresh();
-      return full;
-    }
-    const cur = notes.find((n) => n.id === id) ?? editing!;
-    const full = { ...cur, ...fields } as Note;
-    setNotes((list) => list.map((n) => (n.id === id ? full : n)));
-    await updateNote(id, fields);
-    router.refresh();
-    return full;
-  }
-
-  // Sauvegarde d'un champ de post-it (optimiste, sans refresh à chaque frappe).
+  // Sauvegarde d'un champ de note (optimiste, sans refresh à chaque frappe).
   function savePostit(id: string, fields: Partial<Note>) {
     setNotes((list) => list.map((n) => (n.id === id ? { ...n, ...fields } : n)));
     setEditing((e) => (e && e.id === id ? { ...e, ...fields } : e));
@@ -409,11 +391,10 @@ export default function NotesClient({
         ) : (
           <Overlay onClose={closeEditing}>
             <NoteEditor
+              key={editing.id}
               note={editing}
-              isNew={isEmptyNote(editing)}
-              onPersist={persist}
+              save={(fields) => savePostit(editing.id, fields)}
               onDelete={() => removeNote(editing.id)}
-              onClose={closeEditing}
             />
           </Overlay>
         ))}
@@ -468,8 +449,8 @@ export default function NotesClient({
 
 // Badge de priorité (importance) pour le tableau.
 const PRIO_BADGE: Record<NotePriority, string> = {
-  haute: "bg-red-50 text-[#B91C1C]",
-  moyenne: "bg-amber-50 text-[#B45309]",
+  haute: "bg-red-100 text-[#B91C1C]",
+  moyenne: "bg-amber-100 text-[#B45309]",
   basse: "bg-slate-100 text-[#475569]",
 };
 

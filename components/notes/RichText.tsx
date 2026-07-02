@@ -64,7 +64,7 @@ export default function RichText({
   return (
     <div>
       {/* Barre d'outils (collante en haut pour rester accessible sur les longs textes) */}
-      <div className="sticky top-0 z-10 mb-2 flex flex-wrap items-center gap-1 bg-white/95 py-1 backdrop-blur">
+      <div className="sticky top-0 z-10 mb-2 flex flex-wrap items-center gap-1 rounded-lg bg-white py-1">
         <button type="button" onMouseDown={onTool("bold")} aria-label="Gras" className={btn}>
           <Bold className="h-4 w-4" />
         </button>

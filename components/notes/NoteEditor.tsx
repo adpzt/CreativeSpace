@@ -2,10 +2,7 @@
 
 import { useState } from "react";
 import type { ReactNode } from "react";
-import { Trash2, Flag, Tag, CalendarClock, Pencil, Smile } from "lucide-react";
-import { format, parseISO } from "date-fns";
-import { fr } from "date-fns/locale";
-import { Button } from "@/components/ui/Button";
+import { Trash2, Flag, Tag, CalendarClock, Smile } from "lucide-react";
 import RichText from "@/components/notes/RichText";
 import { EmojiPicker, ThemePicker } from "@/components/notes/pickers";
 import { PRIORITIES, PRIORITY_ORDER } from "@/lib/notes";
@@ -22,8 +19,8 @@ function Row({
   children: ReactNode;
 }) {
   return (
-    <div className="flex items-center gap-3 py-2">
-      <span className="flex w-28 shrink-0 items-center gap-2 text-[13px] font-medium text-muted">
+    <div className="flex items-start gap-3 py-2">
+      <span className="mt-1 flex w-24 shrink-0 items-center gap-2 text-[13px] font-medium text-muted">
         <Icon className="h-4 w-4" />
         {label}
       </span>
@@ -32,26 +29,17 @@ function Row({
   );
 }
 
-// Éditeur de note : ouvre en LECTURE (page façon Notion) ; le crayon passe en
-// édition. Rien n'est persisté tant qu'on ne valide pas ("Créer" / "Enregistrer").
+// Éditeur de tâche : affichage propre et TOUT est modifiable en cliquant
+// directement dessus (pas de bouton crayon, pas de mode). Autosave via `save`.
 export default function NoteEditor({
   note,
-  isNew,
-  onPersist,
+  save,
   onDelete,
-  onClose,
 }: {
   note: Note;
-  isNew: boolean;
-  onPersist: (id: string, fields: Partial<Note>) => Promise<Note>;
-  onDelete?: () => void;
-  onClose: () => void;
+  save: (fields: Partial<Note>) => void;
+  onDelete: () => void;
 }) {
-  // La version "enregistrée" courante (met à jour l'id après une création)
-  const [current, setCurrent] = useState<Note>(note);
-  const [mode, setMode] = useState<"view" | "edit">(isNew ? "edit" : "view");
-
-  // Champs d'édition
   const [title, setTitle] = useState(note.title ?? "");
   const [content, setContent] = useState(note.content ?? "");
   const [priority, setPriority] = useState<NotePriority>(note.priority);
@@ -59,119 +47,19 @@ export default function NoteEditor({
   const [due, setDue] = useState(note.due_date ?? "");
   const [emoji, setEmoji] = useState(note.emoji ?? "");
 
-  async function save() {
-    const isDraft = current.id === "";
-    const empty = !title.trim() && !content.trim();
-    if (isDraft && empty) {
-      onClose();
-      return;
-    }
-    const fields: Partial<Note> = {
-      title: title.trim() || null,
-      content,
-      priority,
-      theme: theme.trim() || null,
-      due_date: due || null,
-      emoji: emoji.trim() || null,
-    };
-    const saved = await onPersist(current.id, fields);
-    setCurrent(saved);
-    setMode("view");
-  }
-
-  // ---------- LECTURE (page façon Notion) ----------
-  if (mode === "view") {
-    const pr = PRIORITIES[current.priority];
-    const dueDate = current.due_date ? parseISO(current.due_date) : null;
-    return (
-      <div className="pr-10">
-        <div className="mb-5 flex items-center justify-end">
-          <button
-            onClick={() => setMode("edit")}
-            aria-label="Modifier"
-            title="Modifier"
-            className="flex h-8 w-8 items-center justify-center rounded-[9px] bg-[#F4F4F5] text-ink-soft transition-colors hover:bg-black/10 hover:text-ink dark:bg-white/[0.06] dark:hover:bg-white/10"
-          >
-            <Pencil className="h-4 w-4" />
-          </button>
-        </div>
-
-        <h2 className="flex items-center gap-2.5 text-[34px] font-bold leading-tight tracking-tight">
-          {current.emoji && <span className="shrink-0">{current.emoji}</span>}
-          {current.title?.trim() || (
-            <span className="text-muted">Sans titre</span>
-          )}
-        </h2>
-
-        <div className="mt-5 space-y-0.5">
-          <Row icon={Flag} label="Priorité">
-            <span
-              className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-medium"
-              style={{ color: pr.color, backgroundColor: `${pr.color}1A` }}
-            >
-              <span
-                className="h-2 w-2 rounded-full"
-                style={{ backgroundColor: pr.color }}
-              />
-              {pr.label}
-            </span>
-          </Row>
-          <Row icon={Tag} label="Thème">
-            {current.theme?.trim() ? (
-              current.theme
-            ) : (
-              <span className="text-muted">—</span>
-            )}
-          </Row>
-          <Row icon={CalendarClock} label="Échéance">
-            {dueDate ? (
-              format(dueDate, "d MMMM yyyy", { locale: fr })
-            ) : (
-              <span className="text-muted">—</span>
-            )}
-          </Row>
-        </div>
-
-        <div className="mt-5 border-t border-hairline pt-5">
-          {current.content?.trim() ? (
-            <div
-              className="text-[15.5px] leading-relaxed text-[#3F3F46] dark:text-[#C7C9CE] [&_b]:font-semibold"
-              dangerouslySetInnerHTML={{ __html: current.content }}
-            />
-          ) : (
-            <p className="text-[15.5px] text-muted">Aucun détail.</p>
-          )}
-        </div>
-
-        {onDelete && (
-          <div className="mt-6 flex justify-end border-t border-gray-100 dark:border-hairline pt-4">
-            <button
-              onClick={onDelete}
-              aria-label="Supprimer"
-              className="rounded-lg p-2 text-muted hover:bg-red-50 dark:hover:bg-urgent/15 hover:text-urgent"
-            >
-              <Trash2 className="h-4 w-4" />
-            </button>
-          </div>
-        )}
-      </div>
-    );
-  }
-
-  // ---------- ÉDITION ----------
   return (
-    <div className="space-y-5 pr-8">
-      <span className="inline-flex items-center gap-1.5 rounded-full bg-[#EFF4FF] dark:bg-active/15 px-2.5 py-0.5 text-[11px] font-semibold text-[#1D4ED8] dark:text-[#93C0FF]">
-        <Pencil className="h-3 w-3" />
-        En cours d&apos;édition
-      </span>
-      <input
-        autoFocus
-        value={title}
-        onChange={(e) => setTitle(e.target.value)}
-        placeholder="Titre de la note"
-        className="w-full rounded-lg bg-transparent text-[34px] font-bold leading-tight tracking-tight outline-none placeholder:text-muted focus:outline-2 focus:outline-offset-[6px] focus:outline-active/35"
-      />
+    <div className="space-y-4 pr-8">
+      {/* Titre (avec emoji devant si défini) */}
+      <div className="flex items-start gap-2.5">
+        {emoji && <span className="text-[30px] leading-tight">{emoji}</span>}
+        <input
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+          onBlur={() => save({ title: title.trim() || null })}
+          placeholder="Titre de la tâche"
+          className="w-full bg-transparent text-[30px] font-bold leading-tight tracking-tight outline-none placeholder:text-muted"
+        />
+      </div>
 
       <div className="space-y-0.5">
         <Row icon={Flag} label="Priorité">
@@ -182,8 +70,11 @@ export default function NoteEditor({
                 <button
                   key={p}
                   type="button"
-                  onClick={() => setPriority(p)}
-                  className="flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium transition-colors"
+                  onClick={() => {
+                    setPriority(p);
+                    save({ priority: p });
+                  }}
+                  className="rounded-full px-2.5 py-1 text-xs font-semibold transition-colors"
                   style={{
                     color: active ? "#fff" : PRIORITIES[p].color,
                     backgroundColor: active
@@ -198,48 +89,55 @@ export default function NoteEditor({
           </div>
         </Row>
         <Row icon={Tag} label="Thème">
-          <ThemePicker value={theme} onChange={(v) => setTheme(v ?? "")} />
+          <ThemePicker
+            value={theme}
+            onChange={(v) => {
+              setTheme(v ?? "");
+              save({ theme: v });
+            }}
+          />
         </Row>
         <Row icon={Smile} label="Emoji">
-          <EmojiPicker value={emoji} onChange={setEmoji} />
+          <EmojiPicker
+            value={emoji}
+            onChange={(v) => {
+              setEmoji(v);
+              save({ emoji: v.trim() || null });
+            }}
+          />
         </Row>
         <Row icon={CalendarClock} label="Échéance">
           <input
             type="date"
             value={due}
-            onChange={(e) => setDue(e.target.value)}
-            className="bg-transparent outline-none placeholder:text-muted"
+            onChange={(e) => {
+              setDue(e.target.value);
+              save({ due_date: e.target.value || null });
+            }}
+            className="rounded-lg border border-black/[0.1] bg-transparent px-2 py-1 text-sm outline-none focus:border-active focus:ring-4 focus:ring-active/12"
           />
         </Row>
       </div>
 
-      <div className="border-t border-gray-100 dark:border-hairline pt-4">
+      <div className="border-t border-black/[0.06] pt-4">
         <RichText
           value={content}
-          onChange={setContent}
-          placeholder="Écris ici… (sélectionne du texte pour le mettre en gras, italique ou en couleur)"
+          onChange={(html) => {
+            setContent(html);
+            save({ content: html });
+          }}
+          placeholder="Détails… (gras, listes, tailles, couleurs)"
         />
       </div>
 
-      <div className="flex items-center justify-between pt-1">
-        <div className="flex items-center gap-2">
-          <Button onClick={save}>{current.id === "" ? "Créer la note" : "Enregistrer"}</Button>
-          <Button
-            variant="ghost"
-            onClick={() => (current.id === "" ? onClose() : setMode("view"))}
-          >
-            Annuler
-          </Button>
-        </div>
-        {onDelete && current.id !== "" && (
-          <button
-            onClick={onDelete}
-            aria-label="Supprimer"
-            className="rounded-lg p-2 text-muted hover:bg-red-50 dark:hover:bg-urgent/15 hover:text-urgent"
-          >
-            <Trash2 className="h-4 w-4" />
-          </button>
-        )}
+      <div className="flex justify-end border-t border-black/[0.06] pt-4">
+        <button
+          onClick={onDelete}
+          className="inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-sm font-medium text-muted transition-colors hover:bg-red-50 hover:text-urgent"
+        >
+          <Trash2 className="h-4 w-4" />
+          Supprimer
+        </button>
       </div>
     </div>
   );
