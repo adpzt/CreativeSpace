@@ -14,17 +14,16 @@ import {
   CheckCircle2,
   CalendarClock,
   TrendingUp,
-  Compass,
-  ArrowUpRight,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { getCalendarBlocks, getProjects, getClients } from "./work/actions";
-import { getPayments, getUrssaf } from "./finance/actions";
+import { getPayments, getUrssaf, getExpenses } from "./finance/actions";
 import { getMeSettings } from "./me/actions";
 import TodayTasks from "@/components/home/TodayTasks";
-import FollowerCounter from "@/components/home/FollowerCounter";
+import { InstagramWidget, BehanceWidget } from "@/components/home/SocialWidgets";
 import { ButtonLink } from "@/components/ui/Button";
 import { formatEuro, CATEGORY_COLOR } from "@/lib/work";
+import { urssafRate } from "@/lib/finance";
 
 export const dynamic = "force-dynamic";
 
@@ -42,13 +41,14 @@ type Traite = {
 };
 
 export default async function HomePage() {
-  const [blocks, projects, clients, payments, urssaf, settings] =
+  const [blocks, projects, clients, payments, urssaf, expenses, settings] =
     await Promise.all([
       getCalendarBlocks(),
       getProjects(),
       getClients(),
       getPayments(),
       getUrssaf(),
+      getExpenses(),
       getMeSettings(),
     ]);
 
@@ -164,17 +164,24 @@ export default async function HomePage() {
     .filter((r) => r.completed && r.declared_at)
     .sort((a, b) => (b.declared_at ?? "").localeCompare(a.declared_at ?? ""))[0];
 
-  // --- Objectif annuel (bento) : net encaissé sur juin 2026 -> juin 2027 vs 1400 x 12 ---
-  const caPeriode = payments
-    .filter(
-      (p) =>
-        p.status === "paid" &&
-        p.received_date &&
-        p.received_date >= "2026-06-01" &&
-        p.received_date <= "2027-06-30"
-    )
+  // --- Bénéfice net de l'année (bento) : CA net encaissé - dépenses - URSSAF ---
+  // (même logique que la carte "Bénéfice net" en haut de la page Bank)
+  const yStr = String(now.getFullYear());
+  const caYearNet = payments
+    .filter((p) => p.status === "paid" && p.received_date?.startsWith(yStr))
     .reduce((s, p) => s + (p.net_amount ?? 0), 0);
-  const objectifPeriode = 1400 * 12;
+  const depYear = expenses
+    .filter((e) => e.date?.startsWith(yStr))
+    .reduce((s, e) => s + (e.amount ?? 0), 0);
+  let urssafYear = 0;
+  for (let m = 1; m <= 12; m++) {
+    const mp = `${yStr}-${String(m).padStart(2, "0")}`;
+    const grossM = payments
+      .filter((p) => p.status === "paid" && p.received_date?.startsWith(mp))
+      .reduce((s, p) => s + (p.gross_amount ?? p.net_amount ?? 0), 0);
+    urssafYear += grossM * urssafRate(now.getFullYear(), m);
+  }
+  const beneficeYear = caYearNet - depYear - urssafYear;
 
   // --- Liste "À traiter" (données réelles, priorité en haut) ---
   const aTraiter: Traite[] = [
@@ -319,10 +326,9 @@ export default async function HomePage() {
           value={formatEuro(caMonthNet)}
           sub={
             lastDeclared
-              ? `URSSAF déclarée ${formatEuro(lastDeclared.amount ?? 0)} le ${format(
+              ? `${formatEuro(lastDeclared.amount ?? 0)} déclaré le ${format(
                   parseISO(lastDeclared.declared_at as string),
-                  "d MMM",
-                  { locale: fr }
+                  "dd/MM/yy"
                 )}`
               : "URSSAF : rien déclaré"
           }
@@ -416,34 +422,35 @@ export default async function HomePage() {
           Objectifs
         </h2>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          {/* Encaissé (net) sur l'objectif annuel juin 2026 -> juin 2027 */}
+          {/* Bénéfice net de l'année (net - dépenses - URSSAF), comme sur Bank */}
           <div className="flex flex-col rounded-2xl border border-black/[0.06] bg-white p-5 shadow-card">
             <div className="flex items-center gap-2">
               <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-green-50 text-success">
                 <TrendingUp className="h-4 w-4" />
               </span>
-              <span className="text-[13px] text-muted">Encaissé (net) · objectif</span>
+              <span className="text-[13px] font-medium text-ink-soft">
+                Bénéfice net · année
+              </span>
             </div>
-            <p className="mt-3 text-[30px] font-extrabold leading-none tracking-[-0.02em]">
-              {formatEuro(caPeriode)}
+            <p className="mt-3 text-[30px] font-extrabold leading-none tracking-[-0.02em] text-ink">
+              {formatEuro(beneficeYear)}
             </p>
-            <div className="mt-3 h-2 w-full overflow-hidden rounded-full bg-black/[0.07]">
-              <div
-                className="h-full rounded-full bg-success"
-                style={{
-                  width: `${Math.min(100, Math.round((caPeriode / objectifPeriode) * 100))}%`,
-                }}
-              />
-            </div>
-            <p className="mt-1.5 text-[12px] text-muted">
-              sur {formatEuro(objectifPeriode)} · juin 2026 → juin 2027
+            <p className="mt-2 text-[12px] text-ink-soft">
+              net encaissé − dépenses − URSSAF · {yStr}
             </p>
           </div>
 
-          {/* Compteurs abonnés (éditables) */}
-          <FollowerCounter
-            instagram={settings["me_ig_followers"] ?? ""}
-            behance={settings["me_be_followers"] ?? ""}
+          {/* Instagram : abonnés + progression + dernier post (saisie manuelle) */}
+          <InstagramWidget
+            followers={settings["me_ig_followers"] ?? ""}
+            goal={settings["me_ig_goal"] ?? "100"}
+            lastPost={settings["me_ig_last_post"] ?? ""}
+          />
+
+          {/* Behance : abonnés + appréciations (saisie manuelle) */}
+          <BehanceWidget
+            followers={settings["me_be_followers"] ?? ""}
+            appreciations={settings["me_be_appreciations"] ?? ""}
           />
 
           {/* Inspiration : carte à dégradé animé + marques */}
@@ -475,52 +482,12 @@ export default async function HomePage() {
               ))}
             </div>
           </div>
-
-          {/* Trouver des clients (board de prospection dans Work) */}
-          <BentoLink
-            href="/work"
-            icon={Compass}
-            tint="bg-blue-50 text-active"
-            title="Trouver des clients"
-            sub="Prospecter"
-          />
         </div>
       </section>
     </div>
   );
 }
 
-function BentoLink({
-  href,
-  icon: Icon,
-  tint,
-  title,
-  sub,
-}: {
-  href: string;
-  icon: LucideIcon;
-  tint: string;
-  title: string;
-  sub: string;
-}) {
-  return (
-    <Link
-      href={href}
-      className="group flex flex-col justify-between rounded-2xl border border-black/[0.06] bg-white p-5 shadow-card transition duration-[180ms] ease-ios hover:-translate-y-0.5 hover:shadow-lift"
-    >
-      <span className={`flex h-7 w-7 items-center justify-center rounded-lg ${tint}`}>
-        <Icon className="h-4 w-4" />
-      </span>
-      <div className="mt-3">
-        <p className="text-[15px] font-semibold">{title}</p>
-        <p className="mt-0.5 inline-flex items-center gap-1 text-[12px] font-medium text-active">
-          {sub}
-          <ArrowUpRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
-        </p>
-      </div>
-    </Link>
-  );
-}
 
 // Carte KPI : tuile d'icône teintée + label + grand nombre.
 const KPI_TINT: Record<string, string> = {

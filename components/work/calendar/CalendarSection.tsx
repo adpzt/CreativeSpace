@@ -413,6 +413,8 @@ export default function CalendarSection({
             setDelivProgress((m) => ({ ...m, [delivId]: prog }));
             updateDeliverable(delivId, { progress: prog });
           }}
+          time={noteBlock.time}
+          onTime={(t) => setTime(noteBlock, t)}
         />
       );
     }
@@ -822,38 +824,46 @@ export default function CalendarSection({
           initialValue={noteOf(noteBlock)}
           onSave={(v) => saveNote(noteBlock, v)}
           onClose={() => setNoteBlockId(null)}
+          // Livrable lié à un projet : tout est directement modifiable (pas de
+          // bouton Modifier) et l'heure est gérée dans le meta (à côté de la
+          // progression) -> on masque pastille + heure du footer.
+          alwaysEdit={!!noteBlock.project_id}
           footer={
             <div className="space-y-3">
-              {/* Couleur de la pastille du bloc */}
-              <div className="flex items-center gap-3">
-                <span className="text-xs font-medium uppercase tracking-wide text-muted">
-                  Pastille
-                </span>
-                <ColorDots
-                  value={noteBlock.color}
-                  onChange={(c) => setColor(noteBlock, c)}
-                />
-              </div>
-              {/* Heure du bloc */}
-              <div className="flex items-center gap-3">
-                <span className="text-xs font-medium uppercase tracking-wide text-muted">
-                  Heure
-                </span>
-                <input
-                  type="time"
-                  value={noteBlock.time ?? ""}
-                  onChange={(e) => setTime(noteBlock, e.target.value || null)}
-                  className="rounded-lg border border-gray-200 dark:border-hairline px-2.5 py-1 text-sm outline-none focus:border-active focus:ring-4 focus:ring-active/12"
-                />
-                {noteBlock.time && (
-                  <button
-                    onClick={() => setTime(noteBlock, null)}
-                    className="text-xs text-muted hover:text-ink hover:underline"
-                  >
-                    retirer
-                  </button>
-                )}
-              </div>
+              {!noteBlock.project_id && (
+                <>
+                  {/* Couleur de la pastille du bloc (blocs libres seulement) */}
+                  <div className="flex items-center gap-3">
+                    <span className="text-xs font-medium uppercase tracking-wide text-muted">
+                      Pastille
+                    </span>
+                    <ColorDots
+                      value={noteBlock.color}
+                      onChange={(c) => setColor(noteBlock, c)}
+                    />
+                  </div>
+                  {/* Heure du bloc */}
+                  <div className="flex items-center gap-3">
+                    <span className="text-xs font-medium uppercase tracking-wide text-muted">
+                      Heure
+                    </span>
+                    <input
+                      type="time"
+                      value={noteBlock.time ?? ""}
+                      onChange={(e) => setTime(noteBlock, e.target.value || null)}
+                      className="rounded-lg border border-gray-200 dark:border-hairline px-2.5 py-1 text-sm outline-none focus:border-active focus:ring-4 focus:ring-active/12"
+                    />
+                    {noteBlock.time && (
+                      <button
+                        onClick={() => setTime(noteBlock, null)}
+                        className="text-xs text-muted hover:text-ink hover:underline"
+                      >
+                        retirer
+                      </button>
+                    )}
+                  </div>
+                </>
+              )}
               <div className="flex items-center justify-between">
                 <button
                   onClick={() => toggle(noteBlock)}

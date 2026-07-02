@@ -33,9 +33,11 @@ export const PAYMENT_STATUS_ORDER: PaymentStatus[] = ["pending", "paid", "late"]
 // ============================================================================
 
 // --- URSSAF : cotisations sociales (BNC, prestations de services) ---
-// Taux plein = 25,6% du CA encaissé. (variable, réévalué chaque année)
-export const URSSAF_COTISATION_BNC = 0.256;
-// ACRE : exonération de 50% -> pendant l'ACRE le taux est de 12,8% (25,6% / 2).
+// Taux plein = 26,06% du CA facturé. Calé sur le relevé RÉEL d'Adrien : il a payé
+// 117€ d'URSSAF sur 898€ facturés pendant l'ACRE, soit 117/898 = 13,03% avec
+// l'exonération -50%, donc un taux plein de 26,06% (13,03% x 2). (réévalué/an)
+export const URSSAF_COTISATION_BNC = 0.2606;
+// ACRE : exonération de 50% -> pendant l'ACRE le taux est de 13,03% (26,06% / 2).
 export const ACRE_REDUCTION = 0.5;
 // Fin de l'ACRE : dernier jour du 3e trimestre civil suivant le début d'activité.
 // Création juin 2026 -> fin ACRE le 31/03/2027 inclus (donc ACRE jusqu'à mars 2027).
@@ -49,7 +51,7 @@ export function isAcre(year: number, month: number): boolean {
   );
 }
 
-// Taux URSSAF d'un mois : 12,8% pendant l'ACRE (exonération 50%), 25,6% après.
+// Taux URSSAF d'un mois : 13,03% pendant l'ACRE (exonération 50%), 26,06% après.
 export function urssafRate(year: number, month: number): number {
   return URSSAF_COTISATION_BNC * (isAcre(year, month) ? ACRE_REDUCTION : 1);
 }

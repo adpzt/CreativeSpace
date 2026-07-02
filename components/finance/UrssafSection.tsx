@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { ChevronLeft, ChevronRight, Check, ChevronDown, HelpCircle } from "lucide-react";
-import { urssafRate } from "@/lib/finance";
+import { urssafRate, URSSAF_COTISATION_BNC } from "@/lib/finance";
 import { formatEuro } from "@/lib/work";
 import { upsertUrssaf } from "@/app/(main)/finance/actions";
 import type { Payment, Urssaf } from "@/lib/types";
@@ -73,10 +73,15 @@ export default function UrssafSection({
   const isCurrent = (y: number, m: number) => y === curY && m === curM;
 
   const tauxActuel = urssafRate(curY, curM);
+  // Libellé calculé depuis le taux réel (ACRE ~13,03%, plein ~26,06%)
+  const pct = (r: number) =>
+    (r * 100).toLocaleString("fr-FR", { maximumFractionDigits: 2 }) + " %";
   const tauxLabel =
     tauxActuel < 0.2
-      ? "12,8 % (ACRE jusqu'à mars 2027, puis 25,6 %)"
-      : "25,6 %";
+      ? `${pct(tauxActuel)} (ACRE jusqu'à mars 2027, puis ${pct(
+          URSSAF_COTISATION_BNC
+        )})`
+      : pct(URSSAF_COTISATION_BNC);
 
   // Total estimé sur tous les mois encaissés (depuis le début)
   const allMonths = new Map<string, { y: number; m: number; enc: number }>();

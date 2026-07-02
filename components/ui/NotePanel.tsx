@@ -19,6 +19,7 @@ export default function NotePanel({
   titleBold,
   titleItalic,
   titleColor,
+  alwaysEdit = false,
 }: {
   title: string;
   initialValue: string;
@@ -31,8 +32,13 @@ export default function NotePanel({
   titleBold?: boolean;
   titleItalic?: boolean;
   titleColor?: string | null;
+  // Toujours en édition : pas de mode lecture ni de bouton "Modifier"
+  // (tout le texte est directement modifiable).
+  alwaysEdit?: boolean;
 }) {
-  const [mode, setMode] = useState<"view" | "edit">("view");
+  const [mode, setMode] = useState<"view" | "edit">(
+    alwaysEdit ? "edit" : "view"
+  );
   const [value, setValue] = useState(initialValue);
   const [titleVal, setTitleVal] = useState(title);
   const [status, setStatus] = useState<"idle" | "saving" | "saved">("idle");
@@ -103,7 +109,9 @@ export default function NotePanel({
         <div className="mx-auto mt-3 h-[5px] w-10 shrink-0 rounded-full bg-black/[0.12] sm:hidden" />
         {/* Barre du haut : crayon / retour à gauche, statut + fermeture à droite */}
         <div className="flex items-center justify-between gap-2 px-4 pt-3">
-          {mode === "view" ? (
+          {alwaysEdit ? (
+            <span />
+          ) : mode === "view" ? (
             <button
               onClick={() => setMode("edit")}
               aria-label="Modifier"
