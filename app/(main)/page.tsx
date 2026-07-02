@@ -317,7 +317,8 @@ export default async function HomePage() {
           tint="active"
           label="Projets actifs"
           value={String(activeProjects.length)}
-          sub={activeProjects[0]?.name}
+          sub={activeProjects.map((p) => p.name).join(", ")}
+          subBeside
         />
         <Kpi
           icon={Wallet}
@@ -503,6 +504,7 @@ function Kpi({
   label,
   value,
   sub,
+  subBeside = false,
   progress,
 }: {
   icon: LucideIcon;
@@ -510,6 +512,8 @@ function Kpi({
   label: string;
   value: string;
   sub?: string;
+  // sub affiché À DROITE du chiffre (au lieu d'en dessous), ex : noms de projets
+  subBeside?: boolean;
   progress?: number;
 }) {
   return (
@@ -522,15 +526,30 @@ function Kpi({
         </span>
         <span className="text-[13px] font-medium text-ink-soft">{label}</span>
       </div>
-      {/* Valeur sur sa propre ligne, sous-texte en dessous (évite que le texte
-          soit coupé par le bord de la carte) */}
-      <p className="text-[32px] font-bold leading-none tracking-tight text-ink">
-        {value}
-      </p>
-      {sub && (
-        <p className="mt-1.5 truncate text-[12px] text-ink-soft" title={sub}>
-          {sub}
-        </p>
+      {subBeside ? (
+        // Valeur + noms sur la même ligne (les noms passent à droite du chiffre)
+        <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
+          <p className="text-[32px] font-bold leading-none tracking-tight text-ink">
+            {value}
+          </p>
+          {sub && (
+            <span className="min-w-0 flex-1 text-[12px] leading-snug text-ink-soft">
+              {sub}
+            </span>
+          )}
+        </div>
+      ) : (
+        <>
+          {/* Valeur sur sa propre ligne, sous-texte en dessous (évite la coupe) */}
+          <p className="text-[32px] font-bold leading-none tracking-tight text-ink">
+            {value}
+          </p>
+          {sub && (
+            <p className="mt-1.5 truncate text-[12px] text-ink-soft" title={sub}>
+              {sub}
+            </p>
+          )}
+        </>
       )}
       {progress !== undefined && (
         <div className="mt-3 h-1.5 w-full overflow-hidden rounded-full bg-black/[0.07]">

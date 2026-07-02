@@ -8,6 +8,7 @@ import { Plus, Check, Trash2, ChevronDown, RotateCcw } from "lucide-react";
 import Overlay from "@/components/ui/Overlay";
 import { Button } from "@/components/ui/Button";
 import NoteEditor from "@/components/notes/NoteEditor";
+import PostitEditor from "@/components/notes/PostitEditor";
 import {
   createNote,
   updateNote,
@@ -21,8 +22,10 @@ import { stripHtml } from "@/lib/notes";
 // Couleurs des post-it (cyclées par index), léger désalignement.
 const POSTIT = ["bg-[#FEF3C7]", "bg-[#DBEAFE]", "bg-[#FCE7F3]", "bg-[#DCFCE7]"];
 
-// Un post-it = note sans titre ni échéance (note libre) ; une tâche = titre ou échéance.
-const isPostit = (n: Note) => !n.title?.trim() && !n.due_date;
+// Un post-it = note libre (sans titre). Une tâche = note avec un titre.
+// (La date n'entre PLUS dans le critère : un post-it peut avoir une date et
+// rester un post-it.)
+const isPostit = (n: Note) => !n.title?.trim();
 
 export default function NotesClient({
   initialNotes,
@@ -114,6 +117,13 @@ export default function NotesClient({
     return full;
   }
 
+  // Sauvegarde d'un champ de post-it (optimiste, sans refresh à chaque frappe).
+  function savePostit(id: string, fields: Partial<Note>) {
+    setNotes((list) => list.map((n) => (n.id === id ? { ...n, ...fields } : n)));
+    setEditing((e) => (e && e.id === id ? { ...e, ...fields } : e));
+    updateNote(id, fields);
+  }
+
   // Post-it = note libre (contenu seul, sans titre ni échéance) -> zone "Notes rapides".
   async function addPostit() {
     const text = draft.trim();
@@ -170,23 +180,40 @@ export default function NotesClient({
         ) : (
           <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
             {postits.map((n, i) => {
-              const text = stripHtml(n.content || "") || "Note";
+              const html = n.content?.trim() ? n.content : "Note";
+              const dateStr = n.due_date || n.created_at;
               return (
                 <button
                   key={n.id}
                   onClick={() => setEditing(n)}
-                  className={`flex min-h-[150px] flex-col rounded-2xl p-4 text-left shadow-card transition-transform duration-150 ease-ios hover:-translate-y-0.5 ${
+                  className={`relative flex min-h-[150px] flex-col rounded-2xl p-4 text-left shadow-card transition-transform duration-150 ease-ios hover:-translate-y-0.5 ${
                     POSTIT[i % POSTIT.length]
                   } ${i % 2 ? "rotate-[0.7deg]" : "-rotate-[0.7deg]"}`}
                 >
-                  <p className="flex-1 whitespace-pre-wrap break-words text-[15px] leading-relaxed text-ink line-clamp-6">
-                    {text}
-                  </p>
-                  {n.created_at && (
-                    <p className="mt-3 text-[12px] text-ink/45">
-                      {format(parseISO(n.created_at), "d MMM", { locale: fr })}
-                    </p>
+                  {/* Emoji épinglé : dépasse légèrement du coin du post-it */}
+                  {n.emoji && (
+                    <span className="absolute -left-2.5 -top-3 rotate-[-12deg] text-[26px] drop-shadow-sm">
+                      {n.emoji}
+                    </span>
                   )}
+                  <div
+                    className="flex-1 overflow-hidden whitespace-pre-wrap break-words text-[15px] leading-relaxed text-ink [&_b]:font-semibold [&_strong]:font-semibold"
+                    dangerouslySetInnerHTML={{ __html: html }}
+                  />
+                  <div className="mt-3 flex items-end justify-between gap-2">
+                    {dateStr ? (
+                      <span className="text-[12px] text-ink/45">
+                        {format(parseISO(dateStr), "d MMM", { locale: fr })}
+                      </span>
+                    ) : (
+                      <span />
+                    )}
+                    {n.theme?.trim() && (
+                      <span className="rounded-full bg-black/[0.06] px-2 py-0.5 text-[11px] font-medium text-ink/70">
+                        {n.theme.trim()}
+                      </span>
+                    )}
+                  </div>
                 </button>
               );
             })}
@@ -270,17 +297,32 @@ export default function NotesClient({
         </Overlay>
       )}
 
-      {editing && (
-        <Overlay onClose={() => setEditing(null)}>
-          <NoteEditor
-            note={editing}
-            isNew={isNew}
-            onPersist={persist}
-            onDelete={isNew ? undefined : () => removeNote(editing.id)}
-            onClose={() => setEditing(null)}
-          />
-        </Overlay>
-      )}
+      {editing &&
+        (isPostit(editing) && !isNew ? (
+          <Overlay
+            onClose={() => {
+              setEditing(null);
+              router.refresh();
+            }}
+          >
+            <PostitEditor
+              key={editing.id}
+              note={editing}
+              save={(fields) => savePostit(editing.id, fields)}
+              onDelete={() => removeNote(editing.id)}
+            />
+          </Overlay>
+        ) : (
+          <Overlay onClose={() => setEditing(null)}>
+            <NoteEditor
+              note={editing}
+              isNew={isNew}
+              onPersist={persist}
+              onDelete={isNew ? undefined : () => removeNote(editing.id)}
+              onClose={() => setEditing(null)}
+            />
+          </Overlay>
+        ))}
 
       {showTrash && (
         <Overlay onClose={() => setShowTrash(false)}>

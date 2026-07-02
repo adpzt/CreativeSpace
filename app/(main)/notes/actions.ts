@@ -13,6 +13,7 @@ export type Note = {
   priority: NotePriority;
   theme: string | null;
   due_date: string | null;
+  emoji: string | null;
   deleted_at: string | null;
   created_at: string;
 };
