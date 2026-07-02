@@ -146,7 +146,7 @@ export default function UrssafSection({
           <button
             onClick={() => setFocus((f) => shift(f.y, f.m, -1))}
             aria-label="Mois précédent"
-            className="shrink-0 rounded-lg p-2 text-muted hover:bg-gray-100 hover:text-ink dark:hover:bg-white/[0.06]"
+            className="shrink-0 rounded-xl border border-black/[0.08] bg-white p-2 text-ink-soft shadow-card transition-colors hover:border-black/25 hover:text-ink"
           >
             <ChevronLeft className="h-5 w-5" />
           </button>
@@ -169,7 +169,7 @@ export default function UrssafSection({
           <button
             onClick={() => setFocus((f) => shift(f.y, f.m, 1))}
             aria-label="Mois suivant"
-            className="shrink-0 rounded-lg p-2 text-muted hover:bg-gray-100 hover:text-ink dark:hover:bg-white/[0.06]"
+            className="shrink-0 rounded-xl border border-black/[0.08] bg-white p-2 text-ink-soft shadow-card transition-colors hover:border-black/25 hover:text-ink"
           >
             <ChevronRight className="h-5 w-5" />
           </button>
@@ -287,12 +287,12 @@ function MonthCard({
   }
 
   const border = current
-    ? "border-active/50 bg-blue-50/40 dark:bg-active/15"
+    ? "border-active/40 bg-blue-50"
     : completed
-      ? "border-success/30 bg-green-50/40 dark:bg-success/15"
+      ? "border-success/40 bg-green-50"
       : aDeclarer
-        ? "border-pending/40 bg-orange-50/50 dark:bg-pending/15"
-        : "border-gray-100 bg-white dark:border-hairline dark:bg-surface";
+        ? "border-pending/40 bg-orange-50"
+        : "border-black/[0.06] bg-white";
 
   return (
     <div

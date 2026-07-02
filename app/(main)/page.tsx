@@ -4,6 +4,7 @@ import {
   parseISO,
   startOfWeek,
   addDays,
+  subDays,
   differenceInCalendarDays,
 } from "date-fns";
 import { fr } from "date-fns/locale";
@@ -12,6 +13,11 @@ import {
   Wallet,
   CheckCircle2,
   CalendarClock,
+  TrendingUp,
+  Compass,
+  Sparkles,
+  AtSign,
+  ArrowUpRight,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { getCalendarBlocks, getProjects, getClients } from "./work/actions";
@@ -124,6 +130,14 @@ export default async function HomePage() {
     .map((p) => parseISO(p.end_date as string))
     .filter((d) => differenceInCalendarDays(d, now) >= 0)
     .sort((a, b) => a.getTime() - b.getTime())[0];
+
+  // Encaissé sur les 30 derniers jours (widget objectif)
+  const since30 = format(subDays(now, 30), "yyyy-MM-dd");
+  const encaisse30 = payments
+    .filter(
+      (p) => p.status === "paid" && p.received_date && p.received_date >= since30
+    )
+    .reduce((s, p) => s + (p.net_amount ?? 0), 0);
 
   // --- Liste "À traiter" (données réelles, priorité en haut) ---
   const aTraiter: Traite[] = [
@@ -249,7 +263,7 @@ export default async function HomePage() {
         <h2 className="mb-3 text-[11px] font-bold uppercase tracking-[0.08em] text-muted">
           Aujourd&apos;hui
         </h2>
-        <TodayTasks blocks={todayBlocks} />
+        <TodayTasks blocks={todayBlocks} projects={projects} clients={clients} />
       </section>
 
       {/* Cette semaine */}
@@ -310,7 +324,114 @@ export default async function HomePage() {
           })}
         </div>
       </section>
+
+      {/* Objectifs & raccourcis (bento) */}
+      <section>
+        <h2 className="mb-3 text-[11px] font-bold uppercase tracking-[0.08em] text-muted">
+          Objectifs
+        </h2>
+        <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+          {/* Encaissé 30 jours */}
+          <div className="col-span-2 flex flex-col justify-between rounded-2xl border border-black/[0.06] bg-white p-5 shadow-card">
+            <div className="flex items-center gap-2">
+              <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-green-50 text-success">
+                <TrendingUp className="h-4 w-4" />
+              </span>
+              <span className="text-[13px] text-muted">Encaissé · 30 derniers jours</span>
+            </div>
+            <p className="mt-3 text-[30px] font-extrabold leading-none tracking-[-0.02em]">
+              {formatEuro(encaisse30)}
+            </p>
+          </div>
+
+          {/* Trouver des clients */}
+          <BentoLink
+            href="/freelance"
+            icon={Compass}
+            tint="bg-blue-50 text-active"
+            title="Trouver des clients"
+            sub="Prospecter"
+          />
+
+          {/* Inspiration */}
+          <div className="flex flex-col rounded-2xl border border-black/[0.06] bg-white p-5 shadow-card">
+            <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-purple-50 text-[#9333EA]">
+              <Sparkles className="h-4 w-4" />
+            </span>
+            <p className="mt-3 text-[15px] font-semibold">Inspiration</p>
+            <div className="mt-2 flex flex-wrap gap-1.5">
+              {[
+                { label: "Behance", url: "https://www.behance.net" },
+                { label: "Pinterest", url: "https://www.pinterest.fr" },
+                { label: "Dribbble", url: "https://dribbble.com" },
+              ].map((l) => (
+                <a
+                  key={l.label}
+                  href={l.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="rounded-lg border border-black/[0.08] px-2.5 py-1 text-[12px] font-medium text-ink-soft transition-colors hover:border-black/20 hover:text-ink"
+                >
+                  {l.label}
+                </a>
+              ))}
+            </div>
+          </div>
+
+          {/* Instagram */}
+          <a
+            href="https://instagram.com/pztdesign"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="group col-span-2 flex items-center justify-between gap-3 rounded-2xl border border-black/[0.06] bg-white p-5 shadow-card transition duration-[180ms] ease-ios hover:-translate-y-0.5 hover:shadow-lift"
+          >
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-pink-50 text-[#DB2777]">
+                  <AtSign className="h-4 w-4" />
+                </span>
+                <span className="text-[13px] text-muted">Abonnés Instagram</span>
+              </div>
+              <p className="mt-2 text-[15px] font-semibold">Connecter mon compte</p>
+              <p className="text-[12px] text-muted">Suivi des abonnés à venir</p>
+            </div>
+            <ArrowUpRight className="h-5 w-5 shrink-0 text-muted transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:text-ink" />
+          </a>
+        </div>
+      </section>
     </div>
+  );
+}
+
+function BentoLink({
+  href,
+  icon: Icon,
+  tint,
+  title,
+  sub,
+}: {
+  href: string;
+  icon: LucideIcon;
+  tint: string;
+  title: string;
+  sub: string;
+}) {
+  return (
+    <Link
+      href={href}
+      className="group flex flex-col justify-between rounded-2xl border border-black/[0.06] bg-white p-5 shadow-card transition duration-[180ms] ease-ios hover:-translate-y-0.5 hover:shadow-lift"
+    >
+      <span className={`flex h-7 w-7 items-center justify-center rounded-lg ${tint}`}>
+        <Icon className="h-4 w-4" />
+      </span>
+      <div className="mt-3">
+        <p className="text-[15px] font-semibold">{title}</p>
+        <p className="mt-0.5 inline-flex items-center gap-1 text-[12px] font-medium text-active">
+          {sub}
+          <ArrowUpRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
+        </p>
+      </div>
+    </Link>
   );
 }
 
