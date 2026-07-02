@@ -61,7 +61,28 @@ export default function PostitEditor({
               {e}
             </button>
           ))}
+          {/* Champ libre : n'importe quel emoji (clavier emoji / copier-coller) */}
+          <input
+            value={emoji}
+            onChange={(e) => {
+              const v = e.target.value;
+              setEmoji(v);
+              save({ emoji: v.trim() || null });
+            }}
+            placeholder="🙂 autre"
+            maxLength={8}
+            aria-label="Autre emoji"
+            className={`h-9 w-24 rounded-lg border px-2 text-center text-lg outline-none focus:border-active focus:ring-4 focus:ring-active/12 ${
+              emoji && !EMOJIS.includes(emoji)
+                ? "border-ink"
+                : "border-black/[0.1]"
+            }`}
+          />
         </div>
+        <p className="mt-1.5 text-[11px] text-muted">
+          Astuce : ouvre le clavier emoji (Ctrl + Cmd + Espace sur Mac) ou colle
+          n&apos;importe quel emoji dans le champ.
+        </p>
       </div>
 
       {/* Contenu enrichi */}
