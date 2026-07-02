@@ -31,7 +31,7 @@ const isPostit = (n: Note) => !n.is_task;
 
 // Une note est "vide" si rien n'a été renseigné (pour la nettoyer à la fermeture)
 const isEmptyNote = (n: Note) =>
-  !n.title?.trim() &&
+  !stripHtml(n.title || "").trim() &&
   !stripHtml(n.content || "").trim() &&
   !n.theme?.trim() &&
   !n.emoji &&
@@ -204,7 +204,8 @@ export default function NotesClient({
         ) : (
           <div className="grid grid-cols-2 gap-5 md:grid-cols-4">
             {postits.map((n, i) => {
-              const hasTitle = !!n.title?.trim();
+              const titleHtml = n.title?.trim() || "";
+              const hasTitle = !!stripHtml(titleHtml).trim();
               const bodyHtml = n.content?.trim() || "";
               const featured = n.id === featuredId;
               return (
@@ -227,20 +228,21 @@ export default function NotesClient({
                     </span>
                   )}
                   <div className="flex-1 overflow-hidden">
-                    {/* Titre : très grand, il domine le post-it */}
+                    {/* Titre : domine le post-it (mots coloriables via HTML) */}
                     {hasTitle && (
-                      <p
-                        className={`mb-1.5 break-words font-extrabold leading-[1.05] tracking-tight text-ink ${
-                          featured ? "text-[34px]" : "text-[27px]"
+                      <div
+                        className={`break-words font-extrabold leading-[1.05] tracking-tight text-ink [&_b]:font-extrabold [&_strong]:font-extrabold ${
+                          featured ? "mb-3 text-[34px]" : "mb-3 text-[19px]"
                         }`}
-                      >
-                        {n.title}
-                      </p>
+                        dangerouslySetInnerHTML={{ __html: titleHtml }}
+                      />
                     )}
-                    {/* Corps : nettement plus petit que le titre */}
+                    {/* Corps : plus petit que le titre */}
                     {(bodyHtml || !hasTitle) && (
                       <div
-                        className="whitespace-pre-wrap break-words text-[11px] leading-snug text-ink/70 [&_b]:font-semibold [&_strong]:font-semibold"
+                        className={`whitespace-pre-wrap break-words leading-snug text-ink/70 [&_b]:font-semibold [&_strong]:font-semibold ${
+                          featured ? "text-[15px]" : "text-[12px]"
+                        }`}
                         dangerouslySetInnerHTML={{ __html: bodyHtml || "Note" }}
                       />
                     )}
@@ -369,7 +371,7 @@ export default function NotesClient({
                     className="flex items-center gap-3 rounded-xl border border-black/[0.06] px-3 py-2.5"
                   >
                     <span className="min-w-0 flex-1 truncate text-sm text-muted">
-                      {n.title?.trim() ||
+                      {stripHtml(n.title || "").trim() ||
                         stripHtml(n.content).split("\n")[0] ||
                         "Note"}
                     </span>

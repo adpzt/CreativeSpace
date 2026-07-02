@@ -27,14 +27,22 @@ export default function PostitEditor({
 
   return (
     <div className={`-m-7 space-y-5 rounded-3xl p-7 pr-12 ${postitBg(color || null)}`}>
-      {/* Titre (grand) */}
-      <input
-        value={title}
-        onChange={(e) => setTitle(e.target.value)}
-        onBlur={() => save({ title: title.trim() || null })}
-        placeholder="Titre"
-        className="w-full bg-transparent text-[26px] font-bold leading-tight tracking-tight text-ink outline-none placeholder:text-ink/30"
-      />
+      {/* Titre (grand, mots coloriables : sélectionne puis choisis une couleur) */}
+      <div>
+        <p className="mb-1 text-xs font-medium uppercase tracking-wide text-muted">
+          Titre
+        </p>
+        <RichText
+          compact
+          value={title}
+          onChange={(html) => {
+            setTitle(html);
+            save({ title: html || null });
+          }}
+          placeholder="Titre"
+          className="text-[26px] font-extrabold leading-tight tracking-tight text-ink"
+        />
+      </div>
 
       {/* Emoji (épingle) */}
       <div>

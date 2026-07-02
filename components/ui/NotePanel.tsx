@@ -20,6 +20,7 @@ export default function NotePanel({
   titleItalic,
   titleColor,
   alwaysEdit = false,
+  side = false,
 }: {
   title: string;
   initialValue: string;
@@ -35,6 +36,8 @@ export default function NotePanel({
   // Toujours en édition : pas de mode lecture ni de bouton "Modifier"
   // (tout le texte est directement modifiable).
   alwaysEdit?: boolean;
+  // Panneau latéral façon Notion (45% à droite, fermeture au clic à gauche).
+  side?: boolean;
 }) {
   const [mode, setMode] = useState<"view" | "edit">(
     alwaysEdit ? "edit" : "view"
@@ -98,15 +101,27 @@ export default function NotePanel({
 
   return (
     <div
-      className="fixed inset-0 z-[100] flex items-end justify-center bg-black/[0.32] backdrop-blur-[3px] animate-fade-in sm:items-center sm:p-4"
+      className={
+        side
+          ? "fixed inset-0 z-[100] flex animate-fade-in bg-black/[0.32] backdrop-blur-[3px]"
+          : "fixed inset-0 z-[100] flex items-end justify-center bg-black/[0.32] backdrop-blur-[3px] animate-fade-in sm:items-center sm:p-4"
+      }
       onClick={close}
     >
+      {/* Espace cliquable à gauche pour fermer (mode Notion) */}
+      {side && <div className="flex-1" aria-hidden />}
       <div
         onClick={(e) => e.stopPropagation()}
-        className="animate-sheet relative flex max-h-[92vh] w-full max-w-lg flex-col overflow-hidden rounded-t-3xl bg-white shadow-float sm:rounded-3xl"
+        className={
+          side
+            ? "animate-slide-right relative ml-auto flex h-full w-full flex-col overflow-hidden bg-white shadow-float md:w-[45%] md:min-w-[520px]"
+            : "animate-sheet relative flex max-h-[92vh] w-full max-w-lg flex-col overflow-hidden rounded-t-3xl bg-white shadow-float sm:rounded-3xl"
+        }
       >
-        {/* Poignée façon feuille iOS (mobile) */}
-        <div className="mx-auto mt-3 h-[5px] w-10 shrink-0 rounded-full bg-black/[0.12] sm:hidden" />
+        {/* Poignée façon feuille iOS (mobile, uniquement en mode feuille) */}
+        {!side && (
+          <div className="mx-auto mt-3 h-[5px] w-10 shrink-0 rounded-full bg-black/[0.12] sm:hidden" />
+        )}
         {/* Barre du haut : crayon / retour à gauche, statut + fermeture à droite */}
         <div className="flex items-center justify-between gap-2 px-4 pt-3">
           {alwaysEdit ? (
@@ -178,7 +193,7 @@ export default function NotePanel({
             />
           ) : value.trim() ? (
             <div
-              className="whitespace-pre-wrap text-[15.5px] leading-relaxed text-[#3F3F46] dark:text-[#C7C9CE] [&_b]:font-semibold"
+              className="whitespace-pre-wrap text-[15.5px] leading-relaxed text-[#3F3F46] dark:text-[#C7C9CE] [&_b]:font-semibold [&_ul]:list-disc [&_ul]:pl-5"
               dangerouslySetInnerHTML={{ __html: value }}
             />
           ) : (

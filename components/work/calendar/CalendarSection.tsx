@@ -824,10 +824,11 @@ export default function CalendarSection({
           initialValue={noteOf(noteBlock)}
           onSave={(v) => saveNote(noteBlock, v)}
           onClose={() => setNoteBlockId(null)}
-          // Livrable lié à un projet : tout est directement modifiable (pas de
-          // bouton Modifier) et l'heure est gérée dans le meta (à côté de la
-          // progression) -> on masque pastille + heure du footer.
+          // Livrable lié à un projet : panneau latéral façon Notion (45% à
+          // droite), tout est directement modifiable (pas de bouton Modifier) et
+          // l'heure est gérée dans le meta -> on masque pastille + heure du footer.
           alwaysEdit={!!noteBlock.project_id}
+          side={!!noteBlock.project_id}
           footer={
             <div className="space-y-3">
               {!noteBlock.project_id && (

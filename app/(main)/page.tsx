@@ -21,6 +21,7 @@ import { getPayments, getUrssaf, getExpenses } from "./finance/actions";
 import { getNotes } from "./notes/actions";
 import { getMeSettings } from "./me/actions";
 import TodayTasks from "@/components/home/TodayTasks";
+import OverdueAlert from "@/components/home/OverdueAlert";
 import { InstagramWidget, BehanceWidget } from "@/components/home/SocialWidgets";
 import { ButtonLink } from "@/components/ui/Button";
 import { formatEuro, CATEGORY_COLOR } from "@/lib/work";
@@ -39,6 +40,8 @@ type Traite = {
   text: string;
   href: string;
   cta: string;
+  // jours avant échéance (négatif = en retard) : sert au tri et à la mise en avant
+  days: number;
 };
 
 export default async function HomePage() {
@@ -195,6 +198,7 @@ export default async function HomePage() {
       )} en attente`,
       href: "/finance",
       cta: "Relancer",
+      days: -30,
     })),
     ...unvalidated.map(({ project, days }) => ({
       key: `uv-${project.id}`,
@@ -202,6 +206,7 @@ export default async function HomePage() {
       text: `Solde non validé · ${project.name}`,
       href: "/finance",
       cta: "Valider",
+      days: days >= 14 ? -10 : 5,
     })),
     ...soon.map(({ project, days }) => ({
       key: `soon-${project.id}`,
@@ -211,6 +216,7 @@ export default async function HomePage() {
       } · ${project.name}`,
       href: "/work",
       cta: "Ouvrir",
+      days,
     })),
     ...(urssafAlert
       ? [
@@ -220,6 +226,7 @@ export default async function HomePage() {
             text: `URSSAF de ${MONTHS[prevM - 1]} non déclarée`,
             href: "/finance",
             cta: "Déclarer",
+            days: -3,
           },
         ]
       : []),
@@ -233,6 +240,7 @@ export default async function HomePage() {
             )} à déclarer`,
             href: "/finance",
             cta: "Voir",
+            days: daysUntilDecl,
           },
         ]
       : []),
@@ -244,6 +252,7 @@ export default async function HomePage() {
             text: "Mention TVA à changer au 1er septembre",
             href: "/freelance",
             cta: "Voir",
+            days: 900,
           },
         ]
       : []),
@@ -280,20 +289,22 @@ export default async function HomePage() {
           } · ${when}`,
           href: "/work",
           cta: "Voir",
+          days: d,
         };
       }),
   ];
 
-  // Tri par priorité : urgent d'abord, puis à surveiller, puis info.
-  const LEVEL_RANK: Record<Traite["level"], number> = {
-    urgent: 0,
-    warning: 1,
-    info: 2,
-  };
-  aTraiter.sort((a, b) => LEVEL_RANK[a.level] - LEVEL_RANK[b.level]);
+  // Tri par échéance réelle : le plus urgent (retard, aujourd'hui) en premier.
+  aTraiter.sort((a, b) => a.days - b.days);
+
+  // Éléments en retard : popup à l'arrivée + emoji urgent.
+  const overdue = aTraiter.filter((a) => a.days < 0);
 
   return (
     <div className="space-y-10">
+      {/* Popup si des éléments sont en retard */}
+      <OverdueAlert items={overdue.map((a) => a.text)} />
+
       {/* En-tête */}
       <header className="flex flex-wrap items-start justify-between gap-4">
         <div>
@@ -316,7 +327,7 @@ export default async function HomePage() {
           <h2 className="mb-4 text-[11px] font-bold uppercase tracking-[0.08em] text-muted">
             À traiter
           </h2>
-          <ul className="space-y-3.5">
+          <ul className="space-y-2.5">
             {aTraiter.map((a) => {
               const color =
                 a.level === "urgent"
@@ -330,10 +341,31 @@ export default async function HomePage() {
                   : a.level === "warning"
                     ? "bg-pending"
                     : "bg-active";
+              const isLate = a.days < 0;
+              // J-2 -> J0 (et retard) : ligne mise en avant
+              const highlight = a.days <= 2;
               return (
-                <li key={a.key} className="flex flex-wrap items-center gap-x-3 gap-y-1">
+                <li
+                  key={a.key}
+                  className={`flex flex-wrap items-center gap-x-3 gap-y-1 rounded-xl ${
+                    highlight
+                      ? isLate
+                        ? "bg-red-50 px-3 py-2.5"
+                        : "bg-orange-50/70 px-3 py-2.5"
+                      : ""
+                  }`}
+                >
                   <span className={`h-2.5 w-2.5 shrink-0 rounded-full ${dot}`} />
-                  <span className="text-[16px] font-medium">{a.text}</span>
+                  <span
+                    className={
+                      highlight
+                        ? "text-[18px] font-bold"
+                        : "text-[16px] font-medium"
+                    }
+                  >
+                    {isLate && "🚨 "}
+                    {a.text}
+                  </span>
                   <Link
                     href={a.href}
                     className={`text-[15px] font-semibold ${color} hover:underline`}
@@ -354,8 +386,7 @@ export default async function HomePage() {
           tint="active"
           label="Projets actifs"
           value={String(activeProjects.length)}
-          sub={activeProjects.map((p) => p.name).join(", ")}
-          subBeside
+          subList={activeProjects.map((p) => p.name)}
         />
         <Kpi
           icon={Wallet}
@@ -541,7 +572,7 @@ function Kpi({
   label,
   value,
   sub,
-  subBeside = false,
+  subList,
   progress,
 }: {
   icon: LucideIcon;
@@ -549,8 +580,8 @@ function Kpi({
   label: string;
   value: string;
   sub?: string;
-  // sub affiché À DROITE du chiffre (au lieu d'en dessous), ex : noms de projets
-  subBeside?: boolean;
+  // liste affichée À DROITE du chiffre, un élément par ligne (ex : noms de projets)
+  subList?: string[];
   progress?: number;
 }) {
   return (
@@ -563,17 +594,19 @@ function Kpi({
         </span>
         <span className="text-[13px] font-medium text-ink-soft">{label}</span>
       </div>
-      {subBeside ? (
-        // Valeur + noms sur la même ligne (les noms passent à droite du chiffre)
-        <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
+      {subList ? (
+        // Chiffre à gauche, noms empilés à droite (1re ligne alignée au chiffre)
+        <div className="flex items-start gap-3">
           <p className="text-[32px] font-bold leading-none tracking-tight text-ink">
             {value}
           </p>
-          {sub && (
-            <span className="min-w-0 flex-1 text-[12px] leading-snug text-ink-soft">
-              {sub}
-            </span>
-          )}
+          <ul className="min-w-0 flex-1 space-y-0.5 pt-0.5 text-[12px] leading-tight text-ink-soft">
+            {subList.map((n, i) => (
+              <li key={i} className="truncate">
+                {n}
+              </li>
+            ))}
+          </ul>
         </div>
       ) : (
         <>

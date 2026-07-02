@@ -394,6 +394,8 @@ export default function ProjectOverlayBody({
 
         {noteDeliverable && (
           <NotePanel
+            side
+            alwaysEdit
             title={noteDeliverable.name}
             initialValue={noteDeliverable.notes ?? ""}
             onSave={(v) => noteDeliv(noteDeliverable.id, v)}
@@ -730,6 +732,8 @@ export default function ProjectOverlayBody({
 
       {noteDeliverable && (
         <NotePanel
+          side
+          alwaysEdit
           title={noteDeliverable.name}
           meta={delivMeta}
           initialValue={noteDeliverable.notes ?? ""}
