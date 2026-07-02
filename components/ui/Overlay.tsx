@@ -36,7 +36,7 @@ export default function Overlay({
 
   return (
     <div
-      className="fixed inset-0 z-[100] flex items-end justify-center bg-black/[0.32] dark:bg-black/55 backdrop-blur-[3px] animate-fade-in sm:items-center sm:p-4"
+      className="fixed inset-0 z-[100] flex items-end justify-center bg-black/45 backdrop-blur-[2px] animate-fade-in sm:items-center sm:p-4"
       onClick={dismissible ? onClose : undefined}
     >
       <div
