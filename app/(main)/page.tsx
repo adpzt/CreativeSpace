@@ -555,16 +555,16 @@ function Kpi({
         </span>
         <span className="text-[13px] font-medium text-ink-soft">{label}</span>
       </div>
-      <div className="flex flex-wrap items-baseline gap-x-2">
-        <p className="text-[32px] font-bold leading-none tracking-tight text-ink">
-          {value}
+      {/* Valeur sur sa propre ligne, sous-texte en dessous (évite que le texte
+          soit coupé par le bord de la carte) */}
+      <p className="text-[32px] font-bold leading-none tracking-tight text-ink">
+        {value}
+      </p>
+      {sub && (
+        <p className="mt-1.5 truncate text-[12px] text-ink-soft" title={sub}>
+          {sub}
         </p>
-        {sub && (
-          <span className="min-w-0 flex-1 truncate text-[12px] text-ink-soft">
-            {sub}
-          </span>
-        )}
-      </div>
+      )}
       {progress !== undefined && (
         <div className="mt-3 h-1.5 w-full overflow-hidden rounded-full bg-black/[0.07]">
           <div
