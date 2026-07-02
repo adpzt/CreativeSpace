@@ -16,8 +16,9 @@ import {
   restoreNote,
   emptyTrash,
   type Note,
+  type NotePriority,
 } from "./actions";
-import { stripHtml } from "@/lib/notes";
+import { PRIORITIES, stripHtml } from "@/lib/notes";
 
 // Couleurs des post-it (cyclées par index), léger désalignement.
 const POSTIT = ["bg-[#FEF3C7]", "bg-[#DBEAFE]", "bg-[#FCE7F3]", "bg-[#DCFCE7]"];
@@ -231,16 +232,11 @@ export default function NotesClient({
             Rien à faire. Ajoute une tâche (avec un titre ou une échéance).
           </p>
         ) : (
-          <div className="overflow-hidden rounded-2xl border border-black/[0.06] bg-white shadow-card">
-            {todo.map((n) => (
-              <TaskRow
-                key={n.id}
-                note={n}
-                onToggle={() => toggleDone(n, true)}
-                onOpen={() => setEditing(n)}
-              />
-            ))}
-          </div>
+          <NoteTable
+            notes={todo}
+            onToggle={(n) => toggleDone(n, true)}
+            onOpen={(n) => setEditing(n)}
+          />
         )}
       </section>
 
@@ -257,15 +253,12 @@ export default function NotesClient({
             Terminées ({done.length})
           </button>
           {showDone && (
-            <div className="mt-3 overflow-hidden rounded-2xl border border-black/[0.06] bg-white">
-              {done.map((n) => (
-                <TaskRow
-                  key={n.id}
-                  note={n}
-                  onToggle={() => toggleDone(n, false)}
-                  onOpen={() => setEditing(n)}
-                />
-              ))}
+            <div className="mt-3">
+              <NoteTable
+                notes={done}
+                onToggle={(n) => toggleDone(n, false)}
+                onOpen={(n) => setEditing(n)}
+              />
             </div>
           )}
         </section>
@@ -372,8 +365,48 @@ export default function NotesClient({
   );
 }
 
-// Ligne de la checklist "À faire" : case ronde + titre + label d'échéance coloré.
-function TaskRow({
+// Badge de priorité (importance) pour le tableau.
+const PRIO_BADGE: Record<NotePriority, string> = {
+  haute: "bg-red-50 text-[#B91C1C]",
+  moyenne: "bg-amber-50 text-[#B45309]",
+  basse: "bg-slate-100 text-[#475569]",
+};
+
+// Tableau "À faire" : Importance · Idée · Date · Thème (façon Notion, épuré).
+function NoteTable({
+  notes,
+  onToggle,
+  onOpen,
+}: {
+  notes: Note[];
+  onToggle: (n: Note) => void;
+  onOpen: (n: Note) => void;
+}) {
+  return (
+    <div className="overflow-x-auto rounded-2xl border border-black/[0.06] bg-white shadow-card">
+      <div className="min-w-[620px]">
+        {/* En-tête de colonnes */}
+        <div className="grid grid-cols-[34px_104px_1fr_140px_150px] items-center gap-3 border-b border-black/[0.06] bg-[#FAFAFB] px-4 py-2.5 text-[11px] font-semibold uppercase tracking-[0.05em] text-muted">
+          <span />
+          <span>Importance</span>
+          <span>Idée</span>
+          <span>Date</span>
+          <span>Thème</span>
+        </div>
+        {notes.map((n) => (
+          <NoteTableRow
+            key={n.id}
+            note={n}
+            onToggle={() => onToggle(n)}
+            onOpen={() => onOpen(n)}
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function NoteTableRow({
   note,
   onToggle,
   onOpen,
@@ -386,17 +419,14 @@ function TaskRow({
     note.title?.trim() || stripHtml(note.content).split("\n")[0] || "Tâche";
   const due = note.due_date ? parseISO(note.due_date) : null;
   const overdue = due && !note.done && isPast(due) && !isToday(due);
-
-  let tag: { text: string; cls: string } | null = null;
-  if (due && isToday(due)) tag = { text: "Aujourd'hui", cls: "text-urgent" };
-  else if (overdue) tag = { text: "En retard", cls: "text-urgent" };
-  else if (note.theme?.trim())
-    tag = { text: note.theme.trim(), cls: "text-pending" };
-  else if (due)
-    tag = { text: format(due, "d MMM", { locale: fr }), cls: "text-muted" };
+  const dateCls =
+    !note.done && due && (isToday(due) || overdue)
+      ? "text-urgent font-semibold"
+      : "text-ink-soft";
 
   return (
-    <div className="flex items-center gap-3 border-b border-black/[0.05] px-4 py-3.5 last:border-0">
+    <div className="grid grid-cols-[34px_104px_1fr_140px_150px] items-center gap-3 border-b border-black/[0.05] px-4 py-3 transition-colors last:border-0 hover:bg-black/[0.015]">
+      {/* Case à cocher */}
       <button
         onClick={onToggle}
         aria-label={note.done ? "Marquer à faire" : "Marquer faite"}
@@ -408,20 +438,53 @@ function TaskRow({
       >
         {note.done && <Check className="h-3 w-3" strokeWidth={3} />}
       </button>
-      <button onClick={onOpen} className="min-w-0 flex-1 text-left">
+
+      {/* Importance */}
+      <div>
         <span
-          className={`text-[15px] ${
+          className={`inline-flex items-center rounded-full px-2.5 py-1 text-[12px] font-semibold ${
+            PRIO_BADGE[note.priority]
+          }`}
+        >
+          {PRIORITIES[note.priority].label}
+        </span>
+      </div>
+
+      {/* Idée (emoji + titre), cliquable */}
+      <button onClick={onOpen} className="flex min-w-0 items-center gap-2 text-left">
+        {note.emoji && <span className="shrink-0 text-[15px]">{note.emoji}</span>}
+        <span
+          className={`truncate text-[15px] ${
             note.done ? "text-muted line-through" : "font-medium"
           }`}
         >
           {title}
         </span>
       </button>
-      {tag && !note.done && (
-        <span className={`shrink-0 text-[13px] font-semibold ${tag.cls}`}>
-          {tag.text}
-        </span>
-      )}
+
+      {/* Date */}
+      <div className={`text-[13px] ${dateCls}`}>
+        {due ? (
+          isToday(due) ? (
+            "Aujourd'hui"
+          ) : (
+            format(due, "d MMM yyyy", { locale: fr })
+          )
+        ) : (
+          <span className="text-muted">—</span>
+        )}
+      </div>
+
+      {/* Thème */}
+      <div>
+        {note.theme?.trim() ? (
+          <span className="inline-flex max-w-full items-center truncate rounded-md bg-[#F1F1F4] px-2 py-0.5 text-[12px] font-medium text-ink-soft">
+            {note.theme.trim()}
+          </span>
+        ) : (
+          <span className="text-muted">—</span>
+        )}
+      </div>
     </div>
   );
 }
