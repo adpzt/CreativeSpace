@@ -103,8 +103,8 @@ export default function NotePanel({
     <div
       className={
         side
-          ? "fixed inset-0 z-[100] flex animate-fade-in bg-black/45 backdrop-blur-[2px]"
-          : "fixed inset-0 z-[100] flex items-end justify-center bg-black/45 backdrop-blur-[2px] animate-fade-in sm:items-center sm:p-4"
+          ? "fixed inset-0 z-[100] flex animate-fade-in bg-black/55"
+          : "fixed inset-0 z-[100] flex items-end justify-center bg-black/55 animate-fade-in sm:items-center sm:p-4"
       }
       onClick={close}
     >

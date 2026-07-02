@@ -26,7 +26,7 @@ export default function OverdueAlert({ items }: { items: string[] }) {
 
   return (
     <div
-      className="fixed inset-0 z-[110] flex items-center justify-center bg-black/[0.32] p-4 backdrop-blur-[3px] animate-fade-in"
+      className="fixed inset-0 z-[110] flex items-center justify-center bg-black/55 p-4 animate-fade-in"
       onClick={() => setOpen(false)}
     >
       <div
