@@ -96,7 +96,7 @@ export default async function FreelancePage() {
       <Section title="Production">
         <ProductionView />
       </Section>
-      <Section title="Prospection">
+      <Section title="Trouver des clients">
         <ProspectsBoard prospects={prospects} />
       </Section>
     </div>

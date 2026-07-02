@@ -386,10 +386,18 @@ export const ARNAQUEURS: string[] = [
 
 // ============ PROSPECTION ============
 export const PROSPECT_LINKS: { label: string; url: string }[] = [
-  { label: "LinkedIn", url: "https://www.linkedin.com" },
-  { label: "Welcome to the Jungle", url: "https://www.welcometothejungle.com" },
+  { label: "LinkedIn", url: "https://www.linkedin.com/jobs" },
   { label: "Malt", url: "https://www.malt.fr" },
-  { label: "Behance", url: "https://www.behance.net" },
+  { label: "Comet", url: "https://www.comet.co" },
+  { label: "Crème de la crème", url: "https://www.cremedelacreme.io" },
+  { label: "BeFreelancr", url: "https://www.befreelancr.com" },
+  { label: "404 Works", url: "https://404works.com" },
+  { label: "Welcome to the Jungle", url: "https://www.welcometothejungle.com" },
+  { label: "Behance Jobs", url: "https://www.behance.net/joblist" },
+  { label: "Dribbble Jobs", url: "https://dribbble.com/jobs" },
+  { label: "Fiverr", url: "https://www.fiverr.com" },
+  { label: "Upwork", url: "https://www.upwork.com" },
+  { label: "Indeed", url: "https://www.indeed.fr" },
 ];
 
 export const PROSPECT_TYPES: { key: string; label: string }[] = [

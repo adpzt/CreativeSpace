@@ -148,14 +148,16 @@ export default function ProjectsSection({
                 }`}
               >
                 <div className="mb-1.5 flex items-start justify-between gap-2">
-                  <div className="flex min-w-0 items-center gap-2">
+                  <div className="flex min-w-0 items-start gap-2">
                     {p.color && (
                       <span
-                        className="h-2.5 w-2.5 shrink-0 rounded-full"
+                        className="mt-[7px] h-2.5 w-2.5 shrink-0 rounded-full"
                         style={{ backgroundColor: p.color }}
                       />
                     )}
-                    <p className="truncate text-[17px] font-semibold">{p.name}</p>
+                    <p className="text-[17px] font-semibold leading-snug">
+                      {p.name}
+                    </p>
                   </div>
                   <StatusBadge status={p.status} />
                 </div>

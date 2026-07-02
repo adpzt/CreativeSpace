@@ -31,7 +31,7 @@ export async function createProspect(input: {
     notes: input.notes || null,
   });
   if (error) throw new Error(error.message);
-  revalidatePath("/freelance/prospection");
+  revalidatePath("/freelance");
 }
 
 export async function updateProspect(
@@ -41,12 +41,12 @@ export async function updateProspect(
   const supabase = createServerSupabase();
   const { error } = await supabase.from("prospects").update(patch).eq("id", id);
   if (error) throw new Error(error.message);
-  revalidatePath("/freelance/prospection");
+  revalidatePath("/freelance");
 }
 
 export async function deleteProspect(id: string): Promise<void> {
   const supabase = createServerSupabase();
   const { error } = await supabase.from("prospects").delete().eq("id", id);
   if (error) throw new Error(error.message);
-  revalidatePath("/freelance/prospection");
+  revalidatePath("/freelance");
 }

@@ -28,7 +28,7 @@ export default function DeliverableNoteMeta({
       </p>
       <div className="flex items-center gap-2">
         <span className="text-muted">Progression</span>
-        <div className="flex items-center rounded-lg border border-gray-200 dark:border-hairline pr-1.5 focus-within:border-ink">
+        <div className="flex items-center rounded-lg border border-black/10 pl-1 pr-2 focus-within:border-active">
           <input
             value={completed ? "100" : p}
             disabled={completed}
@@ -42,7 +42,7 @@ export default function DeliverableNoteMeta({
             min={0}
             max={100}
             aria-label="Progression en %"
-            className="w-10 rounded-lg border-0 py-1 pl-1.5 text-center text-sm outline-none disabled:bg-transparent disabled:text-muted"
+            className="w-12 rounded-lg border-0 bg-transparent py-1 text-center text-sm outline-none [appearance:textfield] disabled:text-muted [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
           />
           <span className="text-[11px] text-muted">%</span>
         </div>

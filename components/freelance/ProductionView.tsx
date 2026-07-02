@@ -1,13 +1,12 @@
 "use client";
 
-import { Check, AlertTriangle } from "lucide-react";
+import { Check } from "lucide-react";
 import CopyButton from "./CopyButton";
 import {
   FOLDER_STRUCTURE,
   NAMING_RULES,
   WORK_RULES,
   LIVRAISON_CHECKLIST,
-  ARNAQUEURS,
 } from "@/lib/freelance";
 
 const CARD = "rounded-2xl border border-black/[0.06] bg-white p-5 shadow-card";
@@ -75,27 +74,6 @@ export default function ProductionView() {
         </ul>
       </div>
 
-      {/* Arnaqueurs */}
-      <div className="rounded-2xl border border-urgent/30 bg-red-50/50 p-5 md:col-span-2">
-        <p className="mb-2 flex items-center gap-2 text-sm font-semibold text-urgent">
-          <AlertTriangle className="h-4 w-4" />
-          Arnaqueurs à éviter
-        </p>
-        <p className="mb-2 text-sm text-ink-soft">
-          Ces organismes envoient des courriers frauduleux aux nouveaux
-          auto-entrepreneurs. Ne jamais payer, ne jamais rappeler.
-        </p>
-        <ul className="flex flex-wrap gap-2">
-          {ARNAQUEURS.map((a) => (
-            <li
-              key={a}
-              className="rounded-full bg-white px-2.5 py-1 text-xs font-medium text-urgent"
-            >
-              {a}
-            </li>
-          ))}
-        </ul>
-      </div>
     </div>
   );
 }
