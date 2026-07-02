@@ -31,54 +31,58 @@ html {
   text-rendering: optimizeLegibility;
 }
 
-/* Canvas : base #F6F7FB + halos radiaux (bleu / violet / orange) qui dérivent
-   très lentement. Valeurs de la maquette Claude Design. */
+/* Canvas : base #F6F7FB. Les halos de couleur vivent dans un calque FIXE
+   (body::before) animé en transform (translate + scale + rotation) : mouvement
+   fluide GPU, nettement visible dans les zones sans carte. */
 body {
   font-family: var(--font-inter), system-ui, -apple-system, sans-serif;
   color: rgb(var(--ink));
   background-color: #f6f7fb;
-  background-image: radial-gradient(
-      1000px 620px at 0% -5%,
-      rgba(37, 99, 235, 0.09),
-      transparent 55%
-    ),
-    radial-gradient(
-      920px 620px at 100% 8%,
-      rgba(124, 58, 237, 0.075),
-      transparent 55%
-    ),
-    radial-gradient(
-      820px 600px at 62% 112%,
-      rgba(234, 88, 12, 0.06),
-      transparent 55%
-    );
-  background-size: 150% 150%;
-  background-position: 0% 0%;
-  animation: cs-bg-drift 42s ease-in-out infinite;
 }
 
-/* Dérive lente et vivante du fond : les halos se déplacent ET respirent
-   (la taille varie légèrement) pour un dégradé qui "évolue" en continu. */
+body::before {
+  content: "";
+  position: fixed;
+  inset: -35%;
+  z-index: -1;
+  pointer-events: none;
+  background-image: radial-gradient(
+      42% 42% at 18% 22%,
+      rgba(37, 99, 235, 0.20),
+      transparent 62%
+    ),
+    radial-gradient(
+      44% 44% at 82% 26%,
+      rgba(124, 58, 237, 0.18),
+      transparent 62%
+    ),
+    radial-gradient(
+      46% 46% at 55% 88%,
+      rgba(234, 88, 12, 0.15),
+      transparent 62%
+    ),
+    radial-gradient(
+      38% 38% at 88% 78%,
+      rgba(13, 148, 136, 0.13),
+      transparent 62%
+    );
+  animation: cs-bg-drift 30s ease-in-out infinite;
+  will-change: transform;
+}
+
+/* Le dégradé "bouge et évolue" : il se déplace, respire et pivote doucement. */
 @keyframes cs-bg-drift {
   0% {
-    background-position: 0% 0%;
-    background-size: 150% 150%;
+    transform: translate3d(0, 0, 0) scale(1) rotate(0deg);
   }
-  25% {
-    background-position: 100% 30%;
-    background-size: 175% 175%;
+  33% {
+    transform: translate3d(4%, -3%, 0) scale(1.15) rotate(6deg);
   }
-  50% {
-    background-position: 80% 100%;
-    background-size: 150% 150%;
-  }
-  75% {
-    background-position: 20% 70%;
-    background-size: 180% 180%;
+  66% {
+    transform: translate3d(-3%, 4%, 0) scale(1.1) rotate(-5deg);
   }
   100% {
-    background-position: 0% 0%;
-    background-size: 150% 150%;
+    transform: translate3d(0, 0, 0) scale(1) rotate(0deg);
   }
 }
 

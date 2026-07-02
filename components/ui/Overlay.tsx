@@ -10,11 +10,17 @@ export default function Overlay({
   onClose,
   children,
   dismissible = true,
+  maxWidthClass = "max-w-lg",
+  redClose = false,
 }: {
   onClose: () => void;
   children: React.ReactNode;
   // Si false, ne se ferme pas au clic sur le fond ni avec Échap (évite les pertes de saisie)
   dismissible?: boolean;
+  // Largeur max du panneau (ex : "max-w-3xl" pour un grand pop)
+  maxWidthClass?: string;
+  // Croix de fermeture en rouge (pour les grands pop)
+  redClose?: boolean;
 }) {
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
@@ -34,7 +40,7 @@ export default function Overlay({
       onClick={dismissible ? onClose : undefined}
     >
       <div
-        className="animate-sheet relative max-h-[92vh] w-full max-w-lg overflow-y-auto rounded-t-3xl bg-white dark:bg-surface p-7 shadow-float dark:shadow-[0_30px_70px_-14px_rgba(0,0,0,0.8)] sm:rounded-3xl"
+        className={`animate-sheet relative max-h-[92vh] w-full ${maxWidthClass} overflow-y-auto rounded-t-3xl bg-white dark:bg-surface p-7 shadow-float dark:shadow-[0_30px_70px_-14px_rgba(0,0,0,0.8)] sm:rounded-3xl`}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Poignée façon feuille iOS (mobile) */}
@@ -42,9 +48,13 @@ export default function Overlay({
         <button
           onClick={onClose}
           aria-label="Fermer"
-          className="absolute right-3 top-3 z-10 rounded-lg p-1.5 text-muted transition-colors hover:bg-gray-100 dark:hover:bg-white/[0.06]"
+          className={`absolute right-3 top-3 z-10 rounded-lg p-1.5 transition-colors ${
+            redClose
+              ? "text-urgent hover:bg-red-50"
+              : "text-muted hover:bg-gray-100 dark:hover:bg-white/[0.06]"
+          }`}
         >
-          <X className="h-4 w-4" />
+          <X className={redClose ? "h-5 w-5" : "h-4 w-4"} />
         </button>
         {children}
       </div>

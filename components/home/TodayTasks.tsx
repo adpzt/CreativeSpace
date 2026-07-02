@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
 import { Check } from "lucide-react";
 import { CATEGORY_COLOR } from "@/lib/work";
 import { updateCalendarBlock } from "@/app/(main)/work/actions";
@@ -32,7 +31,6 @@ export default function TodayTasks({
   projects?: Project[];
   clients?: Client[];
 }) {
-  const router = useRouter();
   // Tri : par catégorie (Freelance -> Entreprise -> Perso), puis par heure (les
   // blocs avec heure d'abord). Regroupe les mêmes catégories ensemble.
   const sort = (list: CalendarBlock[]) =>
@@ -61,9 +59,12 @@ export default function TodayTasks({
 
   async function toggle(b: CalendarBlock) {
     const completed = !b.completed;
+    // MAJ optimiste locale : on NE rafraîchit PAS la route ici, sinon le resync
+    // par props pouvait renvoyer un état momentanément périmé et "décocher" tout
+    // seul. La persistance se fait en base ; la synchro se refait au prochain
+    // chargement (page en force-dynamic).
     setItems((p) => p.map((x) => (x.id === b.id ? { ...x, completed } : x)));
     await updateCalendarBlock(b.id, { completed });
-    router.refresh();
   }
 
   if (items.length === 0) {

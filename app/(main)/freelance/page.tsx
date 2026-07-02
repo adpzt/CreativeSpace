@@ -4,13 +4,18 @@ import CommunicationView from "@/components/freelance/CommunicationView";
 import BriefView from "@/components/freelance/BriefView";
 import DevisView from "@/components/freelance/DevisView";
 import ProductionView from "@/components/freelance/ProductionView";
+import ProspectsBoard from "@/components/freelance/ProspectsBoard";
 import { getMeSettings } from "../me/actions";
+import { getProspects } from "./actions";
 import { PRO_FIELDS, TJM_KEY, TJM_DEFAULT } from "@/lib/me";
 
 export const dynamic = "force-dynamic";
 
 export default async function FreelancePage() {
-  const settings = await getMeSettings();
+  const [settings, prospects] = await Promise.all([
+    getMeSettings(),
+    getProspects(),
+  ]);
   const tjm = settings[TJM_KEY] ?? TJM_DEFAULT;
 
   return (
@@ -27,9 +32,9 @@ export default async function FreelancePage() {
       {/* Profil pro (compact : logo PP + infos éditables) */}
       <section className="rounded-3xl border border-black/[0.06] bg-white p-5 shadow-card sm:p-6">
         <div className="flex items-center gap-4">
-          {/* PP = logo pztdesign (étoile blanche sur dégradé de marque) */}
-          <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-[#3704F0] to-[#9333EA] shadow-card">
-            <Logo className="h-7 w-7" color="#ffffff" />
+          {/* PP = logo pztdesign : étoile bleue sur fond blanc, contour bleu */}
+          <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl border-2 border-[#3704F0] bg-white">
+            <Logo className="h-7 w-7" color="#3704F0" />
           </span>
           <div className="min-w-0">
             <h2 className="text-[22px] font-extrabold tracking-[-0.02em]">Adrien Poizat</h2>
@@ -58,6 +63,11 @@ export default async function FreelancePage() {
           ))}
         </div>
       </section>
+
+      {/* Trouver des clients (juste sous le profil "moi") */}
+      <Section title="Trouver des clients">
+        <ProspectsBoard prospects={prospects} />
+      </Section>
 
       {/* Guide déroulé de haut en bas */}
       <Section title="Communication client">

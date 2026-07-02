@@ -2,10 +2,20 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Plus, FolderOpen, ChevronDown, Users } from "lucide-react";
+import {
+  Plus,
+  FolderOpen,
+  ChevronDown,
+  Users,
+  Search,
+  Pencil,
+  Mail,
+  Phone,
+} from "lucide-react";
 import Overlay from "@/components/ui/Overlay";
 import { Button } from "@/components/ui/Button";
 import ProgressBar from "@/components/ui/ProgressBar";
+import StatusBadge from "@/components/ui/StatusBadge";
 import EmptyState from "@/components/ui/EmptyState";
 import ProjectCreateForm from "./ProjectCreateForm";
 import ProjectOverlayBody from "./ProjectOverlayBody";
@@ -70,6 +80,7 @@ export default function ProjectsSection({
   const [openId, setOpenId] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
   const [showClients, setShowClients] = useState(false);
+  const [clientQuery, setClientQuery] = useState("");
   const [openClientId, setOpenClientId] = useState<string | null>(null);
   const [creatingClient, setCreatingClient] = useState(false);
   const [filter, setFilter] = useState<Filter>("active");
@@ -188,17 +199,6 @@ export default function ProjectsSection({
                   p.color ? "" : "border-black/[0.06]"
                 } ${closed ? "opacity-[0.82] hover:opacity-100" : ""}`}
               >
-                {/* Statut en contour, sur sa propre ligne (titre reste horizontal) */}
-                <div className="mb-2">
-                  <span
-                    className={`inline-flex items-center whitespace-nowrap rounded-full border px-2.5 py-1 text-[12px] font-semibold ${
-                      STATUS_OUTLINE[p.status]
-                    }`}
-                  >
-                    {PROJECT_STATUS[p.status].label}
-                  </span>
-                </div>
-
                 <p className="text-[17px] font-semibold leading-snug">{p.name}</p>
 
                 <p className="mb-3 mt-1 truncate text-[13px] text-muted">
@@ -211,18 +211,24 @@ export default function ProjectsSection({
                   )}
                 </p>
 
-                {p.mission_types.length > 0 && (
-                  <div className="mb-4 flex flex-wrap gap-1.5">
-                    {p.mission_types.slice(0, 4).map((t) => (
-                      <span
-                        key={t}
-                        className="rounded-md bg-[#F1F1F4] px-2 py-0.5 text-[11px] font-medium text-ink-soft"
-                      >
-                        {t}
-                      </span>
-                    ))}
-                  </div>
-                )}
+                {/* Types de mission + statut (contour) à droite, sur la même ligne */}
+                <div className="mb-4 flex flex-wrap items-center gap-1.5">
+                  {p.mission_types.slice(0, 4).map((t) => (
+                    <span
+                      key={t}
+                      className="rounded-md bg-[#F1F1F4] px-2 py-0.5 text-[11px] font-medium text-ink-soft"
+                    >
+                      {t}
+                    </span>
+                  ))}
+                  <span
+                    className={`ml-auto inline-flex items-center whitespace-nowrap rounded-full border px-2.5 py-1 text-[12px] font-semibold ${
+                      STATUS_OUTLINE[p.status]
+                    }`}
+                  >
+                    {PROJECT_STATUS[p.status].label}
+                  </span>
+                </div>
 
                 <div className="mt-auto flex items-center gap-3 pt-1">
                   <div className="flex-1">
@@ -241,9 +247,16 @@ export default function ProjectsSection({
         </div>
       )}
 
-      {/* ---------- Overlay Clients (cards existantes + bouton +) ---------- */}
+      {/* ---------- Overlay Clients (grand pop : recherche + fiches détaillées) ---------- */}
       {showClients && (
-        <Overlay onClose={() => setShowClients(false)}>
+        <Overlay
+          onClose={() => {
+            setShowClients(false);
+            setClientQuery("");
+          }}
+          maxWidthClass="max-w-3xl"
+          redClose
+        >
           <div className="pr-8">
             <div className="mb-4 flex items-center justify-between gap-3">
               <h3 className="text-[22px] font-bold tracking-tight">Clients</h3>
@@ -259,72 +272,65 @@ export default function ProjectsSection({
               </Button>
             </div>
 
-            {clients.length === 0 ? (
-              <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-black/[0.12] px-6 py-10 text-center">
-                <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-2xl bg-[#F1F1F4]">
-                  <Users className="h-5 w-5 text-muted" />
-                </div>
-                <p className="text-sm text-muted">
-                  Aucun client pour l&apos;instant. Ajoute ton premier client.
-                </p>
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                {clients.map((client) => {
-                  const incomplete =
-                    !client.company && !client.email && !client.phone;
-                  const primary = client.company || client.name;
-                  return (
-                    <button
+            {/* Barre de recherche */}
+            <div className="relative mb-5">
+              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" />
+              <input
+                value={clientQuery}
+                onChange={(e) => setClientQuery(e.target.value)}
+                placeholder="Rechercher un client (nom, entreprise, thème)…"
+                className="w-full rounded-xl border border-black/[0.08] py-2.5 pl-9 pr-3 text-sm outline-none focus:border-active focus:ring-4 focus:ring-active/12"
+              />
+            </div>
+
+            {(() => {
+              const q = clientQuery.trim().toLowerCase();
+              const filtered = q
+                ? clients.filter((c) =>
+                    [c.name, c.company ?? "", ...(c.tags ?? [])]
+                      .join(" ")
+                      .toLowerCase()
+                      .includes(q)
+                  )
+                : clients;
+              if (clients.length === 0) {
+                return (
+                  <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-black/[0.12] px-6 py-10 text-center">
+                    <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-2xl bg-[#F1F1F4]">
+                      <Users className="h-5 w-5 text-muted" />
+                    </div>
+                    <p className="text-sm text-muted">
+                      Aucun client pour l&apos;instant. Ajoute ton premier client.
+                    </p>
+                  </div>
+                );
+              }
+              if (filtered.length === 0) {
+                return (
+                  <p className="py-6 text-center text-sm text-muted">
+                    Aucun client ne correspond à « {clientQuery} ».
+                  </p>
+                );
+              }
+              return (
+                <div className="space-y-4">
+                  {filtered.map((client) => (
+                    <ClientDetailCard
                       key={client.id}
-                      onClick={() => {
+                      client={client}
+                      projects={projects.filter(
+                        (p) => p.client_id === client.id
+                      )}
+                      onEdit={() => {
                         setShowClients(false);
+                        setClientQuery("");
                         setOpenClientId(client.id);
                       }}
-                      className={`flex items-center gap-3 rounded-2xl border bg-white p-4 text-left shadow-card transition duration-[180ms] ease-ios hover:-translate-y-0.5 hover:shadow-lift ${
-                        incomplete
-                          ? "border-dashed border-black/[0.14]"
-                          : "border-black/[0.06]"
-                      }`}
-                    >
-                      <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[#F1F1F4] text-[13px] font-semibold text-ink-soft">
-                        {initials(primary)}
-                      </span>
-                      <div className="min-w-0 flex-1">
-                        <p className="truncate text-[15px] font-semibold">
-                          {primary}
-                        </p>
-                        {incomplete ? (
-                          <p className="text-[13px] font-medium text-pending">
-                            Infos à compléter
-                          </p>
-                        ) : (
-                          <>
-                            {client.company && (
-                              <p className="truncate text-[13px] text-muted">
-                                {client.name}
-                              </p>
-                            )}
-                            {client.tags.length > 0 && (
-                              <div className="mt-1.5 flex flex-wrap gap-1">
-                                {client.tags.slice(0, 3).map((t) => (
-                                  <span
-                                    key={t}
-                                    className="rounded-md bg-[#F1F1F4] px-2 py-0.5 text-[11px] font-medium text-ink-soft"
-                                  >
-                                    {t}
-                                  </span>
-                                ))}
-                              </div>
-                            )}
-                          </>
-                        )}
-                      </div>
-                    </button>
-                  );
-                })}
-              </div>
-            )}
+                    />
+                  ))}
+                </div>
+              );
+            })()}
           </div>
         </Overlay>
       )}
@@ -372,6 +378,106 @@ export default function ProjectsSection({
         </Overlay>
       )}
     </section>
+  );
+}
+
+// Fiche client détaillée (lecture), affichée en grand dans l'overlay Clients.
+// Non cliquable ; le crayon ouvre l'édition.
+function ClientDetailCard({
+  client,
+  projects,
+  onEdit,
+}: {
+  client: Client;
+  projects: ProjectWithDeliverables[];
+  onEdit: () => void;
+}) {
+  const incomplete = !client.company && !client.email && !client.phone;
+  const primary = client.company || client.name;
+  return (
+    <div className="rounded-2xl border border-black/[0.06] bg-white p-5 shadow-card">
+      <div className="flex items-start gap-4">
+        <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-[#F1F1F4] text-[15px] font-semibold text-ink-soft">
+          {initials(primary)}
+        </span>
+        <div className="min-w-0 flex-1">
+          <p className="text-[18px] font-bold leading-tight">{primary}</p>
+          {client.company && (
+            <p className="text-[13px] text-muted">{client.name}</p>
+          )}
+          {incomplete && (
+            <p className="text-[13px] font-medium text-pending">
+              Infos à compléter
+            </p>
+          )}
+        </div>
+        <button
+          onClick={onEdit}
+          aria-label="Modifier le client"
+          className="shrink-0 rounded-lg border border-black/[0.08] p-2 text-muted transition-colors hover:border-black/20 hover:text-ink"
+        >
+          <Pencil className="h-4 w-4" />
+        </button>
+      </div>
+
+      {client.tags.length > 0 && (
+        <div className="mt-3 flex flex-wrap gap-1.5">
+          {client.tags.map((t) => (
+            <span
+              key={t}
+              className="rounded-full bg-[#F1F1F4] px-2.5 py-1 text-[11px] font-medium text-ink-soft"
+            >
+              {t}
+            </span>
+          ))}
+        </div>
+      )}
+
+      {(client.email || client.phone) && (
+        <div className="mt-3 flex flex-wrap gap-x-6 gap-y-1 text-sm">
+          {client.email && (
+            <a
+              href={`mailto:${client.email}`}
+              className="flex items-center gap-2 text-active hover:underline"
+            >
+              <Mail className="h-4 w-4" />
+              {client.email}
+            </a>
+          )}
+          {client.phone && (
+            <span className="flex items-center gap-2 text-ink-soft">
+              <Phone className="h-4 w-4" />
+              {client.phone}
+            </span>
+          )}
+        </div>
+      )}
+
+      {client.notes && (
+        <p className="mt-3 whitespace-pre-wrap text-sm leading-relaxed text-ink-soft">
+          {client.notes}
+        </p>
+      )}
+
+      {projects.length > 0 && (
+        <div className="mt-4">
+          <p className="mb-2 text-[11px] font-medium uppercase tracking-wide text-muted">
+            Projets
+          </p>
+          <ul className="space-y-1.5">
+            {projects.map((p) => (
+              <li
+                key={p.id}
+                className="flex items-center justify-between gap-2 rounded-xl border border-black/[0.06] px-3 py-2"
+              >
+                <span className="truncate text-sm font-medium">{p.name}</span>
+                <StatusBadge status={p.status} />
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+    </div>
   );
 }
 
