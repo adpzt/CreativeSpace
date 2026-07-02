@@ -553,12 +553,14 @@ function Kpi({
         >
           <Icon className="h-4 w-4" />
         </span>
-        <span className="text-[13px] text-muted">{label}</span>
+        <span className="text-[13px] font-medium text-ink-soft">{label}</span>
       </div>
       <div className="flex flex-wrap items-baseline gap-x-2">
-        <p className="text-[32px] font-bold leading-none tracking-tight">{value}</p>
+        <p className="text-[32px] font-bold leading-none tracking-tight text-ink">
+          {value}
+        </p>
         {sub && (
-          <span className="min-w-0 flex-1 truncate text-[12px] text-muted">
+          <span className="min-w-0 flex-1 truncate text-[12px] text-ink-soft">
             {sub}
           </span>
         )}
