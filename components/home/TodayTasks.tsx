@@ -111,14 +111,15 @@ export default function TodayTasks({
               {b.title}
             </span>
             <div className="flex shrink-0 items-center gap-2">
-              {cat && (
-                <span className={`text-[12px] font-semibold ${cat.className}`}>
-                  {cat.label}
-                </span>
-              )}
+              {/* Client à gauche, puis le sujet (catégorie) toujours tout à droite */}
               {client && (
                 <span className="hidden rounded-md bg-[#F1F1F4] px-2 py-0.5 text-[11px] font-medium text-ink-soft sm:inline">
                   {client}
+                </span>
+              )}
+              {cat && (
+                <span className={`text-[12px] font-semibold ${cat.className}`}>
+                  {cat.label}
                 </span>
               )}
             </div>
