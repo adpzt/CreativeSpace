@@ -126,6 +126,9 @@ export default function ProjectCreateForm({
     }
     setError(null);
     start(async () => {
+      // Champs "argent" (provenance, montants, devis/facture, dépenses) uniquement
+      // pour le freelance : entreprise/école/perso n'ont pas de facturation.
+      const fl = category === "freelance";
       let clientId = selectedClientId;
       if (!clientId && clientQuery.trim()) {
         clientId = await createClient({ name: clientQuery.trim() });
@@ -137,23 +140,23 @@ export default function ProjectCreateForm({
         category,
         color: color || null,
         mission_types: missions,
-        source: (source as PaymentSource) || null,
-        gross_amount: gross ? parseFloat(gross) : null,
-        net_amount: net ? parseFloat(net) : null,
+        source: fl ? (source as PaymentSource) || null : null,
+        gross_amount: fl && gross ? parseFloat(gross) : null,
+        net_amount: fl && net ? parseFloat(net) : null,
         start_date: startDate || null,
         end_date: endDate || null,
       });
-      const cleanExpenses = expenses.filter((e) => e.label.trim() || e.amount);
+      const cleanExpenses = fl
+        ? expenses.filter((e) => e.label.trim() || e.amount)
+        : [];
       if (
         notes.trim() ||
-        devis.trim() ||
-        invoice.trim() ||
-        cleanExpenses.length
+        (fl && (devis.trim() || invoice.trim() || cleanExpenses.length))
       ) {
         await updateProject(id, {
           notes: notes.trim() || null,
-          devis_number: devis.trim() || null,
-          invoice_number: invoice.trim() || null,
+          devis_number: fl ? devis.trim() || null : null,
+          invoice_number: fl ? invoice.trim() || null : null,
           mission_expenses: cleanExpenses,
         });
       }
@@ -283,8 +286,12 @@ export default function ProjectCreateForm({
           </div>
         </div>
 
-        {/* Statut + Provenance */}
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        {/* Statut + Provenance (provenance = freelance uniquement) */}
+        <div
+          className={`grid grid-cols-1 gap-4 ${
+            category === "freelance" ? "sm:grid-cols-2" : ""
+          }`}
+        >
           <div>
             <label className={labelClass}>Statut</label>
             <select
@@ -299,24 +306,27 @@ export default function ProjectCreateForm({
               ))}
             </select>
           </div>
-          <div>
-            <label className={labelClass}>Provenance</label>
-            <select
-              value={source}
-              onChange={(e) => setSource(e.target.value)}
-              className={inputClass}
-            >
-              <option value="">Non précisée</option>
-              {PAYMENT_SOURCES.map((s) => (
-                <option key={s.key} value={s.key}>
-                  {s.label}
-                </option>
-              ))}
-            </select>
-          </div>
+          {category === "freelance" && (
+            <div>
+              <label className={labelClass}>Provenance</label>
+              <select
+                value={source}
+                onChange={(e) => setSource(e.target.value)}
+                className={inputClass}
+              >
+                <option value="">Non précisée</option>
+                {PAYMENT_SOURCES.map((s) => (
+                  <option key={s.key} value={s.key}>
+                    {s.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
         </div>
 
-        {/* Argent gagné + détail */}
+        {/* Argent gagné + détail (freelance uniquement) */}
+        {category === "freelance" && (
         <div>
           <label className={labelClass}>Argent gagné (€)</label>
           <input
@@ -422,6 +432,7 @@ export default function ProjectCreateForm({
             </div>
           )}
         </div>
+        )}
 
         {/* Dates */}
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -445,27 +456,29 @@ export default function ProjectCreateForm({
           </div>
         </div>
 
-        {/* Numéros */}
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <div>
-            <label className={labelClass}>N° devis</label>
-            <input
-              value={devis}
-              onChange={(e) => setDevis(e.target.value)}
-              placeholder="2026-014"
-              className={inputClass}
-            />
+        {/* Numéros (freelance uniquement) */}
+        {category === "freelance" && (
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <div>
+              <label className={labelClass}>N° devis</label>
+              <input
+                value={devis}
+                onChange={(e) => setDevis(e.target.value)}
+                placeholder="2026-014"
+                className={inputClass}
+              />
+            </div>
+            <div>
+              <label className={labelClass}>N° facture</label>
+              <input
+                value={invoice}
+                onChange={(e) => setInvoice(e.target.value)}
+                placeholder="F2026-014"
+                className={inputClass}
+              />
+            </div>
           </div>
-          <div>
-            <label className={labelClass}>N° facture</label>
-            <input
-              value={invoice}
-              onChange={(e) => setInvoice(e.target.value)}
-              placeholder="F2026-014"
-              className={inputClass}
-            />
-          </div>
-        </div>
+        )}
 
         {/* Livrables (mêmes lignes qu'en édition) */}
         <div>

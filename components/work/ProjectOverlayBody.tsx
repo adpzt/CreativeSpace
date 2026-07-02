@@ -480,8 +480,12 @@ export default function ProjectOverlayBody({
           </select>
         </div>
 
-        {/* Statut + Provenance */}
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        {/* Statut + Provenance (provenance = freelance uniquement) */}
+        <div
+          className={`grid grid-cols-1 gap-4 ${
+            category === "freelance" ? "sm:grid-cols-2" : ""
+          }`}
+        >
           <div>
             <label className={labelClass}>Statut</label>
             <select
@@ -496,24 +500,27 @@ export default function ProjectOverlayBody({
               ))}
             </select>
           </div>
-          <div>
-            <label className={labelClass}>Provenance</label>
-            <select
-              value={source}
-              onChange={(e) => changeSource(e.target.value)}
-              className={inputClass}
-            >
-              <option value="">Non précisée</option>
-              {PAYMENT_SOURCES.map((s) => (
-                <option key={s.key} value={s.key}>
-                  {s.label}
-                </option>
-              ))}
-            </select>
-          </div>
+          {category === "freelance" && (
+            <div>
+              <label className={labelClass}>Provenance</label>
+              <select
+                value={source}
+                onChange={(e) => changeSource(e.target.value)}
+                className={inputClass}
+              >
+                <option value="">Non précisée</option>
+                {PAYMENT_SOURCES.map((s) => (
+                  <option key={s.key} value={s.key}>
+                    {s.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
         </div>
 
-        {/* Argent gagné + détail */}
+        {/* Argent gagné + détail (freelance uniquement) */}
+        {category === "freelance" && (
         <div>
           <AutoSaveField
             label="Argent gagné (€)"
@@ -622,6 +629,7 @@ export default function ProjectOverlayBody({
             </div>
           )}
         </div>
+        )}
 
         {/* Dates */}
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -639,21 +647,23 @@ export default function ProjectOverlayBody({
           />
         </div>
 
-        {/* Numéros */}
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <AutoSaveField
-            label="N° devis"
-            initialValue={project.devis_number ?? ""}
-            placeholder="ex : 2026-014"
-            save={(v) => updateProject(project.id, { devis_number: v })}
-          />
-          <AutoSaveField
-            label="N° facture"
-            initialValue={project.invoice_number ?? ""}
-            placeholder="ex : F2026-014"
-            save={(v) => updateProject(project.id, { invoice_number: v })}
-          />
-        </div>
+        {/* Numéros (freelance uniquement) */}
+        {category === "freelance" && (
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <AutoSaveField
+              label="N° devis"
+              initialValue={project.devis_number ?? ""}
+              placeholder="ex : 2026-014"
+              save={(v) => updateProject(project.id, { devis_number: v })}
+            />
+            <AutoSaveField
+              label="N° facture"
+              initialValue={project.invoice_number ?? ""}
+              placeholder="ex : F2026-014"
+              save={(v) => updateProject(project.id, { invoice_number: v })}
+            />
+          </div>
+        )}
 
         {/* Livrables */}
         <div>

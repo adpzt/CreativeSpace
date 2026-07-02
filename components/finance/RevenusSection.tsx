@@ -36,15 +36,20 @@ export default function RevenusSection({
   const projectName = (id: string | null) =>
     projects.find((p) => p.id === id)?.name ?? null;
 
-  // Projets clôturés pas encore ajoutés aux revenus (à valider)
+  // Seuls les projets FREELANCE ont une dimension financière (facturation).
+  // Entreprise (alternance), École, Perso n'entrent jamais dans la banque.
   const linkedProjectIds = new Set(payments.map((p) => p.project_id).filter(Boolean));
   const toValidate = projects.filter(
-    (p) => p.status === "closed" && !linkedProjectIds.has(p.id)
+    (p) =>
+      p.category === "freelance" &&
+      p.status === "closed" &&
+      !linkedProjectIds.has(p.id)
   );
-  // Projets en cours (ni clôturés ni annulés), pas encore liés à un revenu :
-  // affichés en gris avec leur budget prévisionnel (ou "à compléter").
+  // Projets freelance en cours pas encore liés à un revenu : affichés en gris
+  // avec leur budget prévisionnel (ou "à compléter").
   const inProgress = projects.filter(
     (p) =>
+      p.category === "freelance" &&
       p.status !== "closed" &&
       p.status !== "cancelled" &&
       !linkedProjectIds.has(p.id)

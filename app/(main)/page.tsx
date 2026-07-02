@@ -87,7 +87,12 @@ export default async function HomePage() {
     payments.map((p) => p.project_id).filter(Boolean)
   );
   const unvalidated = projects
-    .filter((p) => p.status === "closed" && !linkedProjectIds.has(p.id))
+    .filter(
+      (p) =>
+        p.category === "freelance" &&
+        p.status === "closed" &&
+        !linkedProjectIds.has(p.id)
+    )
     .map((p) => {
       const days = p.end_date
         ? differenceInCalendarDays(now, parseISO(p.end_date))
