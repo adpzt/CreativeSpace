@@ -233,12 +233,20 @@ export default async function HomePage() {
             key: "tva",
             level: "info" as const,
             text: "Mention TVA à changer au 1er septembre",
-            href: "/freelance/devis",
+            href: "/freelance",
             cta: "Voir",
           },
         ]
       : []),
   ];
+
+  // Tri par priorité : urgent d'abord, puis à surveiller, puis info.
+  const LEVEL_RANK: Record<Traite["level"], number> = {
+    urgent: 0,
+    warning: 1,
+    info: 2,
+  };
+  aTraiter.sort((a, b) => LEVEL_RANK[a.level] - LEVEL_RANK[b.level]);
 
   return (
     <div className="space-y-10">
@@ -468,9 +476,9 @@ export default async function HomePage() {
             </div>
           </div>
 
-          {/* Trouver des clients */}
+          {/* Trouver des clients (board de prospection dans Work) */}
           <BentoLink
-            href="/freelance"
+            href="/work"
             icon={Compass}
             tint="bg-blue-50 text-active"
             title="Trouver des clients"

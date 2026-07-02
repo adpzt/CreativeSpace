@@ -10,7 +10,7 @@ import { TUNNEL_STEPS, SCRIPTS } from "@/lib/freelance";
 const SHORT: Record<number, string> = {
   1: "Contact",
   2: "Appel",
-  3: "Brief",
+  3: "Questionnaire",
   4: "Devis",
   5: "Production",
   6: "Livraison",
@@ -20,8 +20,9 @@ const SHORT: Record<number, string> = {
 const scriptById = (id: string) => SCRIPTS.find((s) => s.id === id);
 
 export default function CommunicationView() {
-  const [active, setActive] = useState(1);
-  const step = TUNNEL_STEPS.find((s) => s.n === active) ?? TUNNEL_STEPS[0];
+  // Aucune étape sélectionnée par défaut (aucun bouton enfoncé à l'arrivée).
+  const [active, setActive] = useState<number | null>(null);
+  const step = active != null ? TUNNEL_STEPS.find((s) => s.n === active) : null;
 
   return (
     <div>
@@ -56,7 +57,16 @@ export default function CommunicationView() {
         })}
       </div>
 
+      {/* Invite tant qu'aucune étape n'est choisie */}
+      {!step && (
+        <div className="rounded-2xl border border-dashed border-black/[0.12] px-5 py-8 text-center text-sm text-muted">
+          Choisis une étape du tunnel pour voir le détail (à faire, à demander,
+          red flags, scripts à copier).
+        </div>
+      )}
+
       {/* Carte détail de l'étape active */}
+      {step && (
       <div className="rounded-2xl border border-black/[0.06] bg-white p-5 shadow-card sm:p-6">
         <h3 className="text-[17px] font-bold tracking-tight">
           Étape {step.n} · {step.title}
@@ -109,6 +119,7 @@ export default function CommunicationView() {
           </Link>
         )}
       </div>
+      )}
     </div>
   );
 }

@@ -52,19 +52,33 @@ body {
       rgba(234, 88, 12, 0.06),
       transparent 55%
     );
-  background-size: 145% 145%;
+  background-size: 150% 150%;
   background-position: 0% 0%;
-  animation: cs-bg-drift 34s ease-in-out infinite;
+  animation: cs-bg-drift 42s ease-in-out infinite;
 }
 
-/* Dérive très lente et subtile du fond (léger mouvement des halos) */
+/* Dérive lente et vivante du fond : les halos se déplacent ET respirent
+   (la taille varie légèrement) pour un dégradé qui "évolue" en continu. */
 @keyframes cs-bg-drift {
-  0%,
-  100% {
+  0% {
     background-position: 0% 0%;
+    background-size: 150% 150%;
+  }
+  25% {
+    background-position: 100% 30%;
+    background-size: 175% 175%;
   }
   50% {
-    background-position: 100% 100%;
+    background-position: 80% 100%;
+    background-size: 150% 150%;
+  }
+  75% {
+    background-position: 20% 70%;
+    background-size: 180% 180%;
+  }
+  100% {
+    background-position: 0% 0%;
+    background-size: 150% 150%;
   }
 }
 

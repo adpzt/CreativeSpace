@@ -3,15 +3,10 @@
 import { useEffect, useRef, useState } from "react";
 import {
   startOfWeek,
-  endOfWeek,
-  startOfMonth,
-  endOfMonth,
   addWeeks,
-  addMonths,
   addDays,
   eachDayOfInterval,
   format,
-  isSameMonth,
   isSameWeek,
   isToday,
 } from "date-fns";
@@ -90,7 +85,7 @@ export default function CalendarSection({
     setBlocks(initial);
   }, [initial]);
   const [refDate, setRefDate] = useState<Date>(new Date());
-  const [view, setView] = useState<"week" | "month" | "list">("week");
+  const [view, setView] = useState<"week" | "list">("week");
   const [showWeekend, setShowWeekend] = useState(false);
   const [activeId, setActiveId] = useState<string | null>(null);
   const [addCtx, setAddCtx] = useState<AddCtx | null>(null);
@@ -429,11 +424,12 @@ export default function CalendarSection({
     );
   })();
 
-  // Semaine ET liste naviguent par semaine ; seul "mois" navigue par mois.
-  const weekMode = view !== "month";
-  const label = weekMode
-    ? `Semaine du ${format(weekStart, "d MMMM", { locale: fr })}`
-    : format(refDate, "MMMM yyyy", { locale: fr });
+  // La vue Semaine navigue par semaine ; la vue Liste (carrousel) par jour.
+  const isListView = view === "list";
+  const label = isListView
+    ? format(refDate, "EEEE d MMMM", { locale: fr })
+    : `Semaine du ${format(weekStart, "d MMMM", { locale: fr })}`;
+  const showTodayBtn = isListView ? !isToday(refDate) : !isCurrentWeek;
 
   return (
     <section>
@@ -442,9 +438,7 @@ export default function CalendarSection({
         <div className="flex items-center gap-1">
           <button
             onClick={() =>
-              setRefDate((d) =>
-                weekMode ? addWeeks(d, -1) : addMonths(d, -1)
-              )
+              setRefDate((d) => (isListView ? addDays(d, -1) : addWeeks(d, -1)))
             }
             aria-label="Précédent"
             className="rounded-lg p-2 text-muted hover:bg-gray-100 dark:hover:bg-white/[0.06] hover:text-ink"
@@ -453,9 +447,7 @@ export default function CalendarSection({
           </button>
           <button
             onClick={() =>
-              setRefDate((d) =>
-                weekMode ? addWeeks(d, 1) : addMonths(d, 1)
-              )
+              setRefDate((d) => (isListView ? addDays(d, 1) : addWeeks(d, 1)))
             }
             aria-label="Suivant"
             className="rounded-lg p-2 text-muted hover:bg-gray-100 dark:hover:bg-white/[0.06] hover:text-ink"
@@ -463,18 +455,18 @@ export default function CalendarSection({
             <ChevronRight className="h-4 w-4" />
           </button>
           <span className="ml-1 text-[15px] font-semibold first-letter:uppercase">{label}</span>
-          {!isCurrentWeek && weekMode && (
+          {showTodayBtn && (
             <button
               onClick={() => setRefDate(new Date())}
               className="ml-2 rounded-lg bg-blue-50 dark:bg-active/15 px-2 py-1 text-xs font-medium text-active hover:bg-blue-100 dark:hover:bg-active/25"
             >
-              En ce moment
+              Aujourd&apos;hui
             </button>
           )}
         </div>
 
         <div className="flex items-center gap-2">
-          {weekMode && (
+          {!isListView && (
             <button
               onClick={() => setShowWeekend((s) => !s)}
               className="hidden items-center gap-1 rounded-lg border border-gray-200 dark:border-hairline px-2.5 py-1 text-xs font-medium text-muted transition-colors hover:border-ink hover:text-ink md:inline-flex"
@@ -504,14 +496,6 @@ export default function CalendarSection({
             >
               Liste
             </button>
-            <button
-              onClick={() => setView("month")}
-              className={`rounded-md px-2.5 py-1 ${
-                view === "month" ? "bg-white shadow-sm" : "text-muted"
-              }`}
-            >
-              Mois
-            </button>
           </div>
         </div>
       </div>
@@ -525,56 +509,110 @@ export default function CalendarSection({
           onDragStart={onDragStart}
           onDragEnd={onDragEnd}
         >
-          {/* Vue LISTE (desktop + mobile) : une carte par jour, catégories empilées */}
-          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-            {days.map((d) => (
-              <div
-                key={iso(d)}
-                className={`overflow-hidden rounded-2xl border bg-white shadow-card ${
-                  isToday(d) ? "border-active/40" : "border-black/[0.06]"
-                }`}
-              >
+          {/* Vue LISTE = carrousel : hier (grisé, à gauche) · le jour au centre ·
+              demain (à droite). Les flèches en haut naviguent jour par jour. */}
+          <div className="flex items-stretch justify-center gap-3 sm:gap-4">
+            {[addDays(refDate, -1), refDate, addDays(refDate, 1)].map((d, idx) => {
+              const focus = idx === 1;
+              const dayIso = iso(d);
+              if (!focus) {
+                // Aperçu latéral (hier / demain), non interactif, cliquable pour
+                // le recentrer. Hier est légèrement grisé.
+                const preview = dayBlocks(dayIso);
+                return (
+                  <button
+                    key={dayIso}
+                    onClick={() => setRefDate(d)}
+                    className={`hidden w-[190px] shrink-0 flex-col overflow-hidden rounded-2xl border border-black/[0.06] bg-white text-left shadow-card transition hover:shadow-lift md:flex ${
+                      idx === 0 ? "opacity-55 hover:opacity-80" : "opacity-80 hover:opacity-100"
+                    }`}
+                  >
+                    <div className="border-b border-black/[0.05] bg-[#F6F6F7] px-3.5 py-2.5">
+                      <span className="text-[13px] font-bold capitalize">
+                        {format(d, "EEE d", { locale: fr })}
+                      </span>
+                      <span className="ml-1.5 text-[11px] text-muted">
+                        {idx === 0 ? "hier" : "demain"}
+                      </span>
+                    </div>
+                    <div className="flex-1 space-y-1 px-3 py-2.5">
+                      {preview.length === 0 ? (
+                        <p className="text-[12px] text-muted">Rien de prévu.</p>
+                      ) : (
+                        preview.slice(0, 6).map((b) => (
+                          <div
+                            key={b.id}
+                            className="flex items-center gap-1.5 text-[12px] text-ink-soft"
+                          >
+                            <span
+                              className="h-1.5 w-1.5 shrink-0 rounded-full"
+                              style={{ background: colorForBlock(b) ?? "#CBD5E1" }}
+                            />
+                            <span
+                              className={`truncate ${b.completed ? "text-muted line-through" : ""}`}
+                            >
+                              {b.title}
+                            </span>
+                          </div>
+                        ))
+                      )}
+                      {preview.length > 6 && (
+                        <p className="text-[11px] text-muted">+{preview.length - 6}</p>
+                      )}
+                    </div>
+                  </button>
+                );
+              }
+              // Carte centrale = jour focus, entièrement interactive.
+              return (
                 <div
-                  className={`flex items-baseline gap-2 px-3.5 py-2.5 ${
-                    isToday(d) ? "bg-blue-50" : "bg-[#F6F6F7]"
+                  key={dayIso}
+                  className={`w-full max-w-[560px] shrink-0 overflow-hidden rounded-2xl border-2 bg-white shadow-lift ${
+                    isToday(d) ? "border-active/50" : "border-black/[0.10]"
                   }`}
                 >
-                  <span className="text-sm font-bold capitalize">
-                    {format(d, "EEEE d", { locale: fr })}
-                  </span>
-                  {isToday(d) && (
-                    <span className="text-[11px] font-semibold text-active">
-                      aujourd&apos;hui
+                  <div
+                    className={`flex items-baseline gap-2 px-4 py-3 ${
+                      isToday(d) ? "bg-blue-50" : "bg-[#F6F6F7]"
+                    }`}
+                  >
+                    <span className="text-[15px] font-bold capitalize">
+                      {format(d, "EEEE d MMMM", { locale: fr })}
                     </span>
-                  )}
-                </div>
-                <div className="divide-y divide-black/[0.05]">
-                  {CALENDAR_CATEGORIES.map((cat) => (
-                    <div key={cat.key} className="flex items-start gap-2 px-2.5 py-2">
-                      <span
-                        className="mt-1 inline-flex w-20 shrink-0 items-center text-[11px] font-semibold"
-                        style={{ color: cat.color }}
-                      >
-                        {cat.label}
+                    {isToday(d) && (
+                      <span className="text-[11px] font-semibold text-active">
+                        aujourd&apos;hui
                       </span>
-                      <Cell
-                        dayIso={iso(d)}
-                        cat={cat.key}
-                        blocks={cellBlocks(iso(d), cat.key)}
-                        colorForBlock={colorForBlock}
-                        className="min-h-[40px] flex-1"
-                        onAdd={() => setAddCtx({ dayIso: iso(d), cat: cat.key })}
-                        onOpen={(id) => setNoteBlockId(id)}
-                        onToggle={(id) => {
-                          const b = blocks.find((x) => x.id === id);
-                          if (b) toggle(b);
-                        }}
-                      />
-                    </div>
-                  ))}
+                    )}
+                  </div>
+                  <div className="divide-y divide-black/[0.05]">
+                    {CALENDAR_CATEGORIES.map((cat) => (
+                      <div key={cat.key} className="flex items-start gap-2 px-3 py-2.5">
+                        <span
+                          className="mt-1 inline-flex w-20 shrink-0 items-center text-[11px] font-semibold"
+                          style={{ color: cat.color }}
+                        >
+                          {cat.label}
+                        </span>
+                        <Cell
+                          dayIso={dayIso}
+                          cat={cat.key}
+                          blocks={cellBlocks(dayIso, cat.key)}
+                          colorForBlock={colorForBlock}
+                          className="min-h-[44px] flex-1"
+                          onAdd={() => setAddCtx({ dayIso, cat: cat.key })}
+                          onOpen={(id) => setNoteBlockId(id)}
+                          onToggle={(id) => {
+                            const b = blocks.find((x) => x.id === id);
+                            if (b) toggle(b);
+                          }}
+                        />
+                      </div>
+                    ))}
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
           <DragOverlay>
             {activeBlock ? (
@@ -584,7 +622,7 @@ export default function CalendarSection({
             ) : null}
           </DragOverlay>
         </DndContext>
-      ) : view === "week" ? (
+      ) : (
         <>
         {/* Deux DndContext SÉPARÉS (desktop / mobile) : sinon chaque bloc est
             rendu 2x avec le même id -> dnd-kit attrape la copie cachée (rect 0,0
@@ -601,8 +639,8 @@ export default function CalendarSection({
               <div
                 className="grid gap-2"
                 style={{
-                  gridTemplateColumns: `132px repeat(${days.length}, minmax(0, 1fr))`,
-                  minWidth: showWeekend ? 920 : undefined,
+                  gridTemplateColumns: `104px repeat(${days.length}, minmax(0, 1fr))`,
+                  minWidth: showWeekend ? 900 : undefined,
                 }}
               >
                 <div />
@@ -627,9 +665,11 @@ export default function CalendarSection({
 
                 {CALENDAR_CATEGORIES.map((cat) => (
                   <div key={cat.key} className="contents">
-                    <div className="flex items-center">
+                    {/* Boîte de catégorie : rectangle teinté qui remplit la colonne
+                        (gagne de la place à gauche, cf. maquette) */}
+                    <div className="flex">
                       <span
-                        className={`flex items-center rounded-xl border px-[14px] py-2 text-[13px] font-semibold ${CAT_BOX[cat.key]}`}
+                        className={`flex h-full w-full items-center rounded-2xl border px-4 py-2 text-[13px] font-semibold ${CAT_BOX[cat.key]}`}
                       >
                         {cat.label}
                       </span>
@@ -738,16 +778,6 @@ export default function CalendarSection({
           </DragOverlay>
         </DndContext>
         </>
-      ) : (
-        <MonthView
-          refDate={refDate}
-          dayBlocks={dayBlocks}
-          colorForBlock={colorForBlock}
-          onPickDay={(d) => {
-            setRefDate(d);
-            setView("week");
-          }}
-        />
       )}
       </div>
 
@@ -877,9 +907,9 @@ function Cell({
   return (
     <div
       ref={setNodeRef}
-      className={`${className ?? ""} ${isOver ? "bg-blue-50 dark:bg-active/15" : ""}`}
+      className={`flex flex-col ${className ?? ""} ${isOver ? "bg-blue-50 dark:bg-active/15" : ""}`}
     >
-      <div className="space-y-1">
+      <div className="flex-1 space-y-1">
         {blocks.map((b) => (
           <DraggableChip
             key={b.id}
@@ -889,6 +919,9 @@ function Cell({
             onToggle={() => onToggle(b.id)}
           />
         ))}
+      </div>
+      {/* Le "+" est en bas à droite de la case */}
+      <div className="mt-1 flex justify-end">
         <button
           onClick={onAdd}
           aria-label="Ajouter"
@@ -1138,81 +1171,3 @@ function AddEntry({
   );
 }
 
-function MonthView({
-  refDate,
-  dayBlocks,
-  colorForBlock,
-  onPickDay,
-}: {
-  refDate: Date;
-  dayBlocks: (dayIso: string) => CalendarBlock[];
-  colorForBlock: (b: CalendarBlock) => string | null;
-  onPickDay: (d: Date) => void;
-}) {
-  const gridStart = startOfWeek(startOfMonth(refDate), { weekStartsOn: 1 });
-  const gridEnd = endOfWeek(endOfMonth(refDate), { weekStartsOn: 1 });
-  const days = eachDayOfInterval({ start: gridStart, end: gridEnd });
-  const weekDayLabels = ["Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim"];
-
-  return (
-    <div className="overflow-x-auto">
-      <div className="min-w-[700px] border-l border-t border-gray-100 dark:border-hairline">
-        <div className="grid grid-cols-7">
-          {weekDayLabels.map((l) => (
-            <div
-              key={l}
-              className="border-b border-r border-gray-100 dark:border-hairline bg-gray-50 dark:bg-white/[0.06] py-1.5 text-center text-[11px] uppercase text-muted"
-            >
-              {l}
-            </div>
-          ))}
-          {days.map((d) => {
-            const dIso = format(d, "yyyy-MM-dd");
-            const list = dayBlocks(dIso);
-            const inMonth = isSameMonth(d, refDate);
-            return (
-              <button
-                key={dIso}
-                onClick={() => onPickDay(d)}
-                className={`flex min-h-[96px] flex-col border-b border-r border-gray-100 dark:border-hairline p-1.5 text-left transition-colors hover:bg-gray-50 dark:hover:bg-white/[0.06] ${
-                  inMonth ? "" : "bg-gray-50/50 dark:bg-white/[0.03]"
-                }`}
-              >
-                <span
-                  className={`self-end text-xs font-semibold ${
-                    isToday(d) ? "text-active" : inMonth ? "" : "text-gray-300 dark:text-muted"
-                  }`}
-                >
-                  {format(d, "d")}
-                </span>
-                <div className="mt-1 space-y-0.5">
-                  {list.slice(0, 4).map((b) => (
-                    <div
-                      key={b.id}
-                      className="flex items-center gap-1 truncate text-[10px] text-gray-600 dark:text-muted"
-                    >
-                      <span
-                        className="h-1.5 w-1.5 shrink-0 rounded-full"
-                        style={{ backgroundColor: colorForBlock(b) ?? "#CBD5E1" }}
-                      />
-                      <span
-                        className={`truncate ${
-                          b.completed ? "text-muted line-through" : ""
-                        }`}
-                      >
-                        {b.title}
-                      </span>
-                    </div>
-                  ))}
-                  {list.length > 4 && (
-                    <p className="text-[10px] text-muted">+{list.length - 4}</p>
-                  )}
-                </div>
-              </button>
-            );
-          })}
-        </div>
-      </div>
-    </div>
-  );
-}

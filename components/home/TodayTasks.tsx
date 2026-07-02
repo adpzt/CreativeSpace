@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Check } from "lucide-react";
 import { CATEGORY_COLOR } from "@/lib/work";
@@ -35,15 +35,22 @@ export default function TodayTasks({
   const router = useRouter();
   // Tri : par catégorie (Freelance -> Entreprise -> Perso), puis par heure (les
   // blocs avec heure d'abord). Regroupe les mêmes catégories ensemble.
-  const sorted = [...blocks].sort((a, b) => {
-    const c = CAT[a.category].order - CAT[b.category].order;
-    if (c !== 0) return c;
-    if (a.time && b.time) return a.time.localeCompare(b.time);
-    if (a.time) return -1;
-    if (b.time) return 1;
-    return 0;
-  });
-  const [items, setItems] = useState(sorted);
+  const sort = (list: CalendarBlock[]) =>
+    [...list].sort((a, b) => {
+      const c = CAT[a.category].order - CAT[b.category].order;
+      if (c !== 0) return c;
+      if (a.time && b.time) return a.time.localeCompare(b.time);
+      if (a.time) return -1;
+      if (b.time) return 1;
+      return 0;
+    });
+  const [items, setItems] = useState(() => sort(blocks));
+  // Resynchronise quand le serveur renvoie de nouvelles données (titre, heure,
+  // notes modifiés ailleurs) : tout doit rester relié, sans refresh manuel.
+  useEffect(() => {
+    setItems(sort(blocks));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [blocks]);
 
   const clientOf = (block: CalendarBlock): string | null => {
     const clientId = projects.find((p) => p.id === block.project_id)?.client_id;

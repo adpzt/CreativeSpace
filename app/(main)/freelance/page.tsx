@@ -1,33 +1,16 @@
 import EditableField from "@/components/me/EditableField";
+import Logo from "@/components/ui/Logo";
 import CommunicationView from "@/components/freelance/CommunicationView";
 import BriefView from "@/components/freelance/BriefView";
 import DevisView from "@/components/freelance/DevisView";
 import ProductionView from "@/components/freelance/ProductionView";
-import ProspectsBoard from "@/components/freelance/ProspectsBoard";
 import { getMeSettings } from "../me/actions";
-import { getProspects } from "./actions";
-import { PRO_FIELDS, TJM_KEY, TJM_DEFAULT, PRO_LINKS } from "@/lib/me";
+import { PRO_FIELDS, TJM_KEY, TJM_DEFAULT } from "@/lib/me";
 
 export const dynamic = "force-dynamic";
 
-// Couleur de marque par lien pro (petite pastille colorée)
-const LINK_COLOR: Record<string, string> = {
-  Instagram: "#DD2A7B",
-  Behance: "#1769FF",
-  LinkedIn: "#0A66C2",
-  Malt: "#FC5757",
-  "Taap.it": "#6D28D9",
-  Indy: "#0EA5E9",
-  INPI: "#111827",
-  URSSAF: "#16A34A",
-  "Guichet entreprises": "#EA580C",
-};
-
 export default async function FreelancePage() {
-  const [settings, prospects] = await Promise.all([
-    getMeSettings(),
-    getProspects(),
-  ]);
+  const settings = await getMeSettings();
   const tjm = settings[TJM_KEY] ?? TJM_DEFAULT;
 
   return (
@@ -37,66 +20,42 @@ export default async function FreelancePage() {
         <h1 className="text-[30px] font-extrabold tracking-[-0.02em]">Freelance</h1>
         <p className="mt-1 text-[15px] text-muted">
           Ton guide opérationnel : à ouvrir quand tu as un doute avec un client.
-          Tunnel, scripts, red flags, prospection.
+          Tunnel, scripts, red flags, questionnaire.
         </p>
       </header>
 
-      {/* Profil pro */}
-      <section className="rounded-3xl border border-black/[0.06] bg-white p-6 shadow-card sm:p-7">
+      {/* Profil pro (compact : logo PP + infos éditables) */}
+      <section className="rounded-3xl border border-black/[0.06] bg-white p-5 shadow-card sm:p-6">
         <div className="flex items-center gap-4">
-          <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-[#6366F1] to-[#9333EA] text-lg font-bold text-white">
-            AP
+          {/* PP = logo pztdesign (étoile blanche sur dégradé de marque) */}
+          <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-[#3704F0] to-[#9333EA] shadow-card">
+            <Logo className="h-7 w-7" color="#ffffff" />
           </span>
           <div className="min-w-0">
-            <h2 className="text-[26px] font-extrabold tracking-[-0.02em]">Adrien Poizat</h2>
+            <h2 className="text-[22px] font-extrabold tracking-[-0.02em]">Adrien Poizat</h2>
             <p className="truncate text-sm text-muted">
               pztdesign · Auto-entrepreneur · TJM {tjm} €/j
             </p>
           </div>
         </div>
 
-        <div className="mt-6 grid gap-6 lg:grid-cols-[2fr_1fr]">
-          <div className="grid gap-x-8 gap-y-1 sm:grid-cols-2">
+        <div className="mt-5 grid gap-x-8 gap-y-1 sm:grid-cols-2 lg:grid-cols-3">
+          <EditableField
+            flat
+            label="TJM"
+            settingKey={TJM_KEY}
+            initial={settings[TJM_KEY] ?? TJM_DEFAULT}
+            suffix=" €/j"
+          />
+          {PRO_FIELDS.map((f) => (
             <EditableField
+              key={f.key}
               flat
-              label="TJM"
-              settingKey={TJM_KEY}
-              initial={settings[TJM_KEY] ?? TJM_DEFAULT}
-              suffix=" €/j"
+              label={f.label}
+              settingKey={f.key}
+              initial={settings[f.key] ?? f.def}
             />
-            {PRO_FIELDS.map((f) => (
-              <EditableField
-                key={f.key}
-                flat
-                label={f.label}
-                settingKey={f.key}
-                initial={settings[f.key] ?? f.def}
-              />
-            ))}
-          </div>
-          <div>
-            <p className="mb-2 text-[11px] font-bold uppercase tracking-[0.08em] text-muted">
-              Liens pro
-            </p>
-            <div className="flex flex-wrap gap-1.5">
-              {PRO_LINKS.map((l) => (
-                <a
-                  key={l.label}
-                  href={l.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  title={l.label}
-                  className="inline-flex items-center gap-1.5 rounded-lg border border-black/[0.08] px-2.5 py-1 text-[12px] font-medium text-ink-soft transition-colors hover:border-black/20 hover:text-ink"
-                >
-                  <span
-                    className="h-2 w-2 shrink-0 rounded-full"
-                    style={{ background: LINK_COLOR[l.label] ?? "#9CA3AF" }}
-                  />
-                  {l.label}
-                </a>
-              ))}
-            </div>
-          </div>
+          ))}
         </div>
       </section>
 
@@ -112,9 +71,6 @@ export default async function FreelancePage() {
       </Section>
       <Section title="Production">
         <ProductionView />
-      </Section>
-      <Section title="Trouver des clients">
-        <ProspectsBoard prospects={prospects} />
       </Section>
     </div>
   );

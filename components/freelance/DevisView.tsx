@@ -1,10 +1,8 @@
 "use client";
 
-import { Check, ExternalLink } from "lucide-react";
+import { ExternalLink } from "lucide-react";
 import CopyButton from "./CopyButton";
 import {
-  DEVIS_CHECKLIST,
-  FACTURE_ACOMPTE_CHECKLIST,
   PENALITES_TEXT,
   DEVIS_LINKS,
   CGP_ARTICLES,
@@ -16,22 +14,6 @@ const CARD = "rounded-2xl border border-black/[0.06] bg-white p-5 shadow-card";
 export default function DevisView() {
   return (
     <div className="grid gap-4 md:grid-cols-2">
-      {/* Checklist devis */}
-      <div className={CARD}>
-        <h3 className="mb-3 text-[15px] font-bold tracking-tight">
-          Checklist avant d&apos;envoyer un devis
-        </h3>
-        <CheckList items={DEVIS_CHECKLIST} />
-      </div>
-
-      {/* Facture d'acompte */}
-      <div className={CARD}>
-        <h3 className="mb-3 text-[15px] font-bold tracking-tight">
-          Facture d&apos;acompte
-        </h3>
-        <CheckList items={FACTURE_ACOMPTE_CHECKLIST} />
-      </div>
-
       {/* Pénalités de retard */}
       <div className={CARD}>
         <div className="mb-2 flex items-start justify-between gap-3">
@@ -90,20 +72,5 @@ export default function DevisView() {
         </div>
       </div>
     </div>
-  );
-}
-
-function CheckList({ items }: { items: string[] }) {
-  return (
-    <ul className="space-y-2">
-      {items.map((it, i) => (
-        <li key={i} className="flex items-start gap-2.5 text-sm">
-          <span className="mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded border border-black/15 text-muted">
-            <Check className="h-3 w-3" />
-          </span>
-          <span className="text-ink-soft">{it}</span>
-        </li>
-      ))}
-    </ul>
   );
 }

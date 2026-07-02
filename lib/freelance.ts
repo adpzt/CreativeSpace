@@ -108,7 +108,7 @@ export const TUNNEL_STEPS: TunnelStep[] = [
     faire: [
       "Durée : 20-30 min max. Non facturé.",
       "Laisser parler 5 min librement.",
-      "Poser les questions de brief (voir section Brief).",
+      "Poser les questions du questionnaire (voir section Questionnaire).",
       "Expliquer sa façon de travailler : acompte 35%, 3 allers-retours inclus, délais.",
       "Conclure en annonçant le devis sous X jours.",
     ],
@@ -122,15 +122,15 @@ export const TUNNEL_STEPS: TunnelStep[] = [
   },
   {
     n: 3,
-    title: "Brief",
-    faire: ["Brief complet avant tout devis. Pas d'exception."],
-    voir: { label: "Ouvrir la section Brief", href: "/freelance/brief" },
+    title: "Questionnaire",
+    faire: ["Questionnaire complet avant tout devis. Pas d'exception."],
+    voir: { label: "Ouvrir le questionnaire", href: "/freelance/brief" },
   },
   {
     n: 4,
     title: "Devis",
     faire: [
-      "Jamais avant le brief complet. Pas d'exception.",
+      "Jamais avant le questionnaire complet. Pas d'exception.",
       "Acompte 35% à la signature.",
       "Solde avant livraison des fichiers sources.",
       "Droits d'auteur cédés seulement après paiement intégral.",

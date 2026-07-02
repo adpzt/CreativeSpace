@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 import { Plus, FolderOpen, ChevronDown, Users } from "lucide-react";
 import Overlay from "@/components/ui/Overlay";
 import { Button } from "@/components/ui/Button";
-import StatusBadge from "@/components/ui/StatusBadge";
 import ProgressBar from "@/components/ui/ProgressBar";
 import EmptyState from "@/components/ui/EmptyState";
 import ProjectCreateForm from "./ProjectCreateForm";
@@ -35,6 +34,18 @@ const CATEGORY: Record<CalendarCategory, { label: string; className: string }> =
   perso: { label: "Perso", className: "text-pending" },
 };
 
+// Statut en version "contour" : pas de pastille, juste une bordure + texte de la
+// couleur fonctionnelle correspondante.
+const STATUS_OUTLINE: Record<ProjectStatus, string> = {
+  waiting_brief: "border-pending/45 text-pending",
+  waiting_feedback: "border-pending/45 text-pending",
+  waiting_payment: "border-pending/45 text-pending",
+  in_production: "border-active/45 text-active",
+  in_revision: "border-active/45 text-active",
+  closed: "border-success/45 text-success",
+  cancelled: "border-urgent/45 text-urgent",
+};
+
 function initials(label: string): string {
   return (
     label
@@ -46,7 +57,8 @@ function initials(label: string): string {
   );
 }
 
-// Section Work principale : onglet Projets / Clients (Clients = bouton discret).
+// Section Work principale : Projets. Les clients sont accessibles via un bouton
+// discret qui ouvre un overlay (cards clients existantes + bouton +).
 export default function ProjectsSection({
   projects,
   clients,
@@ -55,9 +67,9 @@ export default function ProjectsSection({
   clients: Client[];
 }) {
   const router = useRouter();
-  const [tab, setTab] = useState<"projets" | "clients">("projets");
   const [openId, setOpenId] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
+  const [showClients, setShowClients] = useState(false);
   const [openClientId, setOpenClientId] = useState<string | null>(null);
   const [creatingClient, setCreatingClient] = useState(false);
   const [filter, setFilter] = useState<Filter>("active");
@@ -88,33 +100,10 @@ export default function ProjectsSection({
   return (
     <section>
       <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
-        <div className="flex items-center gap-3">
-          <h2 className="text-[26px] font-extrabold tracking-[-0.02em]">
-            {tab === "projets" ? "Projets" : "Clients"}
-          </h2>
-          {/* Bascule discrète Projets / Clients */}
-          <div className="flex rounded-lg bg-black/[0.05] p-0.5 text-xs font-medium">
-            <button
-              onClick={() => setTab("projets")}
-              className={`rounded-md px-2.5 py-1 transition-colors ${
-                tab === "projets" ? "bg-white shadow-sm" : "text-muted hover:text-ink"
-              }`}
-            >
-              Projets
-            </button>
-            <button
-              onClick={() => setTab("clients")}
-              className={`rounded-md px-2.5 py-1 transition-colors ${
-                tab === "clients" ? "bg-white shadow-sm" : "text-muted hover:text-ink"
-              }`}
-            >
-              Clients
-            </button>
-          </div>
-        </div>
+        <h2 className="text-[26px] font-extrabold tracking-[-0.02em]">Projets</h2>
 
         <div className="flex items-center gap-2">
-          {tab === "projets" && projects.length > 0 && (
+          {projects.length > 0 && (
             <div className="relative">
               <button
                 onClick={() => setMenuOpen((o) => !o)}
@@ -156,170 +145,191 @@ export default function ProjectsSection({
               )}
             </div>
           )}
-          {tab === "projets" ? (
-            <Button onClick={() => setCreating(true)}>
-              <Plus className="h-4 w-4" />
-              Projet
-            </Button>
-          ) : (
-            <Button variant="secondary" onClick={() => setCreatingClient(true)}>
-              <Plus className="h-4 w-4" />
-              Client
-            </Button>
-          )}
+          {/* Bouton Clients discret : ouvre l'overlay des clients */}
+          <Button variant="secondary" onClick={() => setShowClients(true)}>
+            <Users className="h-4 w-4" />
+            Clients
+          </Button>
+          <Button onClick={() => setCreating(true)}>
+            <Plus className="h-4 w-4" />
+            Projet
+          </Button>
         </div>
       </div>
 
       {/* ---------- PROJETS ---------- */}
-      {tab === "projets" &&
-        (projects.length === 0 ? (
-          <EmptyState
-            icon={FolderOpen}
-            title="Aucun projet pour l'instant"
-            description="Crée ton premier projet (identité PACO Services...) avec ses livrables."
-            action={
-              <Button variant="secondary" onClick={() => setCreating(true)}>
-                <Plus className="h-4 w-4" />
-                Nouveau projet
-              </Button>
-            }
-          />
-        ) : visible.length === 0 ? (
-          <p className="text-sm text-muted">Aucun projet dans ce tri.</p>
-        ) : (
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {visible.map((p) => {
-              const cat = p.category ? CATEGORY[p.category] : null;
-              const company = clientCompany(p.client_id) || p.org;
-              const closed = p.status === "closed";
-              return (
-                <button
-                  key={p.id}
-                  onClick={() => setOpenId(p.id)}
-                  className={`group flex flex-col rounded-2xl border border-black/[0.06] bg-white p-5 text-left shadow-card transition duration-[180ms] ease-ios hover:-translate-y-1 hover:shadow-lift ${
-                    closed ? "opacity-[0.82] hover:opacity-100" : ""
-                  }`}
-                >
-                  <div className="mb-1.5 flex items-start justify-between gap-2">
-                    <div className="flex min-w-0 items-start gap-2">
-                      {p.color && (
-                        <span
-                          className="mt-[7px] h-2.5 w-2.5 shrink-0 rounded-full"
-                          style={{ backgroundColor: p.color }}
-                        />
-                      )}
-                      <p className="text-[17px] font-semibold leading-snug">
-                        {p.name}
-                      </p>
-                    </div>
-                    <StatusBadge status={p.status} />
-                  </div>
-
-                  <p className="mb-3 truncate text-[13px] text-muted">
-                    {company}
-                    {company && cat ? " · " : ""}
-                    {cat && (
-                      <span className={`font-medium ${cat.className}`}>
-                        {cat.label}
-                      </span>
-                    )}
-                  </p>
-
-                  {p.mission_types.length > 0 && (
-                    <div className="mb-4 flex flex-wrap gap-1.5">
-                      {p.mission_types.slice(0, 4).map((t) => (
-                        <span
-                          key={t}
-                          className="rounded-md bg-[#F1F1F4] px-2 py-0.5 text-[11px] font-medium text-ink-soft"
-                        >
-                          {t}
-                        </span>
-                      ))}
-                    </div>
-                  )}
-
-                  <div className="mt-auto flex items-center gap-3 pt-1">
-                    <div className="flex-1">
-                      <ProgressBar
-                        percent={projectProgress(p.deliverables)}
-                        showLabel={false}
-                      />
-                    </div>
-                    <span className="text-sm font-semibold text-ink-soft">
-                      {projectProgress(p.deliverables)}%
-                    </span>
-                  </div>
-                </button>
-              );
-            })}
-          </div>
-        ))}
-
-      {/* ---------- CLIENTS ---------- */}
-      {tab === "clients" &&
-        (clients.length === 0 ? (
-          <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-black/[0.12] px-6 py-10 text-center">
-            <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-2xl bg-[#F1F1F4]">
-              <Users className="h-5 w-5 text-muted" />
-            </div>
-            <p className="text-sm text-muted">
-              Aucun client pour l&apos;instant. Ajoute ton premier client.
-            </p>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {clients.map((client) => {
-              const incomplete =
-                !client.company && !client.email && !client.phone;
-              const primary = client.company || client.name;
-              return (
-                <button
-                  key={client.id}
-                  onClick={() => setOpenClientId(client.id)}
-                  className={`flex items-center gap-3 rounded-2xl border bg-white p-4 text-left shadow-card transition duration-[180ms] ease-ios hover:-translate-y-0.5 hover:shadow-lift ${
-                    incomplete
-                      ? "border-dashed border-black/[0.14]"
-                      : "border-black/[0.06]"
-                  }`}
-                >
-                  <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[#F1F1F4] text-[13px] font-semibold text-ink-soft">
-                    {initials(primary)}
+      {projects.length === 0 ? (
+        <EmptyState
+          icon={FolderOpen}
+          title="Aucun projet pour l'instant"
+          description="Crée ton premier projet (identité PACO Services...) avec ses livrables."
+          action={
+            <Button variant="secondary" onClick={() => setCreating(true)}>
+              <Plus className="h-4 w-4" />
+              Nouveau projet
+            </Button>
+          }
+        />
+      ) : visible.length === 0 ? (
+        <p className="text-sm text-muted">Aucun projet dans ce tri.</p>
+      ) : (
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {visible.map((p) => {
+            const cat = p.category ? CATEGORY[p.category] : null;
+            const company = clientCompany(p.client_id) || p.org;
+            const closed = p.status === "closed";
+            return (
+              <button
+                key={p.id}
+                onClick={() => setOpenId(p.id)}
+                // Contour = couleur choisie sur le projet (sinon hairline neutre)
+                style={p.color ? { borderColor: p.color } : undefined}
+                className={`group flex flex-col rounded-2xl border bg-white p-5 text-left shadow-card transition duration-[180ms] ease-ios hover:-translate-y-1 hover:shadow-lift ${
+                  p.color ? "" : "border-black/[0.06]"
+                } ${closed ? "opacity-[0.82] hover:opacity-100" : ""}`}
+              >
+                {/* Statut en contour, sur sa propre ligne (titre reste horizontal) */}
+                <div className="mb-2">
+                  <span
+                    className={`inline-flex items-center whitespace-nowrap rounded-full border px-2.5 py-1 text-[12px] font-semibold ${
+                      STATUS_OUTLINE[p.status]
+                    }`}
+                  >
+                    {PROJECT_STATUS[p.status].label}
                   </span>
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate text-[15px] font-semibold">{primary}</p>
-                    {incomplete ? (
-                      <p className="text-[13px] font-medium text-pending">
-                        Infos à compléter
-                      </p>
-                    ) : (
-                      <>
-                        {client.company && (
-                          <p className="truncate text-[13px] text-muted">
-                            {client.name}
-                          </p>
-                        )}
-                        {client.tags.length > 0 && (
-                          <div className="mt-1.5 flex flex-wrap gap-1">
-                            {client.tags.slice(0, 3).map((t) => (
-                              <span
-                                key={t}
-                                className="rounded-md bg-[#F1F1F4] px-2 py-0.5 text-[11px] font-medium text-ink-soft"
-                              >
-                                {t}
-                              </span>
-                            ))}
-                          </div>
-                        )}
-                      </>
-                    )}
-                  </div>
-                </button>
-              );
-            })}
-          </div>
-        ))}
+                </div>
 
-      {/* ---------- Overlays ---------- */}
+                <p className="text-[17px] font-semibold leading-snug">{p.name}</p>
+
+                <p className="mb-3 mt-1 truncate text-[13px] text-muted">
+                  {company}
+                  {company && cat ? " · " : ""}
+                  {cat && (
+                    <span className={`font-medium ${cat.className}`}>
+                      {cat.label}
+                    </span>
+                  )}
+                </p>
+
+                {p.mission_types.length > 0 && (
+                  <div className="mb-4 flex flex-wrap gap-1.5">
+                    {p.mission_types.slice(0, 4).map((t) => (
+                      <span
+                        key={t}
+                        className="rounded-md bg-[#F1F1F4] px-2 py-0.5 text-[11px] font-medium text-ink-soft"
+                      >
+                        {t}
+                      </span>
+                    ))}
+                  </div>
+                )}
+
+                <div className="mt-auto flex items-center gap-3 pt-1">
+                  <div className="flex-1">
+                    <ProgressBar
+                      percent={projectProgress(p.deliverables)}
+                      showLabel={false}
+                    />
+                  </div>
+                  <span className="text-sm font-semibold text-ink-soft">
+                    {projectProgress(p.deliverables)}%
+                  </span>
+                </div>
+              </button>
+            );
+          })}
+        </div>
+      )}
+
+      {/* ---------- Overlay Clients (cards existantes + bouton +) ---------- */}
+      {showClients && (
+        <Overlay onClose={() => setShowClients(false)}>
+          <div className="pr-8">
+            <div className="mb-4 flex items-center justify-between gap-3">
+              <h3 className="text-[22px] font-bold tracking-tight">Clients</h3>
+              <Button
+                variant="secondary"
+                onClick={() => {
+                  setShowClients(false);
+                  setCreatingClient(true);
+                }}
+              >
+                <Plus className="h-4 w-4" />
+                Client
+              </Button>
+            </div>
+
+            {clients.length === 0 ? (
+              <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-black/[0.12] px-6 py-10 text-center">
+                <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-2xl bg-[#F1F1F4]">
+                  <Users className="h-5 w-5 text-muted" />
+                </div>
+                <p className="text-sm text-muted">
+                  Aucun client pour l&apos;instant. Ajoute ton premier client.
+                </p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                {clients.map((client) => {
+                  const incomplete =
+                    !client.company && !client.email && !client.phone;
+                  const primary = client.company || client.name;
+                  return (
+                    <button
+                      key={client.id}
+                      onClick={() => {
+                        setShowClients(false);
+                        setOpenClientId(client.id);
+                      }}
+                      className={`flex items-center gap-3 rounded-2xl border bg-white p-4 text-left shadow-card transition duration-[180ms] ease-ios hover:-translate-y-0.5 hover:shadow-lift ${
+                        incomplete
+                          ? "border-dashed border-black/[0.14]"
+                          : "border-black/[0.06]"
+                      }`}
+                    >
+                      <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[#F1F1F4] text-[13px] font-semibold text-ink-soft">
+                        {initials(primary)}
+                      </span>
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate text-[15px] font-semibold">
+                          {primary}
+                        </p>
+                        {incomplete ? (
+                          <p className="text-[13px] font-medium text-pending">
+                            Infos à compléter
+                          </p>
+                        ) : (
+                          <>
+                            {client.company && (
+                              <p className="truncate text-[13px] text-muted">
+                                {client.name}
+                              </p>
+                            )}
+                            {client.tags.length > 0 && (
+                              <div className="mt-1.5 flex flex-wrap gap-1">
+                                {client.tags.slice(0, 3).map((t) => (
+                                  <span
+                                    key={t}
+                                    className="rounded-md bg-[#F1F1F4] px-2 py-0.5 text-[11px] font-medium text-ink-soft"
+                                  >
+                                    {t}
+                                  </span>
+                                ))}
+                              </div>
+                            )}
+                          </>
+                        )}
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        </Overlay>
+      )}
+
+      {/* ---------- Overlays projet / client ---------- */}
       {creating && (
         <Overlay onClose={close} dismissible={false}>
           <ProjectCreateForm
