@@ -10,6 +10,19 @@ import { PRO_FIELDS, TJM_KEY, TJM_DEFAULT, PRO_LINKS } from "@/lib/me";
 
 export const dynamic = "force-dynamic";
 
+// Couleur de marque par lien pro (petite pastille colorée)
+const LINK_COLOR: Record<string, string> = {
+  Instagram: "#DD2A7B",
+  Behance: "#1769FF",
+  LinkedIn: "#0A66C2",
+  Malt: "#FC5757",
+  "Taap.it": "#6D28D9",
+  Indy: "#0EA5E9",
+  INPI: "#111827",
+  URSSAF: "#16A34A",
+  "Guichet entreprises": "#EA580C",
+};
+
 export default async function FreelancePage() {
   const [settings, prospects] = await Promise.all([
     getMeSettings(),
@@ -73,8 +86,12 @@ export default async function FreelancePage() {
                   target="_blank"
                   rel="noopener noreferrer"
                   title={l.label}
-                  className="inline-flex items-center rounded-lg border border-black/[0.08] px-2.5 py-1 text-[12px] font-medium text-ink-soft transition-colors hover:border-black/20 hover:text-ink"
+                  className="inline-flex items-center gap-1.5 rounded-lg border border-black/[0.08] px-2.5 py-1 text-[12px] font-medium text-ink-soft transition-colors hover:border-black/20 hover:text-ink"
                 >
+                  <span
+                    className="h-2 w-2 shrink-0 rounded-full"
+                    style={{ background: LINK_COLOR[l.label] ?? "#9CA3AF" }}
+                  />
                   {l.label}
                 </a>
               ))}
