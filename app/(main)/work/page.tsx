@@ -30,8 +30,8 @@ export default async function WorkPage() {
       {/* PROJETS - section principale */}
       <ProjectsSection projects={projects} clients={clients} />
 
-      {/* CALENDRIER - déborde du conteneur pour prendre plus de largeur */}
-      <div className="relative left-1/2 w-[min(1360px,94vw)] -translate-x-1/2">
+      {/* CALENDRIER (titre + contrôles centrés ; seul le board déborde) */}
+      <div>
         <h2 className="mb-5 text-[26px] font-extrabold tracking-[-0.02em]">Calendrier</h2>
         <CalendarSection
           initial={blocks}

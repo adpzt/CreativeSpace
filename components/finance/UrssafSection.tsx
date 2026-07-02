@@ -286,12 +286,13 @@ function MonthCard({
     });
   }
 
+  // Mois courant = carte BLANCHE avec un contour bleu (pas de fond bleu plein).
   const border = current
-    ? "border-active/40 bg-blue-50"
+    ? "border-active bg-white ring-1 ring-active/40"
     : completed
-      ? "border-success/40 bg-green-50"
+      ? "border-success/50 bg-green-50"
       : aDeclarer
-        ? "border-pending/40 bg-orange-50"
+        ? "border-pending/50 bg-orange-50"
         : "border-black/[0.06] bg-white";
 
   return (

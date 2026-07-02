@@ -87,7 +87,7 @@ export default async function FreelancePage() {
       <Section title="Communication client">
         <CommunicationView />
       </Section>
-      <Section title="Brief">
+      <Section title="Questionnaire">
         <BriefView />
       </Section>
       <Section title="Devis & CGP">

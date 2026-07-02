@@ -515,6 +515,8 @@ export default function CalendarSection({
         </div>
       </div>
 
+      {/* Le board déborde du conteneur (largeur), la barre de contrôle reste centrée */}
+      <div className="relative left-1/2 w-[min(1360px,94vw)] -translate-x-1/2">
       {view === "list" ? (
         <DndContext
           sensors={sensors}
@@ -746,6 +748,7 @@ export default function CalendarSection({
           }}
         />
       )}
+      </div>
 
       {/* Overlay d'ajout (saisie libre + livrables proposés) */}
       {addCtx && (

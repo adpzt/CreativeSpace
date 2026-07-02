@@ -126,7 +126,7 @@ export default function NotesClient({
   }
 
   return (
-    <div className="space-y-8">
+    <div className="mx-auto max-w-4xl space-y-8">
       {/* En-tête */}
       <header className="flex items-start justify-between gap-3">
         <div>
