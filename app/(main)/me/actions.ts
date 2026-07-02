@@ -9,8 +9,12 @@ import { PRO_FIELDS, TJM_KEY } from "@/lib/me";
 const ME_KEYS = [
   ...PRO_FIELDS.map((f) => f.key),
   TJM_KEY,
+  // Widgets Accueil (saisis à la main)
   "me_ig_followers",
+  "me_ig_goal",
+  "me_ig_last_post",
   "me_be_followers",
+  "me_be_appreciations",
 ];
 
 export async function getMeSettings(): Promise<Record<string, string>> {
@@ -35,4 +39,5 @@ export async function setMeSetting(key: string, value: string): Promise<void> {
     .upsert({ key, value }, { onConflict: "key" });
   if (error) throw new Error(error.message);
   revalidatePath("/freelance");
+  revalidatePath("/"); // widgets Instagram/Behance de l'accueil
 }

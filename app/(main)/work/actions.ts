@@ -215,7 +215,16 @@ export async function updateDeliverable(
       .update({ title: patch.name })
       .eq("deliverable_id", id);
   }
+  // Livrable marqué fini/non fini -> on coche/décoche aussi les blocs liés du
+  // calendrier (sinon le "fini" ne remonte pas sur l'Accueil / le semainier).
+  if (effective.completed !== undefined) {
+    await supabase
+      .from("calendar_blocks")
+      .update({ completed: effective.completed })
+      .eq("deliverable_id", id);
+  }
   revalidatePath("/work");
+  revalidatePath("/");
 }
 
 // Supprime un livrable
@@ -225,6 +234,7 @@ export async function deleteDeliverable(id: string): Promise<void> {
 
   if (error) throw new Error(error.message);
   revalidatePath("/work");
+  revalidatePath("/");
 }
 
 // =================== BANNIÈRE (Supabase Storage) ===================
@@ -320,6 +330,7 @@ export async function addCalendarBlock(input: {
 
   if (error) throw new Error(error.message);
   revalidatePath("/work");
+  revalidatePath("/");
   return data as CalendarBlock;
 }
 
@@ -335,7 +346,28 @@ export async function updateCalendarBlock(
     .eq("id", id);
 
   if (error) throw new Error(error.message);
+
+  // Bloc coché/décoché lié à un livrable -> on répercute sur le livrable
+  // (et sa progression) pour que tout reste synchronisé.
+  if (patch.completed !== undefined) {
+    const { data: blk } = await supabase
+      .from("calendar_blocks")
+      .select("deliverable_id")
+      .eq("id", id)
+      .maybeSingle();
+    if (blk?.deliverable_id) {
+      await supabase
+        .from("deliverables")
+        .update(
+          patch.completed
+            ? { completed: true, progress: 100 }
+            : { completed: false }
+        )
+        .eq("id", blk.deliverable_id);
+    }
+  }
   revalidatePath("/work");
+  revalidatePath("/");
 }
 
 // Supprime un bloc
@@ -348,4 +380,5 @@ export async function deleteCalendarBlock(id: string): Promise<void> {
 
   if (error) throw new Error(error.message);
   revalidatePath("/work");
+  revalidatePath("/");
 }
