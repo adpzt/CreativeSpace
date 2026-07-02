@@ -1,13 +1,28 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { AlertTriangle, X } from "lucide-react";
 
+const SNOOZE_KEY = "overdueSnoozeUntil";
+
 // Popup affiché à l'arrivée sur l'accueil s'il y a des éléments en retard.
-// Fermable ; réapparaît au prochain chargement tant qu'il reste du retard.
+// "Attendre 48h" met en pause le popup pendant 48h (heure pour heure).
 export default function OverdueAlert({ items }: { items: string[] }) {
-  const [open, setOpen] = useState(true);
+  const [open, setOpen] = useState(false);
+
+  // On décide de l'affichage APRÈS le montage (lecture du snooze en localStorage)
+  useEffect(() => {
+    if (items.length === 0) return;
+    const until = Number(localStorage.getItem(SNOOZE_KEY) || "0");
+    if (Date.now() >= until) setOpen(true);
+  }, [items.length]);
+
   if (!open || items.length === 0) return null;
+
+  function snooze48h() {
+    localStorage.setItem(SNOOZE_KEY, String(Date.now() + 48 * 60 * 60 * 1000));
+    setOpen(false);
+  }
 
   return (
     <div
@@ -43,12 +58,20 @@ export default function OverdueAlert({ items }: { items: string[] }) {
             </li>
           ))}
         </ul>
-        <button
-          onClick={() => setOpen(false)}
-          className="mt-5 w-full rounded-xl bg-ink py-2.5 text-sm font-semibold text-white transition-opacity hover:opacity-90"
-        >
-          J&apos;ai vu
-        </button>
+        <div className="mt-5 flex gap-2">
+          <button
+            onClick={snooze48h}
+            className="flex-1 rounded-xl border border-black/[0.1] py-2.5 text-sm font-semibold text-ink-soft transition-colors hover:border-black/25 hover:text-ink"
+          >
+            Attendre 48h
+          </button>
+          <button
+            onClick={() => setOpen(false)}
+            className="flex-1 rounded-xl bg-ink py-2.5 text-sm font-semibold text-white transition-opacity hover:opacity-90"
+          >
+            J&apos;ai vu
+          </button>
+        </div>
       </div>
     </div>
   );
