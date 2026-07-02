@@ -13,7 +13,6 @@ import {
   Users,
   Search,
   Pencil,
-  Pin,
   Mail,
   Phone,
 } from "lucide-react";
@@ -217,20 +216,21 @@ export default function ProjectsSection({
       ) : visible.length === 0 ? (
         <p className="text-sm text-muted">Aucun projet dans ce tri.</p>
       ) : (
-        <div className="flex items-stretch gap-2">
-          {/* Flèche gauche discrète (si plus de 3 projets) */}
+        // Conteneur pleine largeur (aligné à "Projets" / "+ Projet") ; les flèches
+        // débordent à gauche et à droite.
+        <div className="relative">
           {pageCount > 1 && (
             <button
               onClick={() => setPage((p) => Math.max(0, p - 1))}
               disabled={safePage === 0}
               aria-label="Projets précédents"
-              className="flex w-8 shrink-0 items-center justify-center rounded-xl text-muted transition-colors hover:bg-black/5 hover:text-ink disabled:opacity-25 disabled:hover:bg-transparent"
+              className="absolute -left-9 top-1/2 z-20 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full text-muted transition-colors hover:bg-black/5 hover:text-ink disabled:opacity-25 disabled:hover:bg-transparent"
             >
-              <ChevronLeft className="h-5 w-5" />
+              <ChevronLeft className="h-6 w-6" />
             </button>
           )}
 
-          <div className="grid flex-1 grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {pageProjects.map((p) => {
               const cat = p.category ? CATEGORY[p.category] : null;
               const company = clientCompany(p.client_id) || p.org;
@@ -249,27 +249,25 @@ export default function ProjectsSection({
                       p.color ? "" : "border-black/[0.06]"
                     } ${closed ? "opacity-[0.82] hover:opacity-100" : ""}`}
                   >
-                    {/* Ligne du haut : espace épingle (gauche) + échéance (droite) */}
-                    <div className="mb-1.5 flex h-4 items-center justify-between">
-                      <span className="w-5" />
+                    <p className="text-[17px] font-semibold leading-snug">{p.name}</p>
+
+                    {/* Client · catégorie + échéance alignée à droite */}
+                    <div className="mb-3 mt-1 flex items-baseline justify-between gap-2">
+                      <p className="min-w-0 truncate text-[13px] text-muted">
+                        {company}
+                        {company && cat ? " · " : ""}
+                        {cat && (
+                          <span className={`font-medium ${cat.className}`}>
+                            {cat.label}
+                          </span>
+                        )}
+                      </p>
                       {due && (
-                        <span className="text-[11px] font-medium text-muted">
+                        <span className="shrink-0 text-[12px] font-medium text-muted">
                           {due}
                         </span>
                       )}
                     </div>
-
-                    <p className="text-[17px] font-semibold leading-snug">{p.name}</p>
-
-                    <p className="mb-3 mt-1 truncate text-[13px] text-muted">
-                      {company}
-                      {company && cat ? " · " : ""}
-                      {cat && (
-                        <span className={`font-medium ${cat.className}`}>
-                          {cat.label}
-                        </span>
-                      )}
-                    </p>
 
                     {/* Types de mission + statut (contour) à droite */}
                     <div className="mb-4 flex flex-wrap items-center gap-1.5">
@@ -303,35 +301,32 @@ export default function ProjectsSection({
                     </div>
                   </button>
 
-                  {/* Épingle (au-dessus de la card ; visible si épinglé ou au survol) */}
+                  {/* Épingle = emoji 📌 qui dépasse du coin (comme les post-it) */}
                   <button
                     onClick={() => togglePin(p)}
                     aria-label={pinned ? "Désépingler" : "Épingler"}
                     title={pinned ? "Désépingler" : "Épingler"}
-                    className={`absolute left-3 top-3 z-10 rounded-lg p-1 transition ${
+                    className={`absolute -left-2 -top-3 z-10 text-[24px] leading-none transition ${
                       pinned
-                        ? "text-active"
-                        : "text-muted opacity-0 hover:bg-black/5 hover:text-ink group-hover:opacity-100"
+                        ? "rotate-[-12deg] drop-shadow-sm"
+                        : "rotate-[-12deg] opacity-0 group-hover:opacity-40"
                     }`}
                   >
-                    <Pin
-                      className={`h-4 w-4 ${pinned ? "fill-current" : ""}`}
-                    />
+                    📌
                   </button>
                 </div>
               );
             })}
           </div>
 
-          {/* Flèche droite discrète */}
           {pageCount > 1 && (
             <button
               onClick={() => setPage((p) => Math.min(pageCount - 1, p + 1))}
               disabled={safePage >= pageCount - 1}
               aria-label="Projets suivants"
-              className="flex w-8 shrink-0 items-center justify-center rounded-xl text-muted transition-colors hover:bg-black/5 hover:text-ink disabled:opacity-25 disabled:hover:bg-transparent"
+              className="absolute -right-9 top-1/2 z-20 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full text-muted transition-colors hover:bg-black/5 hover:text-ink disabled:opacity-25 disabled:hover:bg-transparent"
             >
-              <ChevronRight className="h-5 w-5" />
+              <ChevronRight className="h-6 w-6" />
             </button>
           )}
         </div>

@@ -10,10 +10,18 @@ import {
   differenceInCalendarDays,
 } from "date-fns";
 import { fr } from "date-fns/locale";
-import { Plus, Check, Trash2, ChevronDown, RotateCcw } from "lucide-react";
+import {
+  Plus,
+  Check,
+  Trash2,
+  ChevronDown,
+  RotateCcw,
+  MessageCircle,
+} from "lucide-react";
 import Overlay from "@/components/ui/Overlay";
 import NoteEditor from "@/components/notes/NoteEditor";
 import PostitEditor from "@/components/notes/PostitEditor";
+import BlocEditor from "@/components/notes/BlocEditor";
 import {
   createNote,
   updateNote,
@@ -25,9 +33,9 @@ import {
 } from "./actions";
 import { PRIORITIES, postitBg, stripHtml } from "@/lib/notes";
 
-// Post-it vs tâche : porté par `is_task` (un post-it peut avoir un titre, une
-// date, etc. sans devenir une tâche).
-const isPostit = (n: Note) => !n.is_task;
+// Type de note : post-it (par défaut), tâche (is_task) ou bloc notes (is_bloc).
+const isPostit = (n: Note) => !n.is_task && !n.is_bloc;
+const isBloc = (n: Note) => n.is_bloc;
 
 // Une note est "vide" si rien n'a été renseigné (pour la nettoyer à la fermeture)
 const isEmptyNote = (n: Note) =>
@@ -63,6 +71,10 @@ export default function NotesClient({
   });
   // Le premier post-it daté (échéance la plus proche) est mis en avant.
   const featuredId = postits[0]?.due_date ? postits[0].id : null;
+  // Blocs notes (plus récent d'abord)
+  const blocs = active
+    .filter(isBloc)
+    .sort((a, b) => b.created_at.localeCompare(a.created_at));
   // Tâches : échéance la plus proche en haut, puis récence
   const todo = active
     .filter((n) => !isPostit(n))
@@ -136,24 +148,32 @@ export default function NotesClient({
     updateNote(id, fields);
   }
 
-  // Nouveau post-it : on crée une note vide (is_task=false) puis on ouvre
-  // l'éditeur complet (titre, notes, thème, date, emoji, couleur).
+  // Nouveau post-it : on crée une note vide puis on ouvre l'éditeur complet.
   async function createBlankPostit() {
-    const created = await createNote("", false);
+    const created = await createNote("");
     setNotes((list) => [created, ...list]);
     setEditing(created);
   }
 
-  // Nouvelle tâche : note vide (is_task=true) -> ouvre l'éditeur de tâche.
+  // Nouvelle tâche : note vide (is_task) -> ouvre l'éditeur de tâche.
   async function createBlankTask() {
-    const created = await createNote("", true);
+    const created = await createNote("", { isTask: true });
+    setNotes((list) => [created, ...list]);
+    setEditing(created);
+  }
+
+  // Nouveau bloc notes : note vide (is_bloc) -> ouvre l'éditeur de bloc.
+  async function createBlankBloc() {
+    const created = await createNote("", { isBloc: true });
     setNotes((list) => [created, ...list]);
     setEditing(created);
   }
 
   // Fermeture de l'éditeur : on supprime la note si elle est restée vide.
+  // On relit la note depuis la liste (à jour après enregistrement) et non depuis
+  // `editing` (qui pouvait rester périmé -> une tâche remplie était supprimée).
   function closeEditing() {
-    const cur = editing;
+    const cur = editing ? notes.find((n) => n.id === editing.id) ?? editing : null;
     setEditing(null);
     if (cur && isEmptyNote(cur)) {
       setNotes((list) => list.filter((n) => n.id !== cur.id));
@@ -288,7 +308,7 @@ export default function NotesClient({
         </div>
         {todo.length === 0 ? (
           <p className="rounded-2xl border border-dashed border-black/[0.12] px-4 py-8 text-center text-sm text-muted">
-            Rien à faire. Ajoute une tâche (avec un titre ou une échéance).
+            Rien à faire. Ajoute une tâche.
           </p>
         ) : (
           <NoteTable
@@ -296,6 +316,50 @@ export default function NotesClient({
             onToggle={(n) => toggleDone(n, true)}
             onOpen={(n) => setEditing(n)}
           />
+        )}
+      </section>
+
+      {/* Bloc notes */}
+      <section>
+        <div className="mb-4 flex items-center justify-between">
+          <h2 className="text-[11px] font-bold uppercase tracking-[0.08em] text-muted">
+            Bloc notes
+          </h2>
+          <button
+            onClick={createBlankBloc}
+            aria-label="Nouveau bloc"
+            className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-ink text-white transition-transform duration-150 ease-ios hover:-translate-y-px active:scale-[0.97]"
+          >
+            <MessageCircle className="h-4 w-4" />
+          </button>
+        </div>
+        {blocs.length === 0 ? (
+          <p className="rounded-2xl border border-dashed border-black/[0.12] px-4 py-8 text-center text-sm text-muted">
+            Aucun bloc. Note un texte long (compte-rendu, idée développée…).
+          </p>
+        ) : (
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            {blocs.map((n) => {
+              const titleTxt = stripHtml(n.title || "").trim();
+              return (
+                <button
+                  key={n.id}
+                  onClick={() => setEditing(n)}
+                  className="flex min-h-[240px] flex-col rounded-2xl border border-black/[0.06] bg-white p-5 text-left shadow-card transition-transform duration-150 ease-ios hover:-translate-y-0.5 hover:shadow-lift"
+                >
+                  <p className="mb-2 text-[17px] font-bold leading-snug text-ink">
+                    {titleTxt || "Bloc sans titre"}
+                  </p>
+                  <div
+                    className="flex-1 overflow-hidden whitespace-pre-wrap break-words text-[14px] leading-relaxed text-ink-soft [&_b]:font-semibold [&_strong]:font-semibold [&_ul]:list-disc [&_ul]:pl-5"
+                    dangerouslySetInnerHTML={{
+                      __html: n.content?.trim() || "<span>Vide…</span>",
+                    }}
+                  />
+                </button>
+              );
+            })}
+          </div>
         )}
       </section>
 
@@ -324,7 +388,16 @@ export default function NotesClient({
       )}
 
       {editing &&
-        (isPostit(editing) ? (
+        (isBloc(editing) ? (
+          <Overlay onClose={closeEditing}>
+            <BlocEditor
+              key={editing.id}
+              note={editing}
+              save={(fields) => savePostit(editing.id, fields)}
+              onDelete={() => removeNote(editing.id)}
+            />
+          </Overlay>
+        ) : isPostit(editing) ? (
           <Overlay onClose={closeEditing}>
             <PostitEditor
               key={editing.id}
