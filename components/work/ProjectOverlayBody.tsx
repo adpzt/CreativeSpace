@@ -81,6 +81,7 @@ export default function ProjectOverlayBody({
   const [category, setCategory] = useState<CalendarCategory>(project.category);
   const [colorVal, setColorVal] = useState<string>(project.color ?? "");
   const [clientId, setClientId] = useState<string>(project.client_id ?? "");
+  const [org, setOrg] = useState<string>(project.org ?? "");
   const [missions, setMissions] = useState<string[]>(project.mission_types ?? []);
   const [source, setSource] = useState<string>(project.source ?? "");
   const [deliverables, setDeliverables] = useState<Deliverable[]>(
@@ -299,7 +300,11 @@ export default function ProjectOverlayBody({
           </div>
 
           <div className="mt-5 space-y-2.5 text-sm">
-            {clientLabel && <InfoRow icon={User}>{clientLabel}</InfoRow>}
+            {(category === "freelance" ? clientLabel : project.org) && (
+              <InfoRow icon={User}>
+                {category === "freelance" ? clientLabel : project.org}
+              </InfoRow>
+            )}
             {project.source && (
               <InfoRow icon={Compass}>
                 {paymentSourceLabel(project.source)}
@@ -463,22 +468,48 @@ export default function ProjectOverlayBody({
           </div>
         </div>
 
-        {/* Client */}
-        <div>
-          <label className={labelClass}>Client</label>
-          <select
-            value={clientId}
-            onChange={(e) => changeClient(e.target.value)}
-            className={inputClass}
-          >
-            <option value="">Aucun client</option>
-            {clients.map((c) => (
-              <option key={c.id} value={c.id}>
-                {c.company || c.name}
-              </option>
-            ))}
-          </select>
-        </div>
+        {/* Client (freelance) OU organisation figée (entreprise / école) */}
+        {category === "freelance" ? (
+          <div>
+            <label className={labelClass}>Client</label>
+            <select
+              value={clientId}
+              onChange={(e) => changeClient(e.target.value)}
+              className={inputClass}
+            >
+              <option value="">Aucun client</option>
+              {clients.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.company || c.name}
+                </option>
+              ))}
+            </select>
+          </div>
+        ) : category === "entreprise" || category === "ecole" ? (
+          <div>
+            <label className={labelClass}>
+              {category === "entreprise" ? "Entreprise" : "École"}
+            </label>
+            <select
+              value={org}
+              onChange={(e) => {
+                setOrg(e.target.value);
+                updateProject(project.id, { org: e.target.value || null });
+              }}
+              className={inputClass}
+            >
+              <option value="">Non précisé</option>
+              {(category === "entreprise"
+                ? ["The Source", "Poppins"]
+                : ["IIM Digital School", "LISAA Design Graphique"]
+              ).map((o) => (
+                <option key={o} value={o}>
+                  {o}
+                </option>
+              ))}
+            </select>
+          </div>
+        ) : null}
 
         {/* Statut + Provenance (provenance = freelance uniquement) */}
         <div

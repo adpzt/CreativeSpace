@@ -109,6 +109,7 @@ export async function createProject(input: {
   source?: PaymentSource | null;
   gross_amount?: number | null;
   net_amount?: number | null;
+  org?: string | null;
   start_date?: string | null;
   end_date?: string | null;
 }): Promise<string> {
@@ -125,6 +126,7 @@ export async function createProject(input: {
       source: input.source ?? null,
       gross_amount: input.gross_amount ?? null,
       net_amount: input.net_amount ?? null,
+      org: input.org ?? null,
       start_date: input.start_date || null,
       end_date: input.end_date || null,
     })

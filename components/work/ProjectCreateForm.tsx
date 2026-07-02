@@ -75,6 +75,7 @@ export default function ProjectCreateForm({
 
   const [clientQuery, setClientQuery] = useState("");
   const [selectedClientId, setSelectedClientId] = useState<string>("");
+  const [org, setOrg] = useState("");
 
   const [delivs, setDelivs] = useState<LocalDeliverable[]>([newRow()]);
   const [noteRowId, setNoteRowId] = useState<string | null>(null);
@@ -129,13 +130,17 @@ export default function ProjectCreateForm({
       // Champs "argent" (provenance, montants, devis/facture, dépenses) uniquement
       // pour le freelance : entreprise/école/perso n'ont pas de facturation.
       const fl = category === "freelance";
-      let clientId = selectedClientId;
-      if (!clientId && clientQuery.trim()) {
-        clientId = await createClient({ name: clientQuery.trim() });
+      // Client (avec fiche) seulement en freelance ; entreprise/école = org figée.
+      let clientId = "";
+      if (fl) {
+        clientId = selectedClientId;
+        if (!clientId && clientQuery.trim()) {
+          clientId = await createClient({ name: clientQuery.trim() });
+        }
       }
       const id = await createProject({
         name: name.trim(),
-        client_id: clientId || null,
+        client_id: fl ? clientId || null : null,
         status,
         category,
         color: color || null,
@@ -143,6 +148,8 @@ export default function ProjectCreateForm({
         source: fl ? (source as PaymentSource) || null : null,
         gross_amount: fl && gross ? parseFloat(gross) : null,
         net_amount: fl && net ? parseFloat(net) : null,
+        org:
+          category === "entreprise" || category === "ecole" ? org || null : null,
         start_date: startDate || null,
         end_date: endDate || null,
       });
@@ -202,46 +209,72 @@ export default function ProjectCreateForm({
           />
         </div>
 
-        {/* Client avec autocomplétion */}
-        <div>
-          <label className={labelClass}>Client</label>
-          <input
-            value={clientQuery}
-            onChange={(e) => {
-              setClientQuery(e.target.value);
-              setSelectedClientId("");
-            }}
-            placeholder="Tape un nom (créé automatiquement si inconnu)"
-            className={inputClass}
-          />
-          {suggestions.length > 0 && (
-            <div className="mt-1 space-y-1">
-              {suggestions.map((c) => (
-                <button
-                  key={c.id}
-                  type="button"
-                  onClick={() => {
-                    setSelectedClientId(c.id);
-                    setClientQuery(c.company || c.name);
-                  }}
-                  className="flex w-full items-center gap-2 rounded-lg border border-gray-100 dark:border-hairline px-3 py-1.5 text-left text-sm hover:border-ink"
-                >
-                  <span className="font-medium">{c.company || c.name}</span>
-                  {c.company && (
-                    <span className="text-xs text-muted">{c.name}</span>
-                  )}
-                </button>
-              ))}
-            </div>
-          )}
-          {clientQuery.trim() &&
-            !selectedClientId &&
-            suggestions.length === 0 && (
-              <p className="mt-1 text-xs text-muted">
-                Nouveau client : une fiche sera créée (à compléter ensuite).
-              </p>
+        {/* Client (freelance) OU organisation figée (entreprise / école) */}
+        {category === "freelance" ? (
+          <div>
+            <label className={labelClass}>Client</label>
+            <input
+              value={clientQuery}
+              onChange={(e) => {
+                setClientQuery(e.target.value);
+                setSelectedClientId("");
+              }}
+              placeholder="Tape un nom (créé automatiquement si inconnu)"
+              className={inputClass}
+            />
+            {suggestions.length > 0 && (
+              <div className="mt-1 space-y-1">
+                {suggestions.map((c) => (
+                  <button
+                    key={c.id}
+                    type="button"
+                    onClick={() => {
+                      setSelectedClientId(c.id);
+                      setClientQuery(c.company || c.name);
+                    }}
+                    className="flex w-full items-center gap-2 rounded-lg border border-black/[0.06] px-3 py-1.5 text-left text-sm hover:border-ink"
+                  >
+                    <span className="font-medium">{c.company || c.name}</span>
+                    {c.company && (
+                      <span className="text-xs text-muted">{c.name}</span>
+                    )}
+                  </button>
+                ))}
+              </div>
             )}
-        </div>
+            {clientQuery.trim() &&
+              !selectedClientId &&
+              suggestions.length === 0 && (
+                <p className="mt-1 text-xs text-muted">
+                  Nouveau client : une fiche sera créée (à compléter ensuite).
+                </p>
+              )}
+          </div>
+        ) : category === "entreprise" || category === "ecole" ? (
+          <div>
+            <label className={labelClass}>
+              {category === "entreprise" ? "Entreprise" : "École"}
+            </label>
+            <select
+              value={org}
+              onChange={(e) => setOrg(e.target.value)}
+              className={inputClass}
+            >
+              <option value="">Non précisé</option>
+              {(category === "entreprise"
+                ? ["The Source", "Poppins"]
+                : ["IIM Digital School", "LISAA Design Graphique"]
+              ).map((o) => (
+                <option key={o} value={o}>
+                  {o}
+                </option>
+              ))}
+            </select>
+            <p className="mt-1 text-xs text-muted">
+              Aucune fiche client n&apos;est créée.
+            </p>
+          </div>
+        ) : null}
 
         {/* Catégorie + couleur */}
         <div>

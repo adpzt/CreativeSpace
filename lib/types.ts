@@ -97,6 +97,7 @@ export type Project = {
   end_date: string | null;
   devis_number: string | null;
   invoice_number: string | null;
+  org: string | null; // entreprise/école (entreprise ou établissement, pas un client)
   notes: string | null;
   comm_notes: string | null;
   created_at: string;

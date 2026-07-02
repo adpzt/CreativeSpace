@@ -7,7 +7,6 @@ import {
 import { getNotes } from "../notes/actions";
 import ProjectsSection from "@/components/work/ProjectsSection";
 import CalendarSection from "@/components/work/calendar/CalendarSection";
-import ClientsSection from "@/components/work/ClientsSection";
 import BannerHeader from "@/components/work/BannerHeader";
 
 // Work = une seule page qui scrolle :
@@ -40,9 +39,6 @@ export default async function WorkPage() {
           notes={notes}
         />
       </div>
-
-      {/* CLIENTS - section secondaire (résumé) */}
-      <ClientsSection clients={clients} projects={projects} />
     </div>
   );
 }
