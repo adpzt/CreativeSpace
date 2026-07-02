@@ -143,7 +143,7 @@ export type Prospect = {
   created_at: string;
 };
 
-export type CalendarCategory = "freelance" | "entreprise" | "perso";
+export type CalendarCategory = "freelance" | "entreprise" | "ecole" | "perso";
 
 export type CalendarBlock = {
   id: string;

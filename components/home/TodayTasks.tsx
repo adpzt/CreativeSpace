@@ -18,7 +18,8 @@ const CAT: Record<
 > = {
   freelance: { label: "Freelance", className: "text-active", order: 0 },
   entreprise: { label: "Entreprise", className: "text-success", order: 1 },
-  perso: { label: "Perso", className: "text-pending", order: 2 },
+  ecole: { label: "École", className: "text-[#9333EA]", order: 2 },
+  perso: { label: "Perso", className: "text-pending", order: 3 },
 };
 
 // Tâches du jour (blocs du calendrier), cochables directement depuis le Home.

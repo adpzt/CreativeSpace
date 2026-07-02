@@ -65,6 +65,7 @@ const iso = (d: Date) => format(d, "yyyy-MM-dd");
 const CAT_BOX: Record<CalendarCategory, string> = {
   freelance: "bg-blue-50 border-blue-600/25 text-blue-700",
   entreprise: "bg-green-50 border-green-600/25 text-green-700",
+  ecole: "bg-purple-50 border-purple-600/25 text-purple-700",
   perso: "bg-orange-50 border-orange-600/25 text-orange-700",
 };
 

@@ -26,12 +26,14 @@ export const CALENDAR_CATEGORIES: {
 }[] = [
   { key: "freelance", label: "Freelance", color: "#2563EB" },
   { key: "entreprise", label: "Entreprise", color: "#16A34A" },
+  { key: "ecole", label: "École", color: "#9333EA" },
   { key: "perso", label: "Perso", color: "#EA580C" },
 ];
 
 export const CATEGORY_COLOR: Record<CalendarCategory, string> = {
   freelance: "#2563EB",
   entreprise: "#16A34A",
+  ecole: "#9333EA",
   perso: "#EA580C",
 };
 

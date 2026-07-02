@@ -29,6 +29,7 @@ type Filter = "active" | ProjectStatus;
 const CATEGORY: Record<CalendarCategory, { label: string; className: string }> = {
   freelance: { label: "Freelance", className: "text-active" },
   entreprise: { label: "Entreprise", className: "text-success" },
+  ecole: { label: "École", className: "text-[#9333EA]" },
   perso: { label: "Perso", className: "text-pending" },
 };
 
