@@ -1,8 +1,6 @@
 import EditableField from "@/components/me/EditableField";
 import Logo from "@/components/ui/Logo";
 import CommunicationView from "@/components/freelance/CommunicationView";
-import BriefView from "@/components/freelance/BriefView";
-import DevisView from "@/components/freelance/DevisView";
 import ProductionView from "@/components/freelance/ProductionView";
 import ProspectsBoard from "@/components/freelance/ProspectsBoard";
 import { getMeSettings } from "../me/actions";
@@ -69,15 +67,10 @@ export default async function FreelancePage() {
         <ProspectsBoard prospects={prospects} />
       </Section>
 
-      {/* Guide déroulé de haut en bas */}
+      {/* Guide déroulé de haut en bas. Questionnaire + Devis sont dans le tunnel
+          client (Communication), donc pas de sections dédiées ici. */}
       <Section title="Communication client">
         <CommunicationView />
-      </Section>
-      <Section title="Questionnaire">
-        <BriefView />
-      </Section>
-      <Section title="Devis & CGP">
-        <DevisView />
       </Section>
       <Section title="Production">
         <ProductionView />
