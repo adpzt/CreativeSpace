@@ -64,6 +64,15 @@ const config: Config = {
           from: { opacity: "0", transform: "translateY(14px)" },
           to: { opacity: "1", transform: "translateY(0)" },
         },
+        // Entrée douce et rapide (transition de page) : léger fondu + montée.
+        "rise-soft": {
+          from: { opacity: "0", transform: "translateY(8px)" },
+          to: { opacity: "1", transform: "translateY(0)" },
+        },
+        // Balayage de lumière pour les squelettes de chargement.
+        shimmer: {
+          "100%": { transform: "translateX(100%)" },
+        },
         pop: {
           "0%": { transform: "scale(0.5)", opacity: "0" },
           "60%": { transform: "scale(1.12)" },
@@ -81,6 +90,11 @@ const config: Config = {
       },
       animation: {
         rise: "rise 520ms cubic-bezier(0.2,0.7,0.3,1) both",
+        // `backwards` (et PAS `both`) : après l'anim le transform revient à `none`,
+        // sinon un translateY(0) résiduel créerait un bloc conteneur qui casse le
+        // positionnement `fixed` des overlays rendus dans la page.
+        "rise-soft": "rise-soft 360ms cubic-bezier(0.2,0.7,0.3,1) backwards",
+        shimmer: "shimmer 1.5s infinite",
         pop: "pop 240ms cubic-bezier(0.2,0.7,0.3,1.3)",
         sheet: "sheet 300ms cubic-bezier(0.32,0.72,0,1) both",
         "fade-in": "fade-in 200ms ease both",

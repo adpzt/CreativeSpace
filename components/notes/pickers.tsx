@@ -1,10 +1,10 @@
 "use client";
 
+import { useRef } from "react";
 import { NOTE_EMOJIS, THEMES } from "@/lib/notes";
 
 // Sélecteur d'emoji : grille défilante de propositions + champ "Autre" pour
-// taper/coller le sien. Le champ est NON contrôlé (pas de perte de focus ni de
-// souci d'IME/emoji macOS) ; on remonte simplement ce qui est saisi.
+// taper/coller le sien (ou passer par le sélecteur d'emoji macOS 🌐/Fn).
 export function EmojiPicker({
   value,
   onChange,
@@ -46,23 +46,47 @@ export function EmojiPicker({
         ))}
       </div>
 
-      {/* Champ "Autre" : taper ou coller son propre emoji. NON contrôlé + `key`
-          lié à la valeur pour refléter une sélection faite dans la grille. */}
-      <label className="flex items-center gap-2 text-[13px] text-muted">
-        <span className="shrink-0">Autre :</span>
-        <input
-          key={isCustom ? value : "empty"}
-          defaultValue={isCustom ? value : ""}
-          onChange={(e) => onChange(e.target.value)}
-          placeholder="tape ou colle un emoji"
-          maxLength={16}
-          aria-label="Autre emoji (taper ou coller)"
-          className={`h-9 w-40 rounded-lg border px-2 text-center text-lg outline-none focus:border-active focus:ring-4 focus:ring-active/12 ${
-            isCustom ? "border-ink bg-black/[0.04]" : "border-black/[0.1]"
-          }`}
-        />
-      </label>
+      {/* Champ "Autre" : taper/coller ou sélecteur macOS (🌐/Fn). */}
+      <CustomEmojiInput value={isCustom ? value : ""} onChange={onChange} highlight={isCustom} />
     </div>
+  );
+}
+
+// Champ emoji libre ROBUSTE. Le sélecteur d'emoji macOS (🌐/Fn) insère le
+// caractère sans toujours déclencher l'event `input` que React écoute -> on
+// relit donc la valeur DIRECTEMENT dans le DOM sur onInput ET sur onBlur (au
+// moment où on quitte le champ / ferme l'overlay, l'emoji est forcément dans la
+// valeur du champ). NON contrôlé + PAS de `key` (sinon recréation à chaque
+// frappe qui casse l'insertion). Le montage par note est géré par le `key` de
+// l'éditeur parent.
+function CustomEmojiInput({
+  value,
+  onChange,
+  highlight,
+}: {
+  value: string;
+  onChange: (v: string) => void;
+  highlight: boolean;
+}) {
+  const ref = useRef<HTMLInputElement>(null);
+  const commit = () => onChange(ref.current?.value.trim() ?? "");
+
+  return (
+    <label className="flex items-center gap-2 text-[13px] text-muted">
+      <span className="shrink-0">Autre :</span>
+      <input
+        ref={ref}
+        defaultValue={value}
+        onInput={commit}
+        onBlur={commit}
+        placeholder="🌐 / Fn, ou colle un emoji"
+        maxLength={16}
+        aria-label="Autre emoji (sélecteur macOS, taper ou coller)"
+        className={`h-9 w-44 rounded-lg border px-2 text-center text-lg outline-none focus:border-active focus:ring-4 focus:ring-active/12 ${
+          highlight ? "border-ink bg-black/[0.04]" : "border-black/[0.1]"
+        }`}
+      />
+    </label>
   );
 }
 
