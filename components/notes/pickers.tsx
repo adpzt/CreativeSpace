@@ -1,10 +1,12 @@
 "use client";
 
-import { useRef } from "react";
-import { NOTE_EMOJIS, THEMES } from "@/lib/notes";
+import { useMemo, useState } from "react";
+import { Search } from "lucide-react";
+import { THEMES } from "@/lib/notes";
+import { EMOJI_GROUPS, ALL_EMOJIS, normalizeSearch } from "@/lib/emoji-data";
 
-// Sélecteur d'emoji : grille défilante de propositions + champ "Autre" pour
-// taper/coller le sien (ou passer par le sélecteur d'emoji macOS 🌐/Fn).
+// Sélecteur d'emoji : grande liste par catégories + barre de recherche en
+// français (insensible aux accents). Plus de champ texte libre.
 export function EmojiPicker({
   value,
   onChange,
@@ -12,81 +14,82 @@ export function EmojiPicker({
   value: string;
   onChange: (v: string) => void;
 }) {
-  const isCustom = !!value && !NOTE_EMOJIS.includes(value);
+  const [query, setQuery] = useState("");
+  const q = normalizeSearch(query.trim());
+
+  // Résultats de recherche (à plat) — recalcule seulement quand la requête change.
+  const results = useMemo(() => {
+    if (!q) return null;
+    return ALL_EMOJIS.filter((item) => normalizeSearch(item.kw).includes(q));
+  }, [q]);
+
+  const cell = (e: string) => (
+    <button
+      key={e}
+      type="button"
+      onClick={() => onChange(e)}
+      className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border text-lg transition ${
+        value === e
+          ? "border-ink bg-black/[0.04]"
+          : "border-transparent hover:border-black/20 hover:bg-black/[0.03]"
+      }`}
+    >
+      {e}
+    </button>
+  );
 
   return (
     <div className="space-y-2.5">
-      {/* Grille de propositions (défile verticalement si besoin) */}
-      <div className="flex max-h-[132px] flex-wrap gap-1.5 overflow-y-auto pr-1">
-        {/* Aucun / effacer */}
+      {/* Barre de recherche (français) + bouton "Aucun" */}
+      <div className="flex items-center gap-2">
+        <div className="relative flex-1">
+          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" />
+          <input
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Rechercher (ex : coeur, feu, argent...)"
+            aria-label="Rechercher un emoji"
+            className="w-full rounded-xl border border-black/[0.1] py-2 pl-9 pr-3 text-sm outline-none focus:border-active focus:ring-4 focus:ring-active/12"
+          />
+        </div>
         <button
           type="button"
           onClick={() => onChange("")}
-          aria-label="Aucun emoji"
           title="Aucun emoji"
-          className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border text-xs text-muted ${
-            value === "" ? "border-ink" : "border-black/[0.1] hover:border-black/30"
+          className={`flex h-9 shrink-0 items-center rounded-lg border px-3 text-xs font-medium transition-colors ${
+            value === ""
+              ? "border-ink text-ink"
+              : "border-black/[0.1] text-muted hover:border-black/30"
           }`}
         >
-          /
+          Aucun
         </button>
-        {NOTE_EMOJIS.map((e) => (
-          <button
-            key={e}
-            type="button"
-            onClick={() => onChange(e)}
-            className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border text-lg transition ${
-              value === e
-                ? "border-ink bg-black/[0.04]"
-                : "border-black/[0.1] hover:border-black/30"
-            }`}
-          >
-            {e}
-          </button>
-        ))}
       </div>
 
-      {/* Champ "Autre" : taper/coller ou sélecteur macOS (🌐/Fn). */}
-      <CustomEmojiInput value={isCustom ? value : ""} onChange={onChange} highlight={isCustom} />
+      {/* Liste défilante : résultats de recherche OU catégories */}
+      <div className="max-h-[220px] overflow-y-auto pr-1">
+        {results ? (
+          results.length === 0 ? (
+            <p className="py-6 text-center text-sm text-muted">
+              Aucun emoji pour « {query.trim()} ».
+            </p>
+          ) : (
+            <div className="flex flex-wrap gap-1">{results.map((it) => cell(it.e))}</div>
+          )
+        ) : (
+          EMOJI_GROUPS.map((group) => (
+            <div key={group.label} className="mb-2">
+              <p className="mb-1 px-0.5 text-[11px] font-semibold uppercase tracking-wide text-muted">
+                {group.label}
+              </p>
+              <div className="flex flex-wrap gap-1">
+                {group.items.map((it) => cell(it.e))}
+              </div>
+            </div>
+          ))
+        )}
+      </div>
     </div>
-  );
-}
-
-// Champ emoji libre ROBUSTE. Le sélecteur d'emoji macOS (🌐/Fn) insère le
-// caractère sans toujours déclencher l'event `input` que React écoute -> on
-// relit donc la valeur DIRECTEMENT dans le DOM sur onInput ET sur onBlur (au
-// moment où on quitte le champ / ferme l'overlay, l'emoji est forcément dans la
-// valeur du champ). NON contrôlé + PAS de `key` (sinon recréation à chaque
-// frappe qui casse l'insertion). Le montage par note est géré par le `key` de
-// l'éditeur parent.
-function CustomEmojiInput({
-  value,
-  onChange,
-  highlight,
-}: {
-  value: string;
-  onChange: (v: string) => void;
-  highlight: boolean;
-}) {
-  const ref = useRef<HTMLInputElement>(null);
-  const commit = () => onChange(ref.current?.value.trim() ?? "");
-
-  return (
-    <label className="flex items-center gap-2 text-[13px] text-muted">
-      <span className="shrink-0">Autre :</span>
-      <input
-        ref={ref}
-        defaultValue={value}
-        onInput={commit}
-        onBlur={commit}
-        placeholder="🌐 / Fn, ou colle un emoji"
-        maxLength={16}
-        aria-label="Autre emoji (sélecteur macOS, taper ou coller)"
-        className={`h-9 w-44 rounded-lg border px-2 text-center text-lg outline-none focus:border-active focus:ring-4 focus:ring-active/12 ${
-          highlight ? "border-ink bg-black/[0.04]" : "border-black/[0.1]"
-        }`}
-      />
-    </label>
   );
 }
 

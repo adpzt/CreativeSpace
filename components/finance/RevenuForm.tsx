@@ -2,10 +2,29 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { format } from "date-fns";
-import { ChevronDown, Trash2 } from "lucide-react";
+import { format, parseISO } from "date-fns";
+import { fr } from "date-fns/locale";
+import {
+  ChevronDown,
+  Trash2,
+  Pencil,
+  User,
+  Tag,
+  Compass,
+  CalendarDays,
+  CalendarClock,
+  Wallet,
+  FileText,
+  StickyNote,
+} from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import { Button } from "@/components/ui/Button";
-import { PAYMENT_SOURCES, MISSION_TYPES } from "@/lib/work";
+import {
+  PAYMENT_SOURCES,
+  MISSION_TYPES,
+  paymentSourceLabel,
+  formatEuro,
+} from "@/lib/work";
 import { PAYMENT_STATUS, PAYMENT_STATUS_ORDER } from "@/lib/finance";
 import { createPayment, updatePayment, deletePayment } from "@/app/(main)/finance/actions";
 import type {
@@ -38,6 +57,11 @@ export default function RevenuForm({
   const router = useRouter();
   const [isPending, start] = useTransition();
   const base = payment ?? prefill ?? {};
+  // On ouvre un revenu existant en LECTURE (récap) ; le crayon passe en édition.
+  // La création (prefill ou nouveau) démarre directement en édition.
+  const [mode, setMode] = useState<"view" | "edit">(
+    payment && !prefill ? "view" : "edit"
+  );
 
   const [clientId, setClientId] = useState(base.client_id ?? "");
   const [projectId, setProjectId] = useState(base.project_id ?? "");
@@ -89,6 +113,142 @@ export default function RevenuForm({
     });
   }
 
+  // ================= MODE LECTURE (récap, façon fiche projet) =================
+  if (payment && mode === "view") {
+    const st = PAYMENT_STATUS[payment.status];
+    const project = projects.find((p) => p.id === payment.project_id) ?? null;
+    const client = clients.find((c) => c.id === payment.client_id) ?? null;
+    const clientName = client ? client.company || client.name : null;
+    const title =
+      project?.name ||
+      clientName ||
+      (payment.source ? paymentSourceLabel(payment.source) : null) ||
+      "Revenu";
+    // Type de mission : celui saisi sur le revenu, sinon dérivé du projet lié.
+    const missions = payment.mission_type
+      ? [payment.mission_type]
+      : project?.mission_types ?? [];
+    const fmtDate = (d: string) => format(parseISO(d), "d MMM yyyy", { locale: fr });
+
+    return (
+      <div className="pr-2">
+        <h2 className="pr-10 text-[26px] font-extrabold tracking-[-0.02em]">
+          {title}
+        </h2>
+
+        <div className="my-4 border-t border-gray-100 dark:border-hairline" />
+
+        {/* Statut + types de mission */}
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
+          <span
+            className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[12.5px] font-semibold ${st.badge}`}
+          >
+            <span className={`h-1.5 w-1.5 rounded-full ${st.dot}`} />
+            {st.label}
+          </span>
+          {missions.map((m) => (
+            <span
+              key={m}
+              className="rounded-full bg-gray-100 px-2.5 py-1 text-xs text-gray-600 dark:bg-white/[0.06] dark:text-muted"
+            >
+              {m}
+            </span>
+          ))}
+        </div>
+
+        {/* Infos */}
+        <div className="mt-5 space-y-2.5 text-sm">
+          {clientName && <InfoRow icon={User}>{clientName}</InfoRow>}
+          {project && (
+            <InfoRow icon={Tag}>
+              <span className="text-muted">Projet </span>
+              {project.name}
+            </InfoRow>
+          )}
+          {payment.source && (
+            <InfoRow icon={Compass}>{paymentSourceLabel(payment.source)}</InfoRow>
+          )}
+          {project?.end_date && (
+            <InfoRow icon={CalendarDays}>
+              <span className="text-muted">Fin du projet </span>
+              {fmtDate(project.end_date)}
+            </InfoRow>
+          )}
+          {/* Montants : devis (facturé) + net réellement touché */}
+          {(payment.gross_amount != null || payment.net_amount != null) && (
+            <InfoRow icon={Wallet}>
+              {payment.net_amount != null ? (
+                <>
+                  <span className="font-medium">{formatEuro(payment.net_amount)}</span>{" "}
+                  net
+                  {payment.gross_amount != null && (
+                    <span className="text-muted">
+                      {"  ·  devis "}
+                      {formatEuro(payment.gross_amount)}
+                    </span>
+                  )}
+                </>
+              ) : (
+                <>
+                  <span className="text-muted">Devis </span>
+                  {formatEuro(payment.gross_amount!)}
+                </>
+              )}
+            </InfoRow>
+          )}
+          {payment.received_date && (
+            <InfoRow icon={CalendarClock}>
+              <span className="text-muted">Encaissé le </span>
+              {fmtDate(payment.received_date)}
+            </InfoRow>
+          )}
+          {!payment.received_date && payment.due_date && (
+            <InfoRow icon={CalendarClock}>
+              <span className="text-muted">Échéance </span>
+              {fmtDate(payment.due_date)}
+            </InfoRow>
+          )}
+          {payment.invoice_ref && (
+            <InfoRow icon={FileText}>
+              <span className="text-muted">Réf {payment.invoice_ref}</span>
+            </InfoRow>
+          )}
+        </div>
+
+        {payment.notes && (
+          <div className="mt-5">
+            <p className="mb-2 flex items-center gap-1.5 text-xs font-medium uppercase tracking-wide text-muted">
+              <StickyNote className="h-3.5 w-3.5" />
+              Notes
+            </p>
+            <p className="whitespace-pre-wrap text-sm leading-relaxed">
+              {payment.notes}
+            </p>
+          </div>
+        )}
+
+        <div className="mt-6 flex items-center gap-2">
+          <button
+            onClick={() => setMode("edit")}
+            className="inline-flex items-center gap-1.5 rounded-lg bg-gray-100 px-3 py-1.5 text-sm font-medium transition-colors hover:bg-gray-200 dark:bg-white/[0.06] dark:hover:bg-white/10"
+          >
+            <Pencil className="h-3.5 w-3.5" />
+            Modifier
+          </button>
+          <button
+            onClick={handleDelete}
+            disabled={isPending}
+            aria-label="Supprimer le revenu"
+            className="rounded-lg p-2 text-muted transition-colors hover:bg-red-50 hover:text-urgent dark:hover:bg-urgent/15"
+          >
+            <Trash2 className="h-4 w-4" />
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // ================= MODE ÉDITION (formulaire) =================
   return (
     <form onSubmit={submit} className="space-y-4 pr-8">
       <h3 className="text-[17px] font-bold tracking-tight">
@@ -275,7 +435,11 @@ export default function RevenuForm({
           <Button type="submit" disabled={isPending}>
             {isPending ? "..." : payment ? "Enregistrer" : "Ajouter"}
           </Button>
-          <Button type="button" variant="ghost" onClick={onClose}>
+          <Button
+            type="button"
+            variant="ghost"
+            onClick={() => (payment && !prefill ? setMode("view") : onClose())}
+          >
             Annuler
           </Button>
         </div>
@@ -291,5 +455,21 @@ export default function RevenuForm({
         )}
       </div>
     </form>
+  );
+}
+
+// Ligne d'info du récap : icône + valeur (même style que la fiche projet).
+function InfoRow({
+  icon: Icon,
+  children,
+}: {
+  icon: LucideIcon;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="flex items-center gap-2">
+      <Icon className="h-4 w-4 shrink-0 text-muted" />
+      <span>{children}</span>
+    </div>
   );
 }
