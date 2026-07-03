@@ -5,8 +5,10 @@ import {
   useRef,
   useState,
   type MouseEventHandler,
+  type ReactNode,
   type TouchEventHandler,
 } from "react";
+import { createPortal } from "react-dom";
 import {
   startOfWeek,
   addWeeks,
@@ -74,6 +76,22 @@ const dropCollision: CollisionDetection = (args) => {
   return pointer.length > 0 ? pointer : rectIntersection(args);
 };
 
+// Le board est centré via un transform (voir wrapper) : ce transform ferait du
+// wrapper le bloc conteneur de tout position:fixed, donc du DragOverlay, qui se
+// retrouverait décalé. On rend donc l'overlay dans un PORTAL sur <body> (le
+// contexte dnd-kit passe à travers le portal). Rendu seulement après montage
+// client car document n'existe pas au rendu serveur.
+function OverlayPortal({
+  mounted,
+  children,
+}: {
+  mounted: boolean;
+  children: ReactNode;
+}) {
+  if (!mounted) return null;
+  return createPortal(<DragOverlay>{children}</DragOverlay>, document.body);
+}
+
 // Boîte de catégorie du semainier : rectangle arrondi TEINTÉ (sans dot).
 const CAT_BOX: Record<CalendarCategory, string> = {
   freelance: "bg-blue-50 border-blue-600/25 text-blue-700",
@@ -111,6 +129,10 @@ export default function CalendarSection({
   // Notes / progression de livrables éditées depuis le calendrier (affichage immédiat)
   const [delivNotes, setDelivNotes] = useState<Record<string, string>>({});
   const [delivProgress, setDelivProgress] = useState<Record<string, number>>({});
+  // Le DragOverlay est porté sur <body> (portal) : on n'y accède qu'après le
+  // montage côté client (document indisponible au rendu serveur).
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
 
   // Deux capteurs distincts pour ne PAS confondre drag et scroll :
   // - Souris : on saisit le bloc n'importe où, il faut bouger de 8px pour lancer
@@ -526,10 +548,11 @@ export default function CalendarSection({
       </div>
 
       {/* Le board déborde du conteneur (largeur), la barre de contrôle reste centrée */}
-      {/* Board plus large que la colonne de contenu, centré SANS transform : un
-          transform ici ferait du wrapper le bloc conteneur du DragOverlay (fixed)
-          et décalerait le bloc déplacé. On centre donc via marge négative. */}
-      <div className="relative left-1/2 ml-[calc(min(1360px,94vw)/-2)] w-[min(1360px,94vw)]">
+      {/* Le board déborde du conteneur (largeur), la barre de contrôle reste centrée.
+          Ce wrapper est en transform : il devient donc le bloc conteneur de tout
+          position:fixed à l'intérieur -> le DragOverlay est rendu via un portal sur
+          <body> (voir OverlayPortal) pour ne pas être décalé. */}
+      <div className="relative left-1/2 w-[min(1360px,94vw)] -translate-x-1/2">
       {view === "list" ? (
         <DndContext
           sensors={sensors}
@@ -642,13 +665,13 @@ export default function CalendarSection({
               );
             })}
           </div>
-          <DragOverlay>
+          <OverlayPortal mounted={mounted}>
             {activeBlock ? (
               <div className="rounded-[9px] bg-white px-[10px] py-2 text-[12.5px] font-semibold text-ink shadow-float">
                 {activeBlock.title}
               </div>
             ) : null}
-          </DragOverlay>
+          </OverlayPortal>
         </DndContext>
       ) : (
         <>
@@ -724,13 +747,13 @@ export default function CalendarSection({
             </div>
           </div>
 
-          <DragOverlay>
+          <OverlayPortal mounted={mounted}>
             {activeBlock ? (
               <div className="rounded-[9px] bg-white dark:bg-surface px-[10px] py-2 text-[12.5px] font-semibold text-ink shadow-float dark:shadow-[0_30px_70px_-14px_rgba(0,0,0,0.8)]">
                 {activeBlock.title}
               </div>
             ) : null}
-          </DragOverlay>
+          </OverlayPortal>
         </DndContext>
 
         <DndContext
@@ -797,13 +820,13 @@ export default function CalendarSection({
             </button>
           </div>
 
-          <DragOverlay>
+          <OverlayPortal mounted={mounted}>
             {activeBlock ? (
               <div className="rounded-[9px] bg-white dark:bg-surface px-[10px] py-2 text-[12.5px] font-semibold text-ink shadow-float dark:shadow-[0_30px_70px_-14px_rgba(0,0,0,0.8)]">
                 {activeBlock.title}
               </div>
             ) : null}
-          </DragOverlay>
+          </OverlayPortal>
         </DndContext>
         </>
       )}
