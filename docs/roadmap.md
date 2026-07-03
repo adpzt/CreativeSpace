@@ -433,9 +433,9 @@ Le calendrier étant le composant le plus critique, il est livré en DEUX temps 
 
 - [~] **Refonte design globale (design system Claude Design → Tailwind)** — EN COURS par points de retour (voir context.md "APPLICATION DU DESIGN SYSTEM" + design_handoff_creative_space/README.md) : ✅ tokens, ✅ Notes, ✅ semainier, ✅ composants ui (boutons/progress/sidebar/header/bottomnav) + cartes stats Finance, ✅ format page-Notion (lecture+crayon+RichText) pour livrables/calendrier (NotePanel), ✅ finitions : mini-graphe Recharts (carte CA), badges de statut (pill+dot, "en attente" orange), champs (focus ring-4 ring-active/12), Home hero (ombre teintée + boutons tactiles). **REFONTE APP COMPLÈTE via maquette design_handoff_app/ (en cours 01-02/07)** : reproduire EXACTEMENT la maquette Claude Design en gardant la logique. Fait : shell (nav glass horizontale, Moi supprimé, Bank/To do, FAB, dark mode ABANDONNÉ), typo (26/800), Accueil (À traiter en haut, 4 KPI, TodayTasks heure-devant+tri, bento objectifs + compteurs abonnés éditables), Work (cartes projet, calendrier board pleine largeur + vue Liste, boîtes catégorie teintées), Bank (URSSAF mois courant blanc+contour bleu, Seuils + objectif mensuel, Impôt épuré), Freelance (profil en haut, guide en box, tunnel stepper, Brief→Questionnaire, Prospection→Trouver des clients), To do (post-its + checklist, RichText fix onMouseDown), catégorie ÉCOLE (migration 014), projets non-freelance sans facturation (n'interfèrent pas avec Bank). **Migrations toutes push jusqu'à la 015.**
 
-  **SESSION 02/07 (peaufinage desktop)** : nav → 4 éléments (To do retiré, notes remontées dans Work sous le calendrier) ; Work/Projets (cards à contour de couleur, statut en contour+texte coloré sans pastille, titre horizontal, bouton Clients → overlay au lieu du toggle) ; Calendrier (+ en bas à droite, vue Mois supprimée, vue Liste en carrousel hier/jour/demain, vue Semaine avec boîtes catégorie remplies + colonne gauche réduite) ; Work reçoit To do + Trouver des clients sous le calendrier ; Accueil (À traiter trié par priorité, TodayTasks resync, fond dégradé plus vivant) ; Freelance (logo pztdesign en PP, liens pro supprimés + profil compact, communication sans étape par défaut, Brief→Questionnaire, Devis épuré). Objectif Instagram/Behance auto **REPORTÉ** (API Behance fermée par Adobe ; Instagram = app Meta + token 60j à monter par Adrien) → reste manuel. Détails dans context.md.
+  **SESSION 02-03/07 (gros peaufinage desktop)** : nav → 4 éléments + FAB "+ Note" supprimé (création via boutons de section) ; Work/Projets (contour couleur, statut en contour, overlay Clients avec recherche, pagination 3+flèches débordantes, épingle emoji 📌, tri échéance, date à droite) ; Calendrier (+ en bas à droite, vue Mois supprimée, Liste=carrousel, Semaine boîtes remplies, TOUTES les notes en panneau latéral Notion + texte riche listes/tailles) ; To do (3 types : post-it coloriables, tâches en tableau avec ligne J-7, bloc notes ; thèmes = 5 fixes) ; Accueil (À traiter = rectangle compact J-X + popup retard "Attendre 48h", KPI Projet à finir + widget Info éditable, Bénéfice net, widgets IG/Behance, fond animé) ; Bank (URSSAF 13,03%/26,06% réel, diagrammes couleurs Malt/dégradé + barres facturé/net 3D, Salarié groupé par employeur repliable) ; Freelance (logo étoile en PP + favicon, liens pro supprimés, Trouver des clients sous profil, Questionnaire/Devis retirés de la page) ; overlays scrim opaque sans flou. Migrations 016-019. Objectif Instagram/Behance **REPORTÉ**. Détails complets dans context.md. **Bug non résolu : emoji des notes non appliqué sur le Brave d'Adrien (vérifié OK en test navigateur).**
 
-  **⚠️ MOBILE À REFAIRE** : la version mobile est peu fonctionnelle, elle sera presque entièrement refaite plus tard. Pour l'instant, peaufinage **desktop uniquement**.
+  **⚠️ MOBILE = chantier en cours** : voir **PHASE 8 — Mobile** ci-dessous. Tout le peaufinage ci-dessus a été fait desktop d'abord ; le mobile est plein de bugs et on l'attaque maintenant.
 
 Design system quasi complet. ✅ **DARK MODE** (handoff design_handoff_creative_space_dark) : P.R.1 fondations (tokens CSS vars canaux RGB + darkMode class + toggle persisté dans profile.theme + classe dark sur <html> par requête, sans flash) + P.R.2 surfaces de contenu (variantes dark: sur toute l'app, light inchangé). Reste raffinements mineurs (diagrammes Recharts, filigrane priorité notes) + NETTOYER les dossiers handoff après validation. À VALIDER par Adrien.
 - [ ] **Page note/livrable façon Notion** : ouverture en LECTURE (grand titre, propriétés en lignes, % même hors projet), édition au crayon seulement (logique lecture/édition à implémenter).
@@ -449,6 +449,33 @@ Design system quasi complet. ✅ **DARK MODE** (handoff design_handoff_creative_
 - [ ] Templates de projets récurrents
 - [ ] Notifications push mobile
 - [ ] Recherche globale (chercher en même temps dans notes + projets + clients)
+
+---
+
+## PHASE 8 — Mobile (refonte responsive)  [EN COURS, démarré 03/07]
+
+**Contexte :** tout le produit a été peaufiné **desktop d'abord** ; sur mobile (iPhone, Safari/Brave), c'est actuellement **plein de bugs** (débordements, panneaux illisibles, tailles inadaptées). Objectif : rendre l'app **vraiment utilisable au doigt sur iPhone**, sans casser le desktop. Breakpoint pivot Tailwind : `md` (768px). Règle : tout ce qui est en `md:` reste desktop ; on corrige le **base (mobile)**.
+
+**Principes mobiles à tenir :**
+- Cibles tactiles ≥ 44px, marges latérales confortables, pas de scroll horizontal involontaire.
+- Les **overlays / panneaux latéraux** deviennent des **feuilles plein écran (ou bottom-sheet)** sur mobile, avec fermeture évidente (croix + glisser). Le panneau "Notion" à 45% n'a pas de sens < md → plein largeur.
+- **BottomNav** : barre du bas lisible, item actif clair, safe-area iOS (`env(safe-area-inset-bottom)`).
+- Pas de tableaux larges : les **tableaux** (À faire, Finance) passent en **cartes empilées** sur mobile.
+- Le **calendrier** : la grille jours×catégories est illisible < md → garder/soigner la vue mobile (une carte par jour) et la vue Liste (carrousel) tactile.
+- Typo/tailles : réduire les gros titres (30-34px) sur mobile.
+
+**Inventaire des écrans à reprendre (à cocher au fur et à mesure) :**
+- [ ] **Shell** : TopNav caché < md (ok), **BottomNav** (composants/app-shell/BottomNav) — lisibilité, safe-area, actif, 4 items. FAB supprimé → vérifier accès création partout.
+- [ ] **Overlays** (components/ui/Overlay + NotePanel) : plein écran/bottom-sheet propre sur mobile, croix accessible, pas de contenu coupé, scroll interne OK.
+- [ ] **Accueil** : KPI en 1 colonne lisible, "À traiter" compact OK, widgets (Bénéfice/IG/Behance/Info) empilés, popup retard centré, "Cette semaine" scroll horizontal ou empilé.
+- [ ] **Work / Projets** : cards pleine largeur, flèches de pagination utilisables (ou swipe), épingle atteignable, overlay Clients plein écran.
+- [ ] **Work / Calendrier** : vue mobile (carte/jour) soignée, carrousel Liste tactile, "+" et drag utilisables au doigt, panneau note plein écran.
+- [ ] **Work / To do** : post-its 1-2 colonnes, tableau "À faire" → cartes empilées sur mobile, bloc notes 1 colonne, éditeurs plein écran.
+- [ ] **Bank/Finance** : Dashboard cartes empilées, URSSAF carrousel tactile, diagrammes Recharts responsives (hauteur/labels), tableaux revenus/dépenses → cartes.
+- [ ] **Freelance** : profil compact, tunnel stepper scrollable, sections lisibles.
+- [ ] **Global** : polices/espacements mobiles, `viewport` et safe-areas, tester sur largeur ~390px.
+
+**Méthode :** on avance écran par écran, en corrigeant uniquement le `base` (mobile) sans toucher aux variantes `md:`. Points de retour réguliers avec Adrien (captures iPhone).
 
 ---
 
