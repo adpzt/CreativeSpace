@@ -467,15 +467,16 @@ Design system quasi complet. ✅ **DARK MODE** (handoff design_handoff_creative_
 **Inventaire des écrans à reprendre (à cocher au fur et à mesure) :**
 - [x] **Shell** : BottomNav lisible + **safe-area iOS** (bottom = calc(0.75rem + safe-area)), 4 items, fond opaque. FAB supprimé (création via boutons de section).
 - [x] **Overlays** (Overlay + NotePanel) : bottom-sheet propre sur mobile (poignée), **safe-area en bas**, padding réduit (px-5) ; **panneau Notion (side) = bottom-sheet < md**, panneau 45% à droite ≥ md ; scrim opaque sans flou.
-- [x] **Accueil** : titres réduits (26px), KPI 2 col, widgets empilés, "À traiter" compact, popup retard centré, "Cette semaine" en 2 colonnes sur mobile.
-- [x] **Work / Projets** : cards pleine largeur (1 col), **flèches de pagination ramenées dans l'écran** (rond blanc), épingle emoji atteignable, titres réduits.
-- [~] **Work / Calendrier** : vue mobile (carte/jour) + carrousel Liste (carte centrale pleine largeur) existants ; panneau note en bottom-sheet. À affiner : ergonomie du "+" et du drag au doigt.
-- [x] **Work / To do** : post-its 2 col (vedette pleine largeur, titres adaptés), **tableau "À faire" → cartes empilées** sur mobile, bloc notes 1 col, éditeurs en bottom-sheet.
-- [x] **Bank/Finance** : déjà responsive (Dashboard 2 col, URSSAF carrousel scrollable tactile, diagrammes Recharts responsives, listes revenus/dépenses en flex). À revérifier au doigt.
-- [~] **Freelance** : profil compact, tunnel stepper qui wrap, sections lisibles. À revérifier au doigt.
+- [x] **Accueil** : titres réduits (26px), KPI 2 col, widgets empilés, "À traiter" compact, popup retard centré. **Calendrier "Cette semaine" SUPPRIMÉ** (desktop + mobile, jugé inutile). **"Note rapide"** ouvre directement un formulaire de bloc note (components/home/QuickNote, overlay, sans redirection) → à la fermeture va sur /notes si contenu, sinon supprime.
+- [x] **Work / Projets** : **1 carte à la fois sur mobile** (matchMedia, 3 sur desktop) + flèches ramenées dans l'écran ; épingle emoji ; titres réduits.
+- [~] **Work / Calendrier** : **vue Liste par défaut** ; **drag&drop via une POIGNÉE (grip GripVertical)** sur chaque bloc → scroll OK partout au doigt, plus de drag accidentel ; vue mobile (carte/jour) + carrousel Liste. À affiner : ergonomie fine.
+- [x] **Work / To do** : post-its 2 col (vedette pleine largeur), **tableau "À faire" → cartes empilées** sur mobile, bloc notes 1 col, éditeurs en bottom-sheet ; NotePanel & BlocEditor **n'auto-focus plus le titre** (affichage propre à l'ouverture).
+- [x] **Bank/Finance** : Dashboard 2 col, diagrammes responsives, listes en flex. **URSSAF : vue "12 derniers mois" SUPPRIMÉE** (mobile + desktop) ; vue Mois = **1 carte centrée + flèches sur mobile**, fenêtre complète sur desktop.
+- [x] **Overlays** : croix (X) **descendue/alignée au titre** (moins haute) ; scrim opaque sans flou ; bottom-sheet + safe-area.
+- [~] **Freelance** : profil compact, tunnel stepper qui wrap. À revérifier au doigt.
 - [~] **Global** : safe-areas + titres réduits faits. Reste : test réel sur ~390px, ajustements fins.
 
-**Fait (03/07)** : passes mobile 1-3 (BottomNav safe-area, tableau À faire en cartes, overlays/panneau Notion en bottom-sheet, safe-areas, titres réduits, post-its & flèches projets adaptés). **Méthode :** on corrige uniquement le `base` (mobile) sans toucher aux variantes `md:`. Points de retour avec captures iPhone.
+**Fait (03/07)** : passes mobile 1 à 5 — BottomNav safe-area ; tableau À faire en cartes ; overlays/panneau Notion en bottom-sheet + safe-areas ; titres réduits ; post-its & projets (1/1 mobile) ; calendrier "Cette semaine" retiré de l'accueil ; "Note rapide" en formulaire direct ; URSSAF (12 mois retiré + carrousel mobile) ; croix alignée au titre ; **drag semainier via poignée** (fix scroll/drag). **Méthode :** on corrige uniquement le `base` (mobile) sans toucher aux `md:`. Points de retour avec captures iPhone. **Reste (non résolu) : emoji des notes non appliqué sur Brave d'Adrien (OK en test automatisé).**
 
 ---
 
