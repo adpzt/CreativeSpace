@@ -21,22 +21,7 @@ const MONTHS = [
   "Novembre",
   "Décembre",
 ];
-const MONTHS_SHORT = [
-  "Janv.",
-  "Févr.",
-  "Mars",
-  "Avr.",
-  "Mai",
-  "Juin",
-  "Juil.",
-  "Août",
-  "Sept.",
-  "Oct.",
-  "Nov.",
-  "Déc.",
-];
-
-type View = "mois" | "douze" | "debut";
+type View = "mois" | "debut";
 
 // Décale un couple (année, mois 1-12) de delta mois
 function shift(y: number, m: number, delta: number): { y: number; m: number } {
@@ -102,10 +87,6 @@ export default function UrssafSection({
   );
   const declaredCount = rows.filter((r) => r.completed).length;
 
-  // 12 derniers mois (du plus ancien au plus récent)
-  const douzeMois = Array.from({ length: 12 }, (_, i) =>
-    shift(curY, curM, -(11 - i))
-  );
   // Vue Mois : mois précédent (grisé), mois en cours/focus, 2 mois suivants
   const fenetre = [
     { ...shift(focus.y, focus.m, -1), dim: true },
@@ -126,7 +107,6 @@ export default function UrssafSection({
           {(
             [
               ["mois", "Mois"],
-              ["douze", "12 derniers mois"],
               ["debut", "Depuis le début"],
             ] as [View, string][]
           ).map(([v, label]) => (
@@ -155,20 +135,25 @@ export default function UrssafSection({
           >
             <ChevronLeft className="h-5 w-5" />
           </button>
+          {/* Mobile : 1 carte (le mois focus) ; desktop : fenêtre de plusieurs mois */}
           <div className="flex flex-1 gap-3 overflow-x-auto pb-1">
-            {fenetre.map((c) => (
-              <MonthCard
+            {fenetre.map((c, i) => (
+              <div
                 key={`${c.y}-${c.m}`}
-                year={c.y}
-                month={c.m}
-                label={`${MONTHS[c.m - 1]} ${c.y}`}
-                rate={urssafRate(c.y, c.m)}
-                row={rowOf(c.y, c.m)}
-                encaisse={encaisseOf(c.y, c.m)}
-                past={isPast(c.y, c.m)}
-                current={isCurrent(c.y, c.m)}
-                dim={c.dim}
-              />
+                className={`flex-1 ${i === 1 ? "flex" : "hidden md:flex"}`}
+              >
+                <MonthCard
+                  year={c.y}
+                  month={c.m}
+                  label={`${MONTHS[c.m - 1]} ${c.y}`}
+                  rate={urssafRate(c.y, c.m)}
+                  row={rowOf(c.y, c.m)}
+                  encaisse={encaisseOf(c.y, c.m)}
+                  past={isPast(c.y, c.m)}
+                  current={isCurrent(c.y, c.m)}
+                  dim={c.dim}
+                />
+              </div>
             ))}
           </div>
           <button
@@ -178,24 +163,6 @@ export default function UrssafSection({
           >
             <ChevronRight className="h-5 w-5" />
           </button>
-        </div>
-      )}
-
-      {view === "douze" && (
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {douzeMois.map((c) => (
-            <MonthCard
-              key={`${c.y}-${c.m}`}
-              year={c.y}
-              month={c.m}
-              label={`${MONTHS_SHORT[c.m - 1]} ${c.y}`}
-              rate={urssafRate(c.y, c.m)}
-              row={rowOf(c.y, c.m)}
-              encaisse={encaisseOf(c.y, c.m)}
-              past={isPast(c.y, c.m)}
-              current={isCurrent(c.y, c.m)}
-            />
-          ))}
         </div>
       )}
 

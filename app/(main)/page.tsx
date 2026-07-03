@@ -20,6 +20,7 @@ import { getMeSettings } from "./me/actions";
 import TodayTasks from "@/components/home/TodayTasks";
 import OverdueAlert from "@/components/home/OverdueAlert";
 import InfoWidget from "@/components/home/InfoWidget";
+import QuickNote from "@/components/home/QuickNote";
 import { InstagramWidget, BehanceWidget } from "@/components/home/SocialWidgets";
 import { ButtonLink } from "@/components/ui/Button";
 import { formatEuro } from "@/lib/work";
@@ -286,9 +287,7 @@ export default async function HomePage() {
         </div>
         <div className="flex items-center gap-2">
           <ButtonLink href="/work">+ Nouveau projet</ButtonLink>
-          <ButtonLink href="/notes" variant="secondary">
-            Note rapide
-          </ButtonLink>
+          <QuickNote />
         </div>
       </header>
 

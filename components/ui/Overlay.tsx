@@ -48,7 +48,7 @@ export default function Overlay({
         <button
           onClick={onClose}
           aria-label="Fermer"
-          className={`absolute right-3 top-3 z-10 rounded-lg p-1.5 transition-colors ${
+          className={`absolute right-4 top-6 z-10 rounded-lg p-1.5 transition-colors sm:top-5 ${
             redClose
               ? "text-urgent hover:bg-red-50"
               : "text-muted hover:bg-gray-100 dark:hover:bg-white/[0.06]"

@@ -33,6 +33,7 @@ import {
   Check,
   Trash2,
   CornerDownLeft,
+  GripVertical,
 } from "lucide-react";
 import Overlay from "@/components/ui/Overlay";
 import NotePanel from "@/components/ui/NotePanel";
@@ -94,11 +95,11 @@ export default function CalendarSection({
   const [delivNotes, setDelivNotes] = useState<Record<string, string>>({});
   const [delivProgress, setDelivProgress] = useState<Record<string, number>>({});
 
-  // Tactile : appui long (250ms) pour déplacer, sinon on laisse scroller la page
-  // (évite les drags accidentels au scroll). Souris : petit seuil de distance.
+  // Le drag se déclenche UNIQUEMENT via la poignée (grip) de chaque bloc, donc
+  // pas de conflit avec le scroll. Petit délai tactile pour la fluidité.
   const sensors = useSensors(
-    useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
-    useSensor(TouchSensor, { activationConstraint: { delay: 250, tolerance: 6 } })
+    useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
+    useSensor(TouchSensor, { activationConstraint: { delay: 120, tolerance: 8 } })
   );
 
   const weekStart = startOfWeek(refDate, { weekStartsOn: 1 });
@@ -984,33 +985,42 @@ function DraggableChip({
   return (
     <div
       ref={setNodeRef}
-      {...attributes}
-      {...listeners}
-      onClick={handleClick}
       style={style}
-      className="flex cursor-grab select-none items-start gap-2 rounded-[9px] bg-white dark:bg-surface px-[10px] py-2 text-[12.5px] font-semibold text-ink shadow-chip transition duration-[180ms] ease-ios hover:-translate-y-0.5"
+      className="flex select-none items-start gap-1.5 rounded-[9px] bg-white dark:bg-surface py-2 pl-1.5 pr-[10px] text-[12.5px] font-semibold text-ink shadow-chip transition duration-[180ms] ease-ios hover:-translate-y-0.5"
     >
-      {projectColor && (
-        <span
-          className="mt-1 h-2 w-2 shrink-0 rounded-full"
-          style={{ backgroundColor: projectColor }}
-        />
-      )}
-      <span
-        className={`flex-1 whitespace-normal break-words text-left ${
-          block.completed ? "text-muted line-through" : ""
-        } ${block.bold ? "font-semibold" : ""} ${block.italic ? "italic" : ""}`}
-        style={
-          !block.completed && block.text_color
-            ? { color: block.text_color }
-            : undefined
-        }
+      {/* Poignée de déplacement : SEULE zone qui déclenche le drag (le reste
+          reste cliquable et laisse scroller la page au doigt). */}
+      <button
+        {...attributes}
+        {...listeners}
+        aria-label="Déplacer"
+        className="mt-0.5 shrink-0 cursor-grab touch-none rounded p-0.5 text-black/25 hover:text-ink"
       >
-        {block.time && (
-          <span className="mr-1 font-medium text-muted">{block.time}</span>
+        <GripVertical className="h-4 w-4" />
+      </button>
+      <button onClick={handleClick} className="flex flex-1 items-start gap-2 text-left">
+        {projectColor && (
+          <span
+            className="mt-1 h-2 w-2 shrink-0 rounded-full"
+            style={{ backgroundColor: projectColor }}
+          />
         )}
-        {block.title}
-      </span>
+        <span
+          className={`flex-1 whitespace-normal break-words ${
+            block.completed ? "text-muted line-through" : ""
+          } ${block.bold ? "font-semibold" : ""} ${block.italic ? "italic" : ""}`}
+          style={
+            !block.completed && block.text_color
+              ? { color: block.text_color }
+              : undefined
+          }
+        >
+          {block.time && (
+            <span className="mr-1 font-medium text-muted">{block.time}</span>
+          )}
+          {block.title}
+        </span>
+      </button>
     </div>
   );
 }
