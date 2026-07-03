@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { format, parseISO } from "date-fns";
 import { fr } from "date-fns/locale";
@@ -119,11 +119,18 @@ export default function ProjectsSection({
   });
   const filterLabel = filter === "active" ? "Tous" : PROJECT_STATUS[filter].label;
 
-  // Pagination : 3 projets visibles à la fois, flèches discrètes au-delà.
-  const PER_PAGE = 3;
-  const pageCount = Math.max(1, Math.ceil(visible.length / PER_PAGE));
+  // Pagination : 3 projets visibles à la fois sur desktop, 1 seul sur mobile.
+  const [perPage, setPerPage] = useState(3);
+  useEffect(() => {
+    const mq = window.matchMedia("(min-width: 768px)");
+    const update = () => setPerPage(mq.matches ? 3 : 1);
+    update();
+    mq.addEventListener("change", update);
+    return () => mq.removeEventListener("change", update);
+  }, []);
+  const pageCount = Math.max(1, Math.ceil(visible.length / perPage));
   const safePage = Math.min(page, pageCount - 1);
-  const pageProjects = visible.slice(safePage * PER_PAGE, safePage * PER_PAGE + PER_PAGE);
+  const pageProjects = visible.slice(safePage * perPage, safePage * perPage + perPage);
 
   function togglePin(p: ProjectWithDeliverables) {
     const next = !isPinned(p);
@@ -230,7 +237,7 @@ export default function ProjectsSection({
             </button>
           )}
 
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
             {pageProjects.map((p) => {
               const cat = p.category ? CATEGORY[p.category] : null;
               const company = clientCompany(p.client_id) || p.org;
@@ -342,8 +349,9 @@ export default function ProjectsSection({
           maxWidthClass="max-w-3xl"
           redClose
         >
-          <div className="pr-8">
-            <div className="mb-4 flex items-center justify-between gap-3">
+          <div>
+            {/* pr-10 sur l'en-tête pour dégager la croix, contenu pleine largeur */}
+            <div className="mb-4 flex items-center justify-between gap-3 pr-10">
               <h3 className="text-[22px] font-bold tracking-tight">Clients</h3>
               <Button
                 variant="secondary"

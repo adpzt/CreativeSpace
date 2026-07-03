@@ -2,8 +2,6 @@ import Link from "next/link";
 import {
   format,
   parseISO,
-  startOfWeek,
-  addDays,
   endOfMonth,
   differenceInCalendarDays,
 } from "date-fns";
@@ -24,7 +22,7 @@ import OverdueAlert from "@/components/home/OverdueAlert";
 import InfoWidget from "@/components/home/InfoWidget";
 import { InstagramWidget, BehanceWidget } from "@/components/home/SocialWidgets";
 import { ButtonLink } from "@/components/ui/Button";
-import { formatEuro, CATEGORY_COLOR } from "@/lib/work";
+import { formatEuro } from "@/lib/work";
 import { urssafRate } from "@/lib/finance";
 
 export const dynamic = "force-dynamic";
@@ -70,10 +68,6 @@ export default async function HomePage() {
   const todayBlocks = blocks.filter(
     (b) => b.date_start <= todayStr && todayStr <= b.date_end
   );
-
-  // --- Semaine en cours (lun -> dim) ---
-  const weekStart = startOfWeek(now, { weekStartsOn: 1 });
-  const weekDays = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i));
 
   // --- Projets actifs ---
   const activeProjects = projects.filter(
@@ -409,65 +403,6 @@ export default async function HomePage() {
           Aujourd&apos;hui
         </h2>
         <TodayTasks blocks={todayBlocks} projects={projects} clients={clients} />
-      </section>
-
-      {/* Cette semaine */}
-      <section>
-        <div className="mb-3 flex items-center justify-between">
-          <h2 className="text-[11px] font-bold uppercase tracking-[0.08em] text-muted">
-            Cette semaine
-          </h2>
-          <Link
-            href="/work"
-            className="text-xs font-medium text-active hover:underline"
-          >
-            Ouvrir dans Work ›
-          </Link>
-        </div>
-        <div className="grid grid-cols-2 gap-2 sm:grid-cols-7">
-          {weekDays.map((day) => {
-            const dStr = format(day, "yyyy-MM-dd");
-            const dayBlocks = blocks.filter(
-              (b) => b.date_start <= dStr && dStr <= b.date_end
-            );
-            const isToday = dStr === todayStr;
-            return (
-              <div
-                key={dStr}
-                className={`rounded-xl border p-2 ${
-                  isToday
-                    ? "border-active/40 bg-blue-50/50"
-                    : "border-black/[0.06] bg-white"
-                }`}
-              >
-                <p className="mb-1.5 text-[11px] font-medium uppercase text-muted">
-                  {format(day, "EEE d", { locale: fr })}
-                </p>
-                <ul className="space-y-1">
-                  {dayBlocks.slice(0, 4).map((b) => (
-                    <li
-                      key={b.id}
-                      className={`flex items-center gap-1 text-xs ${
-                        b.completed ? "text-muted line-through" : "text-ink-soft"
-                      }`}
-                    >
-                      <span
-                        className="h-1.5 w-1.5 shrink-0 rounded-full"
-                        style={{ background: b.color || CATEGORY_COLOR[b.category] }}
-                      />
-                      <span className="truncate">{b.title}</span>
-                    </li>
-                  ))}
-                  {dayBlocks.length > 4 && (
-                    <li className="text-[11px] text-muted">
-                      +{dayBlocks.length - 4}
-                    </li>
-                  )}
-                </ul>
-              </div>
-            );
-          })}
-        </div>
       </section>
 
       {/* Objectifs & raccourcis (bento) */}

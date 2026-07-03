@@ -22,12 +22,11 @@ export default function BlocEditor({
   return (
     <div className="space-y-4 pr-8">
       <input
-        autoFocus
         value={title}
         onChange={(e) => setTitle(e.target.value)}
         onBlur={() => save({ title: title.trim() || null })}
         placeholder="Titre du bloc"
-        className="w-full bg-transparent text-[26px] font-bold leading-tight tracking-tight text-ink outline-none placeholder:text-muted"
+        className="w-full bg-transparent text-[24px] font-bold leading-tight tracking-tight text-ink outline-none placeholder:text-muted sm:text-[26px]"
       />
       <div className="border-t border-black/[0.06] pt-4">
         <RichText

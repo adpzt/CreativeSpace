@@ -85,7 +85,7 @@ export default function CalendarSection({
     setBlocks(initial);
   }, [initial]);
   const [refDate, setRefDate] = useState<Date>(new Date());
-  const [view, setView] = useState<"week" | "list">("week");
+  const [view, setView] = useState<"week" | "list">("list");
   const [showWeekend, setShowWeekend] = useState(false);
   const [activeId, setActiveId] = useState<string | null>(null);
   const [addCtx, setAddCtx] = useState<AddCtx | null>(null);
@@ -94,9 +94,11 @@ export default function CalendarSection({
   const [delivNotes, setDelivNotes] = useState<Record<string, string>>({});
   const [delivProgress, setDelivProgress] = useState<Record<string, number>>({});
 
+  // Tactile : appui long (250ms) pour déplacer, sinon on laisse scroller la page
+  // (évite les drags accidentels au scroll). Souris : petit seuil de distance.
   const sensors = useSensors(
-    useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
-    useSensor(TouchSensor, { activationConstraint: { delay: 180, tolerance: 8 } })
+    useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
+    useSensor(TouchSensor, { activationConstraint: { delay: 250, tolerance: 6 } })
   );
 
   const weekStart = startOfWeek(refDate, { weekStartsOn: 1 });
@@ -986,7 +988,7 @@ function DraggableChip({
       {...listeners}
       onClick={handleClick}
       style={style}
-      className="flex cursor-grab touch-none select-none items-start gap-2 rounded-[9px] bg-white dark:bg-surface px-[10px] py-2 text-[12.5px] font-semibold text-ink shadow-chip transition duration-[180ms] ease-ios hover:-translate-y-0.5"
+      className="flex cursor-grab select-none items-start gap-2 rounded-[9px] bg-white dark:bg-surface px-[10px] py-2 text-[12.5px] font-semibold text-ink shadow-chip transition duration-[180ms] ease-ios hover:-translate-y-0.5"
     >
       {projectColor && (
         <span

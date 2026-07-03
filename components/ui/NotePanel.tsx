@@ -168,16 +168,15 @@ export default function NotePanel({
         <div className="flex-1 overflow-y-auto px-5 pb-[max(2rem,env(safe-area-inset-bottom))] pt-2 sm:px-8">
           {mode === "edit" && onTitleSave ? (
             <input
-              autoFocus
               value={titleVal}
               onChange={(e) => setTitleVal(e.target.value)}
-              className={`w-full rounded-lg bg-transparent text-[34px] leading-tight tracking-tight outline-none placeholder:text-muted focus:outline-2 focus:outline-offset-[6px] focus:outline-active/35 ${titleClasses}`}
+              className={`w-full rounded-lg bg-transparent text-[26px] leading-tight tracking-tight outline-none placeholder:text-muted focus:outline-2 focus:outline-offset-[6px] focus:outline-active/35 sm:text-[32px] ${titleClasses}`}
               style={titleStyle}
               placeholder="Titre"
             />
           ) : (
             <h2
-              className={`text-[34px] leading-tight tracking-tight ${titleClasses}`}
+              className={`text-[26px] leading-tight tracking-tight sm:text-[32px] ${titleClasses}`}
               style={titleStyle}
             >
               {titleVal.trim() || <span className="text-muted">Sans titre</span>}
