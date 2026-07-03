@@ -40,7 +40,7 @@ export default function Overlay({
       onClick={dismissible ? onClose : undefined}
     >
       <div
-        className={`animate-sheet relative max-h-[92vh] w-full ${maxWidthClass} overflow-y-auto rounded-t-3xl bg-white dark:bg-surface p-7 shadow-float dark:shadow-[0_30px_70px_-14px_rgba(0,0,0,0.8)] sm:rounded-3xl`}
+        className={`animate-sheet relative max-h-[92vh] w-full ${maxWidthClass} overflow-y-auto rounded-t-3xl bg-white dark:bg-surface px-7 pt-7 pb-[max(1.75rem,env(safe-area-inset-bottom))] shadow-float dark:shadow-[0_30px_70px_-14px_rgba(0,0,0,0.8)] sm:rounded-3xl sm:pb-7`}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Poignée façon feuille iOS (mobile) */}

@@ -103,25 +103,28 @@ export default function NotePanel({
     <div
       className={
         side
-          ? "fixed inset-0 z-[100] flex animate-fade-in bg-black/55"
+          ? // Mobile : feuille par le bas ; md+ : panneau latéral à droite
+            "fixed inset-0 z-[100] flex items-end justify-center bg-black/55 animate-fade-in md:justify-end"
           : "fixed inset-0 z-[100] flex items-end justify-center bg-black/55 animate-fade-in sm:items-center sm:p-4"
       }
       onClick={close}
     >
-      {/* Espace cliquable à gauche pour fermer (mode Notion) */}
-      {side && <div className="flex-1" aria-hidden />}
+      {/* Espace cliquable à gauche pour fermer (mode Notion, desktop) */}
+      {side && <div className="hidden flex-1 md:block" aria-hidden />}
       <div
         onClick={(e) => e.stopPropagation()}
         className={
           side
-            ? "animate-slide-right relative ml-auto flex h-full w-full flex-col overflow-hidden bg-white shadow-float md:w-[45%] md:min-w-[520px]"
+            ? "animate-sheet relative flex max-h-[92vh] w-full flex-col overflow-hidden rounded-t-3xl bg-white shadow-float md:ml-auto md:h-full md:max-h-none md:w-[45%] md:min-w-[520px] md:animate-slide-right md:rounded-none"
             : "animate-sheet relative flex max-h-[92vh] w-full max-w-lg flex-col overflow-hidden rounded-t-3xl bg-white shadow-float sm:rounded-3xl"
         }
       >
-        {/* Poignée façon feuille iOS (mobile, uniquement en mode feuille) */}
-        {!side && (
-          <div className="mx-auto mt-3 h-[5px] w-10 shrink-0 rounded-full bg-black/[0.12] sm:hidden" />
-        )}
+        {/* Poignée façon feuille iOS : en mode feuille (non-side = < sm ; side = < md) */}
+        <div
+          className={`mx-auto mt-3 h-[5px] w-10 shrink-0 rounded-full bg-black/[0.12] ${
+            side ? "md:hidden" : "sm:hidden"
+          }`}
+        />
         {/* Barre du haut : crayon / retour à gauche, statut + fermeture à droite */}
         <div className="flex items-center justify-between gap-2 px-4 pt-3">
           {alwaysEdit ? (
@@ -162,7 +165,7 @@ export default function NotePanel({
         </div>
 
         {/* Contenu */}
-        <div className="flex-1 overflow-y-auto px-8 pb-8 pt-2">
+        <div className="flex-1 overflow-y-auto px-5 pb-[max(2rem,env(safe-area-inset-bottom))] pt-2 sm:px-8">
           {mode === "edit" && onTitleSave ? (
             <input
               autoFocus
@@ -202,7 +205,7 @@ export default function NotePanel({
         </div>
 
         {footer && (
-          <div className="border-t border-gray-100 dark:border-hairline px-8 py-3">{footer}</div>
+          <div className="border-t border-gray-100 dark:border-hairline px-5 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] sm:px-8 sm:pb-3">{footer}</div>
         )}
       </div>
     </div>
