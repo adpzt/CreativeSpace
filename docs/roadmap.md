@@ -465,17 +465,17 @@ Design system quasi complet. ✅ **DARK MODE** (handoff design_handoff_creative_
 - Typo/tailles : réduire les gros titres (30-34px) sur mobile.
 
 **Inventaire des écrans à reprendre (à cocher au fur et à mesure) :**
-- [ ] **Shell** : TopNav caché < md (ok), **BottomNav** (composants/app-shell/BottomNav) — lisibilité, safe-area, actif, 4 items. FAB supprimé → vérifier accès création partout.
-- [ ] **Overlays** (components/ui/Overlay + NotePanel) : plein écran/bottom-sheet propre sur mobile, croix accessible, pas de contenu coupé, scroll interne OK.
-- [ ] **Accueil** : KPI en 1 colonne lisible, "À traiter" compact OK, widgets (Bénéfice/IG/Behance/Info) empilés, popup retard centré, "Cette semaine" scroll horizontal ou empilé.
-- [ ] **Work / Projets** : cards pleine largeur, flèches de pagination utilisables (ou swipe), épingle atteignable, overlay Clients plein écran.
-- [ ] **Work / Calendrier** : vue mobile (carte/jour) soignée, carrousel Liste tactile, "+" et drag utilisables au doigt, panneau note plein écran.
-- [ ] **Work / To do** : post-its 1-2 colonnes, tableau "À faire" → cartes empilées sur mobile, bloc notes 1 colonne, éditeurs plein écran.
-- [ ] **Bank/Finance** : Dashboard cartes empilées, URSSAF carrousel tactile, diagrammes Recharts responsives (hauteur/labels), tableaux revenus/dépenses → cartes.
-- [ ] **Freelance** : profil compact, tunnel stepper scrollable, sections lisibles.
-- [ ] **Global** : polices/espacements mobiles, `viewport` et safe-areas, tester sur largeur ~390px.
+- [x] **Shell** : BottomNav lisible + **safe-area iOS** (bottom = calc(0.75rem + safe-area)), 4 items, fond opaque. FAB supprimé (création via boutons de section).
+- [x] **Overlays** (Overlay + NotePanel) : bottom-sheet propre sur mobile (poignée), **safe-area en bas**, padding réduit (px-5) ; **panneau Notion (side) = bottom-sheet < md**, panneau 45% à droite ≥ md ; scrim opaque sans flou.
+- [x] **Accueil** : titres réduits (26px), KPI 2 col, widgets empilés, "À traiter" compact, popup retard centré, "Cette semaine" en 2 colonnes sur mobile.
+- [x] **Work / Projets** : cards pleine largeur (1 col), **flèches de pagination ramenées dans l'écran** (rond blanc), épingle emoji atteignable, titres réduits.
+- [~] **Work / Calendrier** : vue mobile (carte/jour) + carrousel Liste (carte centrale pleine largeur) existants ; panneau note en bottom-sheet. À affiner : ergonomie du "+" et du drag au doigt.
+- [x] **Work / To do** : post-its 2 col (vedette pleine largeur, titres adaptés), **tableau "À faire" → cartes empilées** sur mobile, bloc notes 1 col, éditeurs en bottom-sheet.
+- [x] **Bank/Finance** : déjà responsive (Dashboard 2 col, URSSAF carrousel scrollable tactile, diagrammes Recharts responsives, listes revenus/dépenses en flex). À revérifier au doigt.
+- [~] **Freelance** : profil compact, tunnel stepper qui wrap, sections lisibles. À revérifier au doigt.
+- [~] **Global** : safe-areas + titres réduits faits. Reste : test réel sur ~390px, ajustements fins.
 
-**Méthode :** on avance écran par écran, en corrigeant uniquement le `base` (mobile) sans toucher aux variantes `md:`. Points de retour réguliers avec Adrien (captures iPhone).
+**Fait (03/07)** : passes mobile 1-3 (BottomNav safe-area, tableau À faire en cartes, overlays/panneau Notion en bottom-sheet, safe-areas, titres réduits, post-its & flèches projets adaptés). **Méthode :** on corrige uniquement le `base` (mobile) sans toucher aux variantes `md:`. Points de retour avec captures iPhone.
 
 ---
 
