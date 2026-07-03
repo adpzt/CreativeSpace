@@ -169,7 +169,7 @@ export default function NotesClient({
       {/* En-tête */}
       <header className="flex items-start justify-between gap-3">
         <div>
-          <h1 className="text-[30px] font-extrabold tracking-[-0.02em]">To do</h1>
+          <h1 className="text-[24px] font-extrabold tracking-[-0.02em] md:text-[30px]">To do</h1>
           <p className="mt-1 text-[15px] text-muted">
             Tes notes rapides en post-it et ta liste de choses à faire.
           </p>
@@ -219,7 +219,7 @@ export default function NotesClient({
                     i
                   )} ${
                     featured
-                      ? "min-h-[190px] ring-2 ring-[#F59E0B]/60 shadow-[0_0_26px_rgba(245,158,11,0.35)] md:col-span-2"
+                      ? "col-span-2 min-h-[190px] ring-2 ring-[#F59E0B]/60 shadow-[0_0_26px_rgba(245,158,11,0.35)]"
                       : "min-h-[150px]"
                   } ${i % 2 ? "rotate-[0.6deg]" : "-rotate-[0.6deg]"}`}
                 >
@@ -233,8 +233,8 @@ export default function NotesClient({
                     {/* Titre : domine le post-it (mots coloriables via HTML) */}
                     {hasTitle && (
                       <div
-                        className={`break-words font-extrabold leading-[1.05] tracking-tight text-ink [&_b]:font-extrabold [&_strong]:font-extrabold ${
-                          featured ? "mb-3 text-[34px]" : "mb-3 text-[19px]"
+                        className={`mb-3 break-words font-extrabold leading-[1.05] tracking-tight text-ink [&_b]:font-extrabold [&_strong]:font-extrabold ${
+                          featured ? "text-[26px] md:text-[34px]" : "text-[17px] md:text-[19px]"
                         }`}
                         dangerouslySetInnerHTML={{ __html: titleHtml }}
                       />

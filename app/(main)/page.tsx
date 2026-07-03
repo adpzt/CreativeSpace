@@ -285,7 +285,7 @@ export default async function HomePage() {
       {/* En-tête */}
       <header className="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <h1 className="text-[34px] font-bold leading-tight tracking-tight">
+          <h1 className="text-[26px] font-bold leading-tight tracking-tight md:text-[34px]">
             Bonjour Adrien
           </h1>
           <p className="mt-1 text-sm capitalize text-muted">{today}</p>
@@ -424,7 +424,7 @@ export default async function HomePage() {
             Ouvrir dans Work ›
           </Link>
         </div>
-        <div className="grid grid-cols-1 gap-2 sm:grid-cols-7">
+        <div className="grid grid-cols-2 gap-2 sm:grid-cols-7">
           {weekDays.map((day) => {
             const dStr = format(day, "yyyy-MM-dd");
             const dayBlocks = blocks.filter(

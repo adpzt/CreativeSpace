@@ -20,7 +20,7 @@ export default async function FreelancePage() {
     <div className="space-y-8">
       {/* En-tête */}
       <header>
-        <h1 className="text-[30px] font-extrabold tracking-[-0.02em]">Freelance</h1>
+        <h1 className="text-[24px] font-extrabold tracking-[-0.02em] md:text-[30px]">Freelance</h1>
         <p className="mt-1 text-[15px] text-muted">
           Ton guide opérationnel : à ouvrir quand tu as un doute avec un client.
           Tunnel, scripts, red flags, questionnaire.

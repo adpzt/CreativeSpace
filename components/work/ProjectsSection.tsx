@@ -143,7 +143,7 @@ export default function ProjectsSection({
   return (
     <section>
       <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
-        <h2 className="text-[26px] font-extrabold tracking-[-0.02em]">Projets</h2>
+        <h2 className="text-[22px] font-extrabold tracking-[-0.02em] md:text-[26px]">Projets</h2>
 
         <div className="flex items-center gap-2">
           {projects.length > 0 && (

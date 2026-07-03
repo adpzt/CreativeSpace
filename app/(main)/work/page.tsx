@@ -34,7 +34,7 @@ export default async function WorkPage() {
 
       {/* CALENDRIER (titre + contrôles centrés ; seul le board déborde) */}
       <div>
-        <h2 className="mb-5 text-[26px] font-extrabold tracking-[-0.02em]">Calendrier</h2>
+        <h2 className="mb-5 text-[22px] font-extrabold tracking-[-0.02em] md:text-[26px]">Calendrier</h2>
         <CalendarSection
           initial={blocks}
           projects={projects}
