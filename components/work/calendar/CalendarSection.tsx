@@ -1,6 +1,12 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import {
+  useEffect,
+  useRef,
+  useState,
+  type MouseEventHandler,
+  type TouchEventHandler,
+} from "react";
 import {
   startOfWeek,
   addWeeks,
@@ -14,7 +20,7 @@ import { fr } from "date-fns/locale";
 import {
   DndContext,
   DragOverlay,
-  PointerSensor,
+  MouseSensor,
   TouchSensor,
   useSensor,
   useSensors,
@@ -95,10 +101,13 @@ export default function CalendarSection({
   const [delivNotes, setDelivNotes] = useState<Record<string, string>>({});
   const [delivProgress, setDelivProgress] = useState<Record<string, number>>({});
 
-  // Le drag se déclenche UNIQUEMENT via la poignée (grip) de chaque bloc, donc
-  // pas de conflit avec le scroll. Petit délai tactile pour la fluidité.
+  // Deux capteurs distincts pour ne PAS confondre drag et scroll :
+  // - Souris : on saisit le bloc n'importe où, il faut bouger de 8px pour lancer
+  //   un drag (un vrai clic reste un clic). onMouseDown est posé sur tout le bloc.
+  // - Tactile : SEULE la poignée déclenche le déplacement (onTouchStart posé sur
+  //   elle), le corps du bloc laisse donc défiler la page au doigt.
   const sensors = useSensors(
-    useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
+    useSensor(MouseSensor, { activationConstraint: { distance: 8 } }),
     useSensor(TouchSensor, { activationConstraint: { delay: 120, tolerance: 8 } })
   );
 
@@ -986,19 +995,27 @@ function DraggableChip({
     <div
       ref={setNodeRef}
       style={style}
-      className="flex select-none items-start gap-1.5 rounded-[9px] bg-white dark:bg-surface py-2 pl-1.5 pr-[10px] text-[12.5px] font-semibold text-ink shadow-chip transition duration-[180ms] ease-ios hover:-translate-y-0.5"
+      {...attributes}
+      // Souris : tout le bloc est saisissable pour le déplacer (le MouseSensor
+      // distingue clic et drag via le seuil de 8px).
+      onMouseDown={
+        listeners?.onMouseDown as MouseEventHandler<HTMLDivElement> | undefined
+      }
+      onClick={handleClick}
+      className="flex cursor-grab select-none items-start gap-1.5 rounded-[9px] bg-white dark:bg-surface py-2 pl-1.5 pr-[10px] text-[12.5px] font-semibold text-ink shadow-chip transition duration-[180ms] ease-ios hover:-translate-y-0.5"
     >
-      {/* Poignée de déplacement : SEULE zone qui déclenche le drag (le reste
-          reste cliquable et laisse scroller la page au doigt). */}
-      <button
-        {...attributes}
-        {...listeners}
-        aria-label="Déplacer"
+      {/* Poignée : au doigt, SEULE zone qui déclenche le déplacement (touch-none),
+          le reste du bloc laisse défiler la page. À la souris tout le bloc glisse. */}
+      <span
+        onTouchStart={
+          listeners?.onTouchStart as TouchEventHandler<HTMLSpanElement> | undefined
+        }
+        aria-hidden
         className="mt-0.5 shrink-0 cursor-grab touch-none rounded p-0.5 text-black/25 hover:text-ink"
       >
         <GripVertical className="h-4 w-4" />
-      </button>
-      <button onClick={handleClick} className="flex flex-1 items-start gap-2 text-left">
+      </span>
+      <span className="flex flex-1 items-start gap-2 text-left">
         {projectColor && (
           <span
             className="mt-1 h-2 w-2 shrink-0 rounded-full"
@@ -1020,7 +1037,7 @@ function DraggableChip({
           )}
           {block.title}
         </span>
-      </button>
+      </span>
     </div>
   );
 }
