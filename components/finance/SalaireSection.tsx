@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Plus, Briefcase } from "lucide-react";
+import { Plus, Briefcase, ChevronDown } from "lucide-react";
 import Overlay from "@/components/ui/Overlay";
 import { Button } from "@/components/ui/Button";
 import EmptyState from "@/components/ui/EmptyState";
@@ -36,16 +36,37 @@ export default function SalaireSection({
   const router = useRouter();
   const [creating, setCreating] = useState(false);
   const [editing, setEditing] = useState<Salaire | null>(null);
+  // Overrides manuels d'ouverture par employeur (sinon défaut = le plus récent)
+  const [manualOpen, setManualOpen] = useState<Record<string, boolean>>({});
 
   const year = new Date().getFullYear();
   const thisYear = salaires.filter((s) => s.year === year);
   const netVerseYear = thisYear.reduce((s, x) => s + (x.net_salary ?? 0), 0);
   const revenuTotal = caYear + netVerseYear;
 
-  // Années présentes, de la plus récente à la plus ancienne
-  const years = Array.from(new Set(salaires.map((s) => s.year))).sort(
-    (a, b) => b - a
-  );
+  // Regroupement par EMPLOYEUR, trié par salaire le plus récent en premier.
+  const rank = (s: Salaire) => s.year * 12 + s.month;
+  const groups = Array.from(
+    salaires.reduce((m, s) => {
+      const key = s.employer?.trim() || "Sans employeur";
+      (m.get(key) ?? m.set(key, []).get(key)!).push(s);
+      return m;
+    }, new Map<string, Salaire[]>())
+  )
+    .map(([name, rows]) => ({
+      name,
+      rows: [...rows].sort((a, b) => rank(b) - rank(a)),
+      latest: Math.max(...rows.map(rank)),
+      totalNet: rows.reduce((s, x) => s + (x.net_salary ?? 0), 0),
+    }))
+    .sort((a, b) => b.latest - a.latest);
+
+  // L'employeur le plus récent est ouvert par défaut (Poppins, puis The Source).
+  const mostRecent = groups[0]?.name;
+  const isOpen = (name: string) =>
+    name in manualOpen ? manualOpen[name] : name === mostRecent;
+  const toggle = (name: string) =>
+    setManualOpen((m) => ({ ...m, [name]: !isOpen(name) }));
 
   function close() {
     setCreating(false);
@@ -80,44 +101,59 @@ export default function SalaireSection({
           description="Ajoute tes salaires (alternance The Source, stages 2025...). Ils alimentent le revenu total et l'estimation d'impôt, jamais le CA freelance ni l'URSSAF."
         />
       ) : (
-        <div className="space-y-4">
-          {years.map((yr) => {
-            const rows = salaires.filter((s) => s.year === yr);
-            const totalNet = rows.reduce((s, x) => s + (x.net_salary ?? 0), 0);
+        <div className="space-y-3">
+          {groups.map((g) => {
+            const open = isOpen(g.name);
             return (
-              <div key={yr}>
-                <div className="mb-1.5 flex items-center justify-between px-1">
-                  <span className="text-sm font-semibold">{yr}</span>
-                  <span className="text-xs text-muted">
-                    net versé {formatEuro(totalNet)}
+              <div
+                key={g.name}
+                className="overflow-hidden rounded-2xl border border-gray-100 bg-white dark:border-hairline dark:bg-surface"
+              >
+                {/* En-tête employeur, cliquable pour déplier/replier */}
+                <button
+                  onClick={() => toggle(g.name)}
+                  className="flex w-full items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-gray-50 dark:hover:bg-white/[0.06]"
+                >
+                  <ChevronDown
+                    className={`h-4 w-4 shrink-0 text-muted transition-transform ${
+                      open ? "" : "-rotate-90"
+                    }`}
+                  />
+                  <span className="min-w-0 flex-1 truncate text-[15px] font-semibold">
+                    {g.name}
                   </span>
-                </div>
-                <ul className="divide-y divide-gray-100 overflow-hidden rounded-2xl border border-gray-100 bg-white dark:divide-white/10 dark:border-hairline dark:bg-surface">
-                  {rows.map((s) => (
-                    <li key={s.id}>
-                      <button
-                        onClick={() => setEditing(s)}
-                        className="flex w-full items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-gray-50 dark:hover:bg-white/[0.06]"
-                      >
-                        <div className="min-w-0 flex-1">
-                          <p className="truncate font-medium">
-                            {MONTHS[s.month - 1]} {s.year}
-                            {s.employer ? ` · ${s.employer}` : ""}
-                          </p>
-                          <p className="truncate text-xs text-muted">
-                            Net imposable {formatEuro(s.net_taxable ?? 0)}
-                            {s.gross_salary != null
-                              ? ` · brut ${formatEuro(s.gross_salary)}`
-                              : ""}
-                          </p>
-                        </div>
-                        <span className="shrink-0 text-sm font-medium">
-                          {formatEuro(s.net_salary ?? 0)}
-                        </span>
-                      </button>
-                    </li>
-                  ))}
-                </ul>
+                  <span className="shrink-0 text-xs text-muted">
+                    {g.rows.length} · net versé {formatEuro(g.totalNet)}
+                  </span>
+                </button>
+
+                {open && (
+                  <ul className="divide-y divide-gray-100 border-t border-gray-100 dark:divide-white/10 dark:border-hairline">
+                    {g.rows.map((s) => (
+                      <li key={s.id}>
+                        <button
+                          onClick={() => setEditing(s)}
+                          className="flex w-full items-center gap-3 px-4 py-3 pl-11 text-left transition-colors hover:bg-gray-50 dark:hover:bg-white/[0.06]"
+                        >
+                          <div className="min-w-0 flex-1">
+                            <p className="truncate font-medium">
+                              {MONTHS[s.month - 1]} {s.year}
+                            </p>
+                            <p className="truncate text-xs text-muted">
+                              Net imposable {formatEuro(s.net_taxable ?? 0)}
+                              {s.gross_salary != null
+                                ? ` · brut ${formatEuro(s.gross_salary)}`
+                                : ""}
+                            </p>
+                          </div>
+                          <span className="shrink-0 text-sm font-medium">
+                            {formatEuro(s.net_salary ?? 0)}
+                          </span>
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                )}
               </div>
             );
           })}
