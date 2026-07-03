@@ -472,18 +472,11 @@ function NoteTable({
   onOpen: (n: Note) => void;
 }) {
   return (
-    <div className="overflow-x-auto rounded-2xl border border-black/[0.06] bg-white shadow-card">
-      <div className="min-w-[620px]">
-        {/* En-tête de colonnes */}
-        <div className="grid grid-cols-[34px_104px_1fr_140px_150px] items-center gap-3 border-b border-black/[0.06] bg-[#FAFAFB] px-4 py-2.5 text-[11px] font-semibold uppercase tracking-[0.05em] text-muted">
-          <span />
-          <span>Importance</span>
-          <span>Idée</span>
-          <span>Date</span>
-          <span>Thème</span>
-        </div>
+    <>
+      {/* MOBILE : cartes empilées (pas de tableau large) */}
+      <div className="space-y-2 md:hidden">
         {notes.map((n) => (
-          <NoteTableRow
+          <MobileTaskCard
             key={n.id}
             note={n}
             onToggle={() => onToggle(n)}
@@ -491,6 +484,103 @@ function NoteTable({
           />
         ))}
       </div>
+
+      {/* DESKTOP : tableau */}
+      <div className="hidden overflow-x-auto rounded-2xl border border-black/[0.06] bg-white shadow-card md:block">
+        <div className="min-w-[620px]">
+          {/* En-tête de colonnes */}
+          <div className="grid grid-cols-[34px_104px_1fr_140px_150px] items-center gap-3 border-b border-black/[0.06] bg-[#FAFAFB] px-4 py-2.5 text-[11px] font-semibold uppercase tracking-[0.05em] text-muted">
+            <span />
+            <span>Importance</span>
+            <span>Idée</span>
+            <span>Date</span>
+            <span>Thème</span>
+          </div>
+          {notes.map((n) => (
+            <NoteTableRow
+              key={n.id}
+              note={n}
+              onToggle={() => onToggle(n)}
+              onOpen={() => onOpen(n)}
+            />
+          ))}
+        </div>
+      </div>
+    </>
+  );
+}
+
+// Carte de tâche pour mobile (remplace la ligne de tableau).
+function MobileTaskCard({
+  note,
+  onToggle,
+  onOpen,
+}: {
+  note: Note;
+  onToggle: () => void;
+  onOpen: () => void;
+}) {
+  const title =
+    note.title?.trim() || stripHtml(note.content).split("\n")[0] || "Tâche";
+  const due = note.due_date ? parseISO(note.due_date) : null;
+  const overdue = due && !note.done && isPast(due) && !isToday(due);
+  const daysUntil = due ? differenceInCalendarDays(due, new Date()) : null;
+  const near = !note.done && daysUntil !== null && daysUntil <= 7;
+
+  return (
+    <div
+      className={`flex items-start gap-3 rounded-2xl border border-black/[0.06] p-3.5 shadow-card ${
+        near ? PRIO_ROW[note.priority] : "bg-white"
+      }`}
+    >
+      <button
+        onClick={onToggle}
+        aria-label={note.done ? "Marquer à faire" : "Marquer faite"}
+        className={`mt-0.5 flex h-[22px] w-[22px] shrink-0 items-center justify-center rounded-full border-2 transition-colors ${
+          note.done
+            ? "animate-pop border-success bg-success text-white"
+            : "border-black/[0.18]"
+        }`}
+      >
+        {note.done && <Check className="h-3 w-3" strokeWidth={3} />}
+      </button>
+      <button onClick={onOpen} className="min-w-0 flex-1 text-left">
+        <span className="flex items-center gap-2">
+          {note.emoji && <span className="shrink-0 text-[15px]">{note.emoji}</span>}
+          <span
+            className={`truncate text-[15px] ${
+              note.done ? "text-muted line-through" : "font-semibold"
+            }`}
+          >
+            {title}
+          </span>
+        </span>
+        <div className="mt-2 flex flex-wrap items-center gap-2">
+          <span
+            className={`inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-semibold ${
+              PRIO_BADGE[note.priority]
+            }`}
+          >
+            {PRIORITIES[note.priority].label}
+          </span>
+          {due && (
+            <span
+              className={`text-[12px] ${
+                !note.done && (isToday(due) || overdue)
+                  ? "font-semibold text-urgent"
+                  : "text-muted"
+              }`}
+            >
+              {isToday(due) ? "Aujourd'hui" : format(due, "d MMM yyyy", { locale: fr })}
+            </span>
+          )}
+          {note.theme?.trim() && (
+            <span className="rounded-md bg-[#F1F1F4] px-2 py-0.5 text-[11px] font-medium text-ink-soft">
+              {note.theme.trim()}
+            </span>
+          )}
+        </div>
+      </button>
     </div>
   );
 }

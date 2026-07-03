@@ -224,7 +224,7 @@ export default function ProjectsSection({
               onClick={() => setPage((p) => Math.max(0, p - 1))}
               disabled={safePage === 0}
               aria-label="Projets précédents"
-              className="absolute -left-9 top-1/2 z-20 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full text-muted transition-colors hover:bg-black/5 hover:text-ink disabled:opacity-25 disabled:hover:bg-transparent"
+              className="absolute -left-2 top-1/2 z-20 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full bg-white/80 text-muted shadow-card backdrop-blur transition-colors hover:bg-white hover:text-ink disabled:opacity-25 md:-left-9 md:bg-transparent md:shadow-none md:backdrop-blur-0"
             >
               <ChevronLeft className="h-6 w-6" />
             </button>
@@ -324,7 +324,7 @@ export default function ProjectsSection({
               onClick={() => setPage((p) => Math.min(pageCount - 1, p + 1))}
               disabled={safePage >= pageCount - 1}
               aria-label="Projets suivants"
-              className="absolute -right-9 top-1/2 z-20 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full text-muted transition-colors hover:bg-black/5 hover:text-ink disabled:opacity-25 disabled:hover:bg-transparent"
+              className="absolute -right-2 top-1/2 z-20 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full bg-white/80 text-muted shadow-card backdrop-blur transition-colors hover:bg-white hover:text-ink disabled:opacity-25 md:-right-9 md:bg-transparent md:shadow-none md:backdrop-blur-0"
             >
               <ChevronRight className="h-6 w-6" />
             </button>
