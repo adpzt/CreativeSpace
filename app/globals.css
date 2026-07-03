@@ -129,6 +129,15 @@ select {
   animation: zoomIn 160ms ease-out;
 }
 
+/* Overlay ouvert : on masque la nav (haut + bas). Sur Chromium/Brave, un élément
+   en backdrop-filter (nos barres en verre dépoli) peut se peindre AU-DESSUS d'un
+   scrim fixe semi-transparent (bug de compositing), laissant voir la barre et un
+   fond sombre incohérent en haut au clic. visibility:hidden garde la place mais
+   coupe le rendu -> plus de barre parasite. La classe est posée par Overlay.tsx. */
+body.cs-overlay-open .cs-chrome-nav {
+  visibility: hidden;
+}
+
 /* Accessibilité : couper animations et transitions si l'utilisateur le demande */
 @media (prefers-reduced-motion: reduce) {
   *,

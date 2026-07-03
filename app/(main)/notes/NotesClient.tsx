@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   format,
@@ -123,11 +123,16 @@ export default function NotesClient({
     router.refresh();
   }
 
+  // Écritures serveur en cours : on les attend avant tout router.refresh(), sinon
+  // la resync (setNotes(initialNotes)) peut réécraser un champ tout juste saisi
+  // (typiquement l'emoji tapé juste avant de fermer) avec des données périmées.
+  const pendingSaves = useRef<Promise<unknown>[]>([]);
+
   // Sauvegarde d'un champ de note (optimiste, sans refresh à chaque frappe).
   function savePostit(id: string, fields: Partial<Note>) {
     setNotes((list) => list.map((n) => (n.id === id ? { ...n, ...fields } : n)));
     setEditing((e) => (e && e.id === id ? { ...e, ...fields } : e));
-    updateNote(id, fields);
+    pendingSaves.current.push(updateNote(id, fields));
   }
 
   // Nouveau post-it : on crée une note vide puis on ouvre l'éditeur complet.
@@ -154,13 +159,18 @@ export default function NotesClient({
   // Fermeture de l'éditeur : on supprime la note si elle est restée vide.
   // On relit la note depuis la liste (à jour après enregistrement) et non depuis
   // `editing` (qui pouvait rester périmé -> une tâche remplie était supprimée).
-  function closeEditing() {
+  async function closeEditing() {
     const cur = editing ? notes.find((n) => n.id === editing.id) ?? editing : null;
     setEditing(null);
     if (cur && isEmptyNote(cur)) {
       setNotes((list) => list.filter((n) => n.id !== cur.id));
       deleteNote(cur.id);
     }
+    // On attend les écritures en cours avant de resynchroniser depuis le serveur,
+    // pour ne pas perdre un champ (emoji, thème…) enregistré à la dernière seconde.
+    const inflight = pendingSaves.current;
+    pendingSaves.current = [];
+    if (inflight.length) await Promise.allSettled(inflight);
     router.refresh();
   }
 

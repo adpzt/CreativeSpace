@@ -11,7 +11,7 @@ export default function TopNav() {
   const pathname = usePathname();
 
   return (
-    <div className="sticky top-4 z-30 mb-8 hidden justify-center md:flex">
+    <div className="cs-chrome-nav sticky top-4 z-30 mb-8 hidden justify-center md:flex">
       <nav className="flex items-center rounded-2xl border border-white/60 bg-white/55 p-1.5 shadow-float backdrop-blur-2xl backdrop-saturate-[1.9]">
         {NAV_ITEMS.map((item, i) => {
           const active = isActive(item.href, pathname);

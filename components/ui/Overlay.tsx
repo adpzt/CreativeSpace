@@ -28,9 +28,14 @@ export default function Overlay({
     }
     document.addEventListener("keydown", onKey);
     document.body.style.overflow = "hidden";
+    // Masque la nav (haut + bas) tant qu'un overlay est ouvert : sur Chromium/Brave
+    // la nav en backdrop-blur remonte au-dessus du scrim (bug de compositing) et
+    // laisse voir la barre + un fond sombre bizarre au clic. Voir globals.css.
+    document.body.classList.add("cs-overlay-open");
     return () => {
       document.removeEventListener("keydown", onKey);
       document.body.style.overflow = "";
+      document.body.classList.remove("cs-overlay-open");
     };
   }, [onClose, dismissible]);
 

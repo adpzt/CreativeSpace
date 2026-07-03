@@ -35,10 +35,14 @@ export const PRIORITY_ORDER: NotePriority[] = ["haute", "moyenne", "basse"];
 export const THEMES = ["Activités", "Tâches", "Design", "Loisir", "Santé"] as const;
 
 // Emojis proposés (épingle des post-it, ou devant le nom d'une tâche).
+// Palette large : on peut aussi taper/coller le sien dans le champ "Autre".
 export const NOTE_EMOJIS = [
-  "📌", "⭐", "🔥", "💡", "✅", "⚠️",
-  "❤️", "📷", "🎨", "🚀", "📝", "🎯",
-  "🩺", "🛒", "💻", "🏃", "🎬", "🌏",
+  "📌", "⭐", "🔥", "💡", "✅", "⚠️", "❗", "❓",
+  "❤️", "📷", "🎨", "🚀", "📝", "🎯", "🩺", "🛒",
+  "💻", "🏃", "🎬", "🌏", "💰", "💸", "📞", "📧",
+  "📅", "⏰", "🎁", "🏠", "🚗", "✈️", "☕", "🍔",
+  "🎉", "😀", "😅", "😍", "😎", "🤔", "😴", "👍",
+  "👀", "🙏", "💪", "🧠", "📈", "📊", "🔧", "🔑",
 ];
 
 // Couleurs de post-it (choisies par l'utilisateur). `key` stocké en base,

@@ -2,8 +2,9 @@
 
 import { NOTE_EMOJIS, THEMES } from "@/lib/notes";
 
-// Sélecteur d'emoji COMPACT (1 ligne) : emoji courant + palette défilante +
-// champ libre NON contrôlé (pour que l'insertion clavier/emoji macOS marche).
+// Sélecteur d'emoji : grille défilante de propositions + champ "Autre" pour
+// taper/coller le sien. Le champ est NON contrôlé (pas de perte de focus ni de
+// souci d'IME/emoji macOS) ; on remonte simplement ce qui est saisi.
 export function EmojiPicker({
   value,
   onChange,
@@ -11,22 +12,24 @@ export function EmojiPicker({
   value: string;
   onChange: (v: string) => void;
 }) {
-  return (
-    <div className="flex items-center gap-1.5">
-      {/* Aucun / effacer */}
-      <button
-        type="button"
-        onClick={() => onChange("")}
-        aria-label="Aucun emoji"
-        className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border text-xs text-muted ${
-          value === "" ? "border-ink" : "border-black/[0.1] hover:border-black/30"
-        }`}
-      >
-        /
-      </button>
+  const isCustom = !!value && !NOTE_EMOJIS.includes(value);
 
-      {/* Palette (défile horizontalement si besoin) */}
-      <div className="flex flex-1 items-center gap-1.5 overflow-x-auto pb-1">
+  return (
+    <div className="space-y-2.5">
+      {/* Grille de propositions (défile verticalement si besoin) */}
+      <div className="flex max-h-[132px] flex-wrap gap-1.5 overflow-y-auto pr-1">
+        {/* Aucun / effacer */}
+        <button
+          type="button"
+          onClick={() => onChange("")}
+          aria-label="Aucun emoji"
+          title="Aucun emoji"
+          className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border text-xs text-muted ${
+            value === "" ? "border-ink" : "border-black/[0.1] hover:border-black/30"
+          }`}
+        >
+          /
+        </button>
         {NOTE_EMOJIS.map((e) => (
           <button
             key={e}
@@ -43,16 +46,22 @@ export function EmojiPicker({
         ))}
       </div>
 
-      {/* Champ libre : NON contrôlé (pas de perte de focus) pour l'emoji tapé/collé */}
-      <input
-        defaultValue={NOTE_EMOJIS.includes(value) ? "" : value}
-        onChange={(e) => onChange(e.target.value)}
-        placeholder="＋"
-        maxLength={8}
-        aria-label="Autre emoji (taper ou coller)"
-        title="Taper ou coller un emoji"
-        className="h-9 w-12 shrink-0 rounded-lg border border-black/[0.1] text-center text-lg outline-none focus:border-active focus:ring-4 focus:ring-active/12"
-      />
+      {/* Champ "Autre" : taper ou coller son propre emoji. NON contrôlé + `key`
+          lié à la valeur pour refléter une sélection faite dans la grille. */}
+      <label className="flex items-center gap-2 text-[13px] text-muted">
+        <span className="shrink-0">Autre :</span>
+        <input
+          key={isCustom ? value : "empty"}
+          defaultValue={isCustom ? value : ""}
+          onChange={(e) => onChange(e.target.value)}
+          placeholder="tape ou colle un emoji"
+          maxLength={16}
+          aria-label="Autre emoji (taper ou coller)"
+          className={`h-9 w-40 rounded-lg border px-2 text-center text-lg outline-none focus:border-active focus:ring-4 focus:ring-active/12 ${
+            isCustom ? "border-ink bg-black/[0.04]" : "border-black/[0.1]"
+          }`}
+        />
+      </label>
     </div>
   );
 }

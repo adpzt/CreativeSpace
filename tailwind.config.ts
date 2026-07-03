@@ -40,7 +40,10 @@ const config: Config = {
         success: "rgb(var(--success) / <alpha-value>)", // vert : validé, payé, terminé
         active: "rgb(var(--active) / <alpha-value>)", // bleu : en cours, actif
         pending: "rgb(var(--pending) / <alpha-value>)", // orange : en attente
-        amber: "rgb(var(--amber) / <alpha-value>)", // ambre : priorité moyenne (notes)
+        // NB : ne PAS redéfinir "amber" ici. Un token "amber" custom écrase toute
+        // la palette amber-50…amber-950 de Tailwind -> bg-amber-100 / bg-amber-50
+        // (badge + ligne "Moyenne" des tâches) disparaissent. On garde la palette
+        // par défaut. La couleur "ambre" ponctuelle se fait en hex direct.
       },
       boxShadow: {
         card: "0 1px 2px rgba(0,0,0,0.04), 0 6px 16px -8px rgba(0,0,0,0.10)",
