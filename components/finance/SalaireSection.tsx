@@ -30,7 +30,7 @@ export default function SalaireSection({
   caYear,
 }: {
   salaires: Salaire[];
-  // CA freelance encaissé (net) de l'année en cours, pour le revenu total
+  // CA freelance facturé (brut, prix du devis) de l'année en cours, pour le revenu total
   caYear: number;
 }) {
   const router = useRouter();

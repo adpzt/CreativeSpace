@@ -8,6 +8,7 @@ import {
   TVA_FRANCHISE_MAJORE,
   INCOME_TAX_BRACKETS,
   MICRO_BNC_ABATTEMENT,
+  urssafRate,
 } from "@/lib/finance";
 import type { Payment } from "@/lib/types";
 
@@ -27,6 +28,20 @@ export default function SeuilsSection({ payments }: { payments: Payment[] }) {
   const objectifMensuel = Math.round(
     INCOME_TAX_BRACKETS[0].upTo / (1 - MICRO_BNC_ABATTEMENT) / 12
   );
+
+  // Argent RÉELLEMENT gagné depuis le début : le net encaissé (après commission
+  // plateforme) moins l'URSSAF estimée (calculée sur le CA facturé, mois par mois
+  // car le taux varie ACRE/plein). C'est ce qui reste vraiment en poche.
+  const netEncaisse = payments
+    .filter((p) => p.status === "paid")
+    .reduce((s, p) => s + (p.net_amount ?? 0), 0);
+  const urssafTotal = payments.reduce((s, p) => {
+    if (p.status !== "paid" || !p.received_date) return s;
+    const py = Number(p.received_date.slice(0, 4));
+    const pm = Number(p.received_date.slice(5, 7));
+    return s + (p.gross_amount ?? p.net_amount ?? 0) * urssafRate(py, pm);
+  }, 0);
+  const reelGagne = netEncaisse - urssafTotal;
 
   return (
     <section>
@@ -58,10 +73,25 @@ export default function SeuilsSection({ payments }: { payments: Payment[] }) {
             label="Objectif freelance · ce mois"
             current={caMonth}
             limit={objectifMensuel}
+            goal
             help={`CA/mois à ne pas dépasser pour rester non imposable (${formatEuro(
               objectifMensuel
             )}/mois, avant impôt).`}
           />
+          <div className="border-t border-black/[0.06] pt-4">
+            <div className="flex items-center justify-between gap-3">
+              <span className="text-[15px] font-semibold">
+                Réellement gagné · depuis le début
+              </span>
+              <span className="text-[15px] font-bold tracking-tight text-success">
+                {formatEuro(reelGagne)}
+              </span>
+            </div>
+            <p className="mt-1.5 text-xs text-muted">
+              Net encaissé ({formatEuro(netEncaisse)}) moins l&apos;URSSAF estimée
+              ({formatEuro(urssafTotal)}) — ce qui reste vraiment en poche.
+            </p>
+          </div>
         </div>
       </div>
     </section>
@@ -74,15 +104,64 @@ function ThresholdBar({
   limit,
   ceiling,
   help,
+  goal,
 }: {
   label: string;
   current: number;
   limit: number;
   ceiling?: number;
   help: string;
+  goal?: boolean;
 }) {
   const max = ceiling ?? limit;
-  const percent = Math.round((current / max) * 100);
+  const percent = max > 0 ? Math.round((current / max) * 100) : 0;
+
+  // Variante « objectif » : gagner de l'argent est une bonne nouvelle. On affiche
+  // un dégradé vert qui vire au gold à mesure qu'on approche de l'objectif — pas
+  // d'alerte, pas d'orange. Le dégradé est ancré sur toute la largeur de la barre
+  // (largeur inverse du remplissage) pour que le gold n'apparaisse qu'au bout.
+  if (goal) {
+    const clamped = Math.min(100, Math.max(0, percent));
+    const reached = current >= max;
+    return (
+      <div>
+        <div className="mb-2 flex items-center justify-between gap-3">
+          <span className="text-[15px] font-semibold">{label}</span>
+          <span className="text-[15px] font-bold tracking-tight">
+            {formatEuro(current)}{" "}
+            <span className="text-[13px] font-medium text-muted">
+              / {formatEuro(max)}
+            </span>
+          </span>
+        </div>
+        <div className="relative h-2.5 w-full overflow-hidden rounded-full bg-black/[0.07]">
+          {clamped > 0 && (
+            <div
+              className="absolute inset-y-0 left-0 overflow-hidden rounded-full transition-all"
+              style={{ width: `${clamped}%` }}
+            >
+              <div
+                className="h-full rounded-full"
+                style={{
+                  width: `${Math.max(100, 10000 / clamped)}%`,
+                  background:
+                    "linear-gradient(90deg,#10B981 0%,#22C55E 45%,#EAB308 82%,#F59E0B 100%)",
+                }}
+              />
+            </div>
+          )}
+        </div>
+        <p
+          className={`mt-1.5 text-xs ${
+            reached ? "font-medium text-[#B45309]" : "text-muted"
+          }`}
+        >
+          {reached ? `Objectif atteint 🎉 ${help}` : help}
+        </p>
+      </div>
+    );
+  }
+
   const exceeded = current >= max;
   const warning = !exceeded && current >= limit * 0.8;
   const barColor = exceeded ? "bg-urgent" : warning ? "bg-pending" : "bg-success";

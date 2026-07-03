@@ -26,9 +26,11 @@ export default async function FinancePage() {
   // Données de l'année en cours
   const year = new Date().getFullYear();
   const y = String(year);
+  // CA freelance = le montant FACTURÉ (brut, le prix du devis), pas le net encaissé
+  // après commission de plateforme. Cohérent avec les seuils et l'URSSAF.
   const caYear = payments
     .filter((p) => p.status === "paid" && p.received_date?.startsWith(y))
-    .reduce((s, p) => s + (p.net_amount ?? 0), 0);
+    .reduce((s, p) => s + (p.gross_amount ?? p.net_amount ?? 0), 0);
   // Base fiscale du salaire = cumul annuel du NET IMPOSABLE (lu sur le bulletin),
   // jamais le brut ni le net à payer. Apprentissage : exonéré jusqu'au SMIC
   // annuel, seule la part au-dessus est imposable (souvent 0 pour Adrien).

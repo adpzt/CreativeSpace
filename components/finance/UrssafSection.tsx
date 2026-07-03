@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { ChevronLeft, ChevronRight, Check, ChevronDown, HelpCircle } from "lucide-react";
+import { ChevronLeft, ChevronRight, Check, ChevronDown, HelpCircle, Clock } from "lucide-react";
 import { urssafRate, URSSAF_COTISATION_BNC } from "@/lib/finance";
 import { formatEuro } from "@/lib/work";
 import { upsertUrssaf } from "@/app/(main)/finance/actions";
@@ -53,8 +53,6 @@ export default function UrssafSection({
   };
   const rowOf = (y: number, m: number) =>
     rows.find((r) => r.year === y && r.month === m);
-  const isPast = (y: number, m: number) =>
-    y < curY || (y === curY && m <= curM);
   const isCurrent = (y: number, m: number) => y === curY && m === curM;
 
   const tauxActuel = urssafRate(curY, curM);
@@ -149,9 +147,9 @@ export default function UrssafSection({
                   rate={urssafRate(c.y, c.m)}
                   row={rowOf(c.y, c.m)}
                   encaisse={encaisseOf(c.y, c.m)}
-                  past={isPast(c.y, c.m)}
                   current={isCurrent(c.y, c.m)}
                   dim={c.dim}
+                  now={now}
                 />
               </div>
             ))}
@@ -230,9 +228,9 @@ function MonthCard({
   rate,
   row,
   encaisse,
-  past,
   current,
   dim,
+  now,
 }: {
   year: number;
   month: number;
@@ -240,13 +238,26 @@ function MonthCard({
   rate: number;
   row?: Urssaf;
   encaisse: number;
-  past: boolean;
   current: boolean;
   dim?: boolean;
+  now: Date;
 }) {
   const [completed, setCompleted] = useState(row?.completed ?? false);
   const urssaf = encaisse * rate;
-  const aDeclarer = past && encaisse > 0 && !completed;
+
+  // On ne peut déclarer le CA d'un mois qu'à partir du 1er du mois SUIVANT.
+  // new Date(year, month, 1) = 1er du mois suivant (month est en base 1, l'index
+  // JS étant en base 0, l'index `month` pointe donc le mois d'après).
+  const openDate = new Date(year, month, 1);
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const canDeclare = today.getTime() >= openDate.getTime();
+  const daysUntil = Math.ceil(
+    (openDate.getTime() - today.getTime()) / 86_400_000
+  );
+  // Mois d'ouverture de la déclaration, en MM (le mois suivant `month`).
+  const openMM = String((month % 12) + 1).padStart(2, "0");
+
+  const aDeclarer = canDeclare && encaisse > 0 && !completed;
 
   function toggle() {
     const next = !completed;
@@ -289,25 +300,35 @@ function MonthCard({
           <span className="font-medium">{formatEuro(urssaf)}</span>
         </p>
       </div>
-      <button
-        onClick={toggle}
-        className={`mt-3 flex w-full items-center justify-center gap-1.5 rounded-lg px-3 py-2 text-xs font-semibold transition-colors ${
-          completed
-            ? "bg-success text-white"
-            : aDeclarer
+      {completed ? (
+        <button
+          onClick={toggle}
+          className="mt-3 flex w-full items-center justify-center gap-1.5 rounded-lg bg-success px-3 py-2 text-xs font-semibold text-white transition-colors"
+        >
+          <Check className="h-3.5 w-3.5" />
+          Déclaré
+        </button>
+      ) : canDeclare ? (
+        <button
+          onClick={toggle}
+          className={`mt-3 flex w-full items-center justify-center gap-1.5 rounded-lg px-3 py-2 text-xs font-semibold transition-colors ${
+            aDeclarer
               ? "bg-pending text-white hover:opacity-90"
               : "border border-black/[0.1] text-ink-soft hover:border-black/25 hover:text-ink"
-        }`}
-      >
-        {completed ? (
-          <>
-            <Check className="h-3.5 w-3.5" />
-            Déclaré
-          </>
-        ) : (
-          "Marquer déclaré"
-        )}
-      </button>
+          }`}
+        >
+          Marquer déclaré
+        </button>
+      ) : (
+        // Fenêtre de déclaration pas encore ouverte : on ne peut rien cocher.
+        // Mois en cours -> compte à rebours ; mois plus lointains -> date d'ouverture.
+        <div className="mt-3 flex w-full items-center justify-center gap-1.5 rounded-lg border border-dashed border-black/[0.12] px-3 py-2 text-xs font-medium text-muted">
+          <Clock className="h-3.5 w-3.5" />
+          {current
+            ? `Déclare dans ${daysUntil} jour${daysUntil > 1 ? "s" : ""}`
+            : `Déclare le 01/${openMM}`}
+        </div>
+      )}
     </div>
   );
 }
