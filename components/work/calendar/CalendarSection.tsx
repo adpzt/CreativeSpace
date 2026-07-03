@@ -26,7 +26,9 @@ import {
   useSensors,
   useDraggable,
   useDroppable,
-  closestCenter,
+  pointerWithin,
+  rectIntersection,
+  type CollisionDetection,
   type DragStartEvent,
   type DragEndEvent,
 } from "@dnd-kit/core";
@@ -62,6 +64,15 @@ import type { Note } from "@/app/(main)/notes/actions";
 import { stripHtml } from "@/lib/notes";
 
 const iso = (d: Date) => format(d, "yyyy-MM-dd");
+
+// Détection de collision : on vise la case SOUS le curseur (pointerWithin, précis
+// pour une grille), avec repli sur l'intersection de rectangles quand le curseur
+// tombe dans un interstice entre deux cases. Bien plus fidèle que closestCenter
+// (qui visait le centre du bloc déplacé, d'où un drop décalé).
+const dropCollision: CollisionDetection = (args) => {
+  const pointer = pointerWithin(args);
+  return pointer.length > 0 ? pointer : rectIntersection(args);
+};
 
 // Boîte de catégorie du semainier : rectangle arrondi TEINTÉ (sans dot).
 const CAT_BOX: Record<CalendarCategory, string> = {
@@ -515,11 +526,14 @@ export default function CalendarSection({
       </div>
 
       {/* Le board déborde du conteneur (largeur), la barre de contrôle reste centrée */}
-      <div className="relative left-1/2 w-[min(1360px,94vw)] -translate-x-1/2">
+      {/* Board plus large que la colonne de contenu, centré SANS transform : un
+          transform ici ferait du wrapper le bloc conteneur du DragOverlay (fixed)
+          et décalerait le bloc déplacé. On centre donc via marge négative. */}
+      <div className="relative left-1/2 ml-[calc(min(1360px,94vw)/-2)] w-[min(1360px,94vw)]">
       {view === "list" ? (
         <DndContext
           sensors={sensors}
-          collisionDetection={closestCenter}
+          collisionDetection={dropCollision}
           onDragStart={onDragStart}
           onDragEnd={onDragEnd}
         >
@@ -643,7 +657,7 @@ export default function CalendarSection({
             en haut-gauche) et le drop casse. Un seul est visible à la fois. */}
         <DndContext
           sensors={sensors}
-          collisionDetection={closestCenter}
+          collisionDetection={dropCollision}
           onDragStart={onDragStart}
           onDragEnd={onDragEnd}
         >
@@ -721,7 +735,7 @@ export default function CalendarSection({
 
         <DndContext
           sensors={sensors}
-          collisionDetection={closestCenter}
+          collisionDetection={dropCollision}
           onDragStart={onDragStart}
           onDragEnd={onDragEnd}
         >
