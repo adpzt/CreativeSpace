@@ -100,7 +100,15 @@ const CAT_BOX: Record<CalendarCategory, string> = {
   perso: "bg-orange-50 border-orange-600/25 text-orange-700",
 };
 
-type Suggestion = { project: ProjectWithDeliverables; deliverable: Deliverable };
+// Un livrable proposé à la planification, qu'il vienne d'un projet ou d'un
+// post-it. `label` = client/entreprise (projet) ou titre du post-it (note).
+type Suggestion = {
+  deliverable: Deliverable;
+  label: string;
+  color: string | null;
+  projectId: string | null;
+  noteId: string | null;
+};
 type AddCtx = { dayIso: string; cat: CalendarCategory };
 
 export default function CalendarSection({
@@ -170,6 +178,8 @@ export default function CalendarSection({
   const projectById = new Map(projects.map((p) => [p.id, p]));
   const deliverableById = new Map<string, Deliverable>();
   projects.forEach((p) => p.deliverables.forEach((d) => deliverableById.set(d.id, d)));
+  // Livrables de post-its aussi (blocs de calendrier liés à un post-it).
+  notes.forEach((n) => (n.deliverables ?? []).forEach((d) => deliverableById.set(d.id, d)));
 
   // Couleur de pastille : celle choisie sur le bloc, sinon celle du projet lié.
   const colorForBlock = (b: CalendarBlock) =>
@@ -202,7 +212,33 @@ export default function CalendarSection({
       if (p.category !== cat || p.status === "cancelled") continue;
       for (const d of p.deliverables) {
         if (d.completed) continue;
-        out.push({ project: p, deliverable: d });
+        out.push({
+          deliverable: d,
+          label: clientCompanyOf(p),
+          color: p.color ?? null,
+          projectId: p.id,
+          noteId: null,
+        });
+      }
+    }
+    // Catégorie Perso : on propose aussi les livrables des post-its (non terminés).
+    if (cat === "perso") {
+      for (const n of notes) {
+        if (n.is_task || n.is_bloc) continue; // uniquement les post-its
+        const title =
+          stripHtml(n.title || "").trim() ||
+          stripHtml(n.content || "").split("\n")[0] ||
+          "Post-it";
+        for (const d of n.deliverables ?? []) {
+          if (d.completed) continue;
+          out.push({
+            deliverable: d,
+            label: title,
+            color: null,
+            projectId: null,
+            noteId: n.id,
+          });
+        }
       }
     }
     return out;
@@ -334,14 +370,14 @@ export default function CalendarSection({
       date_start: dayIso,
       date_end: dayIso,
       category: cat,
-      color: s.project.color,
+      color: s.color,
       completed: false,
       notes: null,
       time: null,
       bold: false,
       italic: false,
       text_color: null,
-      project_id: s.project.id,
+      project_id: s.projectId,
       deliverable_id: s.deliverable.id,
       created_at: new Date().toISOString(),
     };
@@ -352,8 +388,8 @@ export default function CalendarSection({
         date_start: dayIso,
         date_end: dayIso,
         category: cat,
-        color: s.project.color,
-        project_id: s.project.id,
+        color: s.color,
+        project_id: s.projectId,
         deliverable_id: s.deliverable.id,
       });
       setBlocks((p) => p.map((x) => (x.id === tempId ? b : x)));
@@ -841,7 +877,6 @@ export default function CalendarSection({
             noteSuggestions={
               addCtx.cat === "perso" ? notes.filter((n) => !n.done) : []
             }
-            clientLabel={clientCompanyOf}
             onCreate={(title, opts) => {
               create(addCtx.dayIso, addCtx.cat, title, opts);
               setAddCtx(null);
@@ -1119,7 +1154,6 @@ function AddEntry({
   ctx,
   suggestions,
   noteSuggestions,
-  clientLabel,
   onCreate,
   onPick,
   onPickNote,
@@ -1127,7 +1161,6 @@ function AddEntry({
   ctx: AddCtx;
   suggestions: Suggestion[];
   noteSuggestions: Note[];
-  clientLabel: (p: ProjectWithDeliverables) => string;
   onPickNote: (n: Note) => void;
   onCreate: (
     title: string,
@@ -1205,12 +1238,10 @@ function AddEntry({
                 >
                   <span
                     className="h-2.5 w-2.5 shrink-0 rounded-full"
-                    style={{ backgroundColor: s.project.color ?? "#CBD5E1" }}
+                    style={{ backgroundColor: s.color ?? "#CBD5E1" }}
                   />
                   <span className="flex-1 truncate">{s.deliverable.name}</span>
-                  <span className="shrink-0 text-xs text-muted">
-                    {clientLabel(s.project)}
-                  </span>
+                  <span className="shrink-0 text-xs text-muted">{s.label}</span>
                 </button>
               </li>
             ))}

@@ -106,7 +106,9 @@ export type Project = {
 
 export type Deliverable = {
   id: string;
-  project_id: string;
+  // Un livrable est rattaché soit à un projet, soit à une note (post-it).
+  project_id: string | null;
+  note_id: string | null;
   name: string;
   duration_days: number;
   completed: boolean;

@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { createServerSupabase } from "@/lib/supabase/server";
+import type { Deliverable } from "@/lib/types";
 
 export type NotePriority = "basse" | "moyenne" | "haute";
 
@@ -19,19 +20,27 @@ export type Note = {
   is_bloc: boolean;
   deleted_at: string | null;
   created_at: string;
+  // Livrables du post-it (comme un projet). Rempli par getNotes.
+  deliverables?: Deliverable[];
 };
 
-// Notes actives (hors corbeille)
+// Notes actives (hors corbeille), livrables du post-it inclus (triés)
 export async function getNotes(): Promise<Note[]> {
   const supabase = createServerSupabase();
   const { data, error } = await supabase
     .from("notes")
-    .select("*")
+    .select("*, deliverables(*)")
     .is("deleted_at", null)
     .order("created_at", { ascending: false });
 
   if (error) throw new Error(error.message);
-  return (data ?? []) as Note[];
+  return (data ?? []).map((n) => {
+    const note = n as Note;
+    const deliverables = [...(note.deliverables ?? [])].sort(
+      (a, b) => a.order_index - b.order_index
+    );
+    return { ...note, deliverables };
+  });
 }
 
 // Notes dans la corbeille (plus récemment supprimées d'abord)

@@ -161,9 +161,10 @@ export async function deleteProject(id: string): Promise<void> {
 
 // =================== LIVRABLES ===================
 
-// Ajoute un livrable a un projet et renvoie la ligne créée
+// Ajoute un livrable à un projet OU à une note (post-it) et renvoie la ligne créée
 export async function addDeliverable(input: {
-  project_id: string;
+  project_id?: string | null;
+  note_id?: string | null;
   name: string;
   duration_days: number;
   order_index: number;
@@ -173,7 +174,8 @@ export async function addDeliverable(input: {
   const { data, error } = await supabase
     .from("deliverables")
     .insert({
-      project_id: input.project_id,
+      project_id: input.project_id ?? null,
+      note_id: input.note_id ?? null,
       name: input.name,
       duration_days: input.duration_days,
       order_index: input.order_index,
@@ -184,6 +186,7 @@ export async function addDeliverable(input: {
 
   if (error) throw new Error(error.message);
   revalidatePath("/work");
+  revalidatePath("/notes");
   return data as Deliverable;
 }
 
@@ -224,6 +227,7 @@ export async function updateDeliverable(
       .eq("deliverable_id", id);
   }
   revalidatePath("/work");
+  revalidatePath("/notes");
   revalidatePath("/");
 }
 
@@ -234,6 +238,7 @@ export async function deleteDeliverable(id: string): Promise<void> {
 
   if (error) throw new Error(error.message);
   revalidatePath("/work");
+  revalidatePath("/notes");
   revalidatePath("/");
 }
 

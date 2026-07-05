@@ -31,19 +31,22 @@ import {
   type Note,
   type NotePriority,
 } from "./actions";
+import type { Deliverable } from "@/lib/types";
 import { PRIORITIES, postitBg, stripHtml } from "@/lib/notes";
 
 // Type de note : post-it (par défaut), tâche (is_task) ou bloc notes (is_bloc).
 const isPostit = (n: Note) => !n.is_task && !n.is_bloc;
 const isBloc = (n: Note) => n.is_bloc;
 
-// Une note est "vide" si rien n'a été renseigné (pour la nettoyer à la fermeture)
+// Une note est "vide" si rien n'a été renseigné (pour la nettoyer à la fermeture).
+// Un post-it qui a des livrables n'est jamais vide.
 const isEmptyNote = (n: Note) =>
   !stripHtml(n.title || "").trim() &&
   !stripHtml(n.content || "").trim() &&
   !n.theme?.trim() &&
   !n.emoji &&
-  !n.due_date;
+  !n.due_date &&
+  !(n.deliverables && n.deliverables.length > 0);
 
 export default function NotesClient({
   initialNotes,
@@ -133,6 +136,16 @@ export default function NotesClient({
     setNotes((list) => list.map((n) => (n.id === id ? { ...n, ...fields } : n)));
     setEditing((e) => (e && e.id === id ? { ...e, ...fields } : e));
     pendingSaves.current.push(updateNote(id, fields));
+  }
+
+  // Synchronise les livrables d'un post-it dans l'état (persistés à part par
+  // l'éditeur) : nécessaire pour que isEmptyNote ne supprime pas un post-it qui
+  // n'a que des livrables, et pour rafraîchir l'affichage.
+  function syncDeliverables(id: string, deliverables: Deliverable[]) {
+    setNotes((list) =>
+      list.map((n) => (n.id === id ? { ...n, deliverables } : n))
+    );
+    setEditing((e) => (e && e.id === id ? { ...e, deliverables } : e));
   }
 
   // Nouveau post-it : on crée une note vide puis on ouvre l'éditeur complet.
@@ -395,6 +408,7 @@ export default function NotesClient({
               key={editing.id}
               note={editing}
               save={(fields) => savePostit(editing.id, fields)}
+              onDeliverablesChange={(dels) => syncDeliverables(editing.id, dels)}
               onDelete={() => removeNote(editing.id)}
             />
           </Overlay>
