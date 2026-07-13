@@ -256,6 +256,19 @@ export default function CalendarSection({
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
       if ((e.metaKey || e.ctrlKey) && (e.key === "z" || e.key === "Z") && !e.shiftKey) {
+        // Quand on écrit dans un champ (input, textarea, note enrichie…), le
+        // Ctrl/Cmd+Z doit annuler LE TEXTE (annulation native du navigateur),
+        // pas une action du calendrier. On laisse donc passer l'événement.
+        const t = e.target as HTMLElement | null;
+        if (
+          t &&
+          (t.isContentEditable ||
+            t.tagName === "INPUT" ||
+            t.tagName === "TEXTAREA" ||
+            t.closest('[contenteditable="true"]'))
+        ) {
+          return;
+        }
         const fn = undoStack.current.pop();
         if (!fn) return;
         e.preventDefault();

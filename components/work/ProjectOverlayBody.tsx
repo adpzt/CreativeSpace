@@ -102,8 +102,9 @@ export default function ProjectOverlayBody({
   async function changeStatus(s: ProjectStatus) {
     setStatus(s);
     await updateProject(project.id, { status: s });
-    // À la clôture, on demande si le projet a été payé
-    if (s === "closed") setAskPaid(true);
+    // À la clôture d'un projet freelance, on demande si le solde a été encaissé
+    // (seul le freelance alimente la Finance ; inutile pour école/entreprise)
+    if (s === "closed" && category === "freelance") setAskPaid(true);
   }
   async function setPaid(paid: boolean) {
     setAskPaid(false);

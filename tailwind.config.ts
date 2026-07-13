@@ -96,7 +96,12 @@ const config: Config = {
         "rise-soft": "rise-soft 360ms cubic-bezier(0.2,0.7,0.3,1) backwards",
         shimmer: "shimmer 1.5s infinite",
         pop: "pop 240ms cubic-bezier(0.2,0.7,0.3,1.3)",
-        sheet: "sheet 300ms cubic-bezier(0.32,0.72,0,1) both",
+        // `backwards` (et PAS `both`), comme `rise` : sinon le transform résiduel
+        // (translateY(0) scale(1)) reste posé sur le conteneur de l'Overlay et en
+        // fait un bloc conteneur -> les overlays `fixed` imbriqués (ex : la note
+        // d'un livrable ouverte depuis un projet) se retrouvent piégés DANS la
+        // petite boîte de l'Overlay au lieu de couvrir l'écran.
+        sheet: "sheet 300ms cubic-bezier(0.32,0.72,0,1) backwards",
         "fade-in": "fade-in 200ms ease both",
         drift: "drift 24s ease-in-out infinite",
       },
