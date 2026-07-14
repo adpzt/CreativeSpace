@@ -1,4 +1,4 @@
-import type { PaymentStatus } from "@/lib/types";
+import type { PaymentStatus, Payment } from "@/lib/types";
 
 // Statuts d'un revenu / encaissement
 export const PAYMENT_STATUS: Record<
@@ -115,6 +115,11 @@ export function currentBracket(taxable: number): { rate: number; upTo: number } 
   return INCOME_TAX_BRACKETS[INCOME_TAX_BRACKETS.length - 1];
 }
 
+// Catégorie des commissions de plateforme = écart automatiquement déduit entre
+// le CA du devis et le CA encaissé (Malt…). Distincte des dépenses de mission ou
+// des frais d'un compte pro, qui gardent leurs propres catégories.
+export const COMMISSION_CATEGORY = "Commission plateforme";
+
 // Catégories de dépenses (modifiables par Adrien)
 export const EXPENSE_CATEGORIES = [
   "Logiciels & abonnements",
@@ -123,9 +128,20 @@ export const EXPENSE_CATEGORIES = [
   "Déplacements",
   "Communication & marketing",
   "Sous-traitance",
-  "Commission plateforme",
+  COMMISSION_CATEGORY,
   "Frais bancaires",
   "URSSAF",
   "Impôt",
   "Divers",
 ];
+
+// Commission d'un encaissement = écart entre le prix FACTURÉ (le devis) et le
+// net RÉELLEMENT reçu. C'est la part prise par la plateforme (Malt…) ou tout
+// autre écart entre CA facturé et CA encaissé. 0 s'il n'y a rien à déduire.
+// NB : le net est AVANT URSSAF/impôt — la commission n'inclut donc jamais le
+// fiscal, uniquement ce qui est perdu entre le devis et le virement.
+export function paymentCommission(p: Payment): number {
+  if (p.gross_amount == null || p.net_amount == null) return 0;
+  const gap = p.gross_amount - p.net_amount;
+  return gap > 0 ? gap : 0;
+}

@@ -14,7 +14,7 @@ import {
 import type { LucideIcon } from "lucide-react";
 import { Area, AreaChart, ResponsiveContainer } from "recharts";
 import { formatEuro } from "@/lib/work";
-import { urssafRate } from "@/lib/finance";
+import { urssafRate, paymentCommission } from "@/lib/finance";
 import type { Payment, Expense } from "@/lib/types";
 
 const MONTHS = [
@@ -52,12 +52,8 @@ export default function DashboardSection({
   const [focus, setFocus] = useState({ y: curY, m: curM });
 
   const net = (p: Payment) => p.net_amount ?? 0;
-  // Base URSSAF = montant FACTURÉ (brut), pas le net après commission
+  // CA affiché = montant FACTURÉ (brut) ; c'est aussi la base URSSAF/impôt.
   const gross = (p: Payment) => p.gross_amount ?? p.net_amount ?? 0;
-  const paidIn = (prefix: string) =>
-    payments
-      .filter((p) => p.status === "paid" && p.received_date?.startsWith(prefix))
-      .reduce((s, p) => s + net(p), 0);
   const grossIn = (prefix: string) =>
     payments
       .filter((p) => p.status === "paid" && p.received_date?.startsWith(prefix))
@@ -66,6 +62,11 @@ export default function DashboardSection({
     expenses
       .filter((e) => e.date?.startsWith(prefix))
       .reduce((s, e) => s + (e.amount ?? 0), 0);
+  // Commissions = écart devis / encaissé, rattaché au mois de l'encaissement
+  const commIn = (prefix: string) =>
+    payments
+      .filter((p) => p.status === "paid" && p.received_date?.startsWith(prefix))
+      .reduce((s, p) => s + paymentCommission(p), 0);
 
   // En attente / dû : global (pas rattaché à un mois tant que pas encaissé)
   const enAttente = payments
@@ -74,33 +75,42 @@ export default function DashboardSection({
 
   let ca: number,
     dep: number,
+    comm: number,
     urssaf: number,
     periodLabel: string;
 
   if (mode === "mois") {
     const ym = `${focus.y}-${String(focus.m).padStart(2, "0")}`;
-    ca = paidIn(ym);
+    // Première bulle = CA BRUT (le facturé), pas le net encaissé
+    ca = grossIn(ym);
     dep = depIn(ym);
+    comm = commIn(ym);
     urssaf = grossIn(ym) * urssafRate(focus.y, focus.m);
     periodLabel = `${MONTHS[focus.m - 1]} ${focus.y}`;
   } else {
     const y = String(curY);
-    ca = paidIn(y);
+    ca = grossIn(y);
     dep = depIn(y);
+    comm = commIn(y);
     urssaf = 0;
     for (let m = 1; m <= 12; m++) {
       urssaf += grossIn(`${y}-${String(m).padStart(2, "0")}`) * urssafRate(curY, m);
     }
     periodLabel = `Année ${curY}`;
   }
-  const benefice = ca - dep - urssaf;
+  // La bulle "Dépenses & commission" regroupe les vraies dépenses ET la
+  // commission perdue sur les plateformes.
+  const depComm = dep + comm;
+  // Bénéfice net = CA brut - (dépenses + commission) - URSSAF, soit exactement
+  // le net réellement gardé après tout (= net encaissé - dépenses - URSSAF).
+  const benefice = ca - depComm - urssaf;
 
-  // Mini-tendance : CA net des 6 derniers mois (jusqu'au mois affiché, sinon
+  // Mini-tendance : CA brut des 6 derniers mois (jusqu'au mois affiché, sinon
   // jusqu'au mois courant en vue annuelle). Affichée sur la carte CA.
   const spEnd = mode === "mois" ? focus : { y: curY, m: curM };
   const caSpark = Array.from({ length: 6 }, (_, i) => {
     const s = shift(spEnd.y, spEnd.m, i - 5);
-    return { v: paidIn(`${s.y}-${String(s.m).padStart(2, "0")}`) };
+    return { v: grossIn(`${s.y}-${String(s.m).padStart(2, "0")}`) };
   });
   const hasSpark = caSpark.some((d) => d.v > 0);
 
@@ -167,11 +177,18 @@ export default function DashboardSection({
         <Metric
           icon={Wallet}
           tint="text-success"
-          label="CA encaissé"
+          label="CA"
           value={formatEuro(ca)}
+          sub="brut (facturé)"
           spark={hasSpark ? caSpark : undefined}
         />
-        <Metric icon={Receipt} tint="text-muted" label="Dépenses" value={formatEuro(dep)} />
+        <Metric
+          icon={Receipt}
+          tint="text-muted"
+          label="Dépenses & commission"
+          value={formatEuro(depComm)}
+          sub={comm > 0 ? `dont ${formatEuro(comm)} de commission` : undefined}
+        />
         <Metric icon={Landmark} tint="text-muted" label="URSSAF estimée" value={formatEuro(urssaf)} />
         <Metric
           icon={PiggyBank}
@@ -215,6 +232,7 @@ function Metric({
   tint,
   label,
   value,
+  sub,
   highlight,
   spark,
 }: {
@@ -222,6 +240,7 @@ function Metric({
   tint: string;
   label: string;
   value: string;
+  sub?: string;
   highlight?: "success" | "urgent";
   spark?: { v: number }[];
 }) {
@@ -250,6 +269,7 @@ function Metric({
       >
         {value}
       </p>
+      {sub && <p className="mt-0.5 text-[12px] text-muted">{sub}</p>}
       {spark && (
         // text-active pilote la couleur : currentColor suit le token (bleu qui
         // s'éclaircit en dark). Dégradé un peu plus marqué en nuit.

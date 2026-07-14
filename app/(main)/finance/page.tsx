@@ -51,7 +51,12 @@ export default async function FinancePage() {
         </header>
         <DashboardSection payments={payments} expenses={expenses} />
         <RevenusSection payments={payments} projects={projects} clients={clients} />
-        <DepensesSection expenses={expenses} projects={projects} />
+        <DepensesSection
+          expenses={expenses}
+          projects={projects}
+          payments={payments}
+          clients={clients}
+        />
         <DiagrammesSection payments={payments} projects={projects} />
         <UrssafSection rows={urssaf} payments={payments} />
         <SeuilsSection payments={payments} />
