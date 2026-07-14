@@ -42,6 +42,7 @@ export default function DepensesSection({
   const router = useRouter();
   const [creating, setCreating] = useState(false);
   const [editing, setEditing] = useState<Expense | null>(null);
+  const [expanded, setExpanded] = useState(false);
 
   // Commissions dérivées : pour chaque encaissement, l'écart entre le prix du
   // devis et le net réellement reçu. Si une provenance est renseignée (Malt…),
@@ -87,6 +88,10 @@ export default function DepensesSection({
     ...commissions.map((c) => ({ kind: "commission" as const, date: c.date, c })),
   ].sort((a, b) => (a.date < b.date ? 1 : a.date > b.date ? -1 : 0));
 
+  // On n'affiche que 5 lignes par défaut ; "Voir plus" révèle le reste.
+  const shownHistory = expanded ? history : history.slice(0, 5);
+  const hiddenCount = history.length - shownHistory.length;
+
   function close() {
     setCreating(false);
     setEditing(null);
@@ -125,59 +130,80 @@ export default function DepensesSection({
           description="Ajoute une dépense (Adobe, URSSAF...), ou renseigne un écart devis / encaissé sur un revenu pour voir la commission apparaître ici."
         />
       ) : (
-        <ul className="divide-y divide-gray-100 overflow-hidden rounded-2xl border border-gray-100 bg-white dark:divide-white/10 dark:border-hairline dark:bg-surface">
-          {history.map((row) =>
-            row.kind === "expense" ? (
-              <li key={row.e.id}>
-                <button
-                  onClick={() => setEditing(row.e)}
-                  className="flex w-full items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-gray-50 dark:hover:bg-white/[0.06]"
+        <>
+          <ul className="divide-y divide-gray-100 overflow-hidden rounded-2xl border border-gray-100 bg-white dark:divide-white/10 dark:border-hairline dark:bg-surface">
+            {shownHistory.map((row) => {
+              if (row.kind === "expense") {
+                // Le libellé (avant " · ") passe en titre ; la catégorie et le
+                // projet (reste de la description) vont dans la sous-ligne.
+                const hasDesc = !!row.e.description?.trim();
+                const parts = (row.e.description ?? "").split(" · ");
+                const mainLabel = hasDesc
+                  ? parts[0]
+                  : row.e.category || "Dépense";
+                const rest = parts.slice(1).join(" · ");
+                const sub = [
+                  fmtDate(row.e.date),
+                  hasDesc ? row.e.category : null,
+                  hasDesc ? rest : null,
+                ]
+                  .filter(Boolean)
+                  .join(" · ");
+                return (
+                  <li key={row.e.id}>
+                    <button
+                      onClick={() => setEditing(row.e)}
+                      className="flex w-full items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-gray-50 dark:hover:bg-white/[0.06]"
+                    >
+                      <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-gray-100 text-muted dark:bg-white/[0.06]">
+                        <Receipt className="h-3.5 w-3.5" />
+                      </span>
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate font-medium">{mainLabel}</p>
+                        <p className="truncate text-xs text-muted">{sub}</p>
+                      </div>
+                      <span className="shrink-0 text-sm font-semibold text-urgent">
+                        -{formatEuro(row.e.amount)}
+                      </span>
+                    </button>
+                  </li>
+                );
+              }
+              // Commission : dérivée d'un revenu, non modifiable ici (on ajuste
+              // l'écart en éditant le revenu concerné).
+              return (
+                <li
+                  key={row.c.id}
+                  className="flex items-center gap-3 px-4 py-3"
+                  title="Écart devis / encaissé — se modifie sur le revenu lié"
                 >
-                  <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-gray-100 text-muted dark:bg-white/[0.06]">
-                    <Receipt className="h-3.5 w-3.5" />
+                  <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-orange-50 text-pending dark:bg-pending/15">
+                    <Percent className="h-3.5 w-3.5" />
                   </span>
                   <div className="min-w-0 flex-1">
-                    <p className="truncate font-medium">
-                      {row.e.category || row.e.description || "Dépense"}
-                    </p>
+                    <p className="truncate font-medium">{row.c.label}</p>
                     <p className="truncate text-xs text-muted">
-                      {fmtDate(row.e.date)}
-                      {row.e.category && row.e.description
-                        ? ` · ${row.e.description}`
-                        : ""}
+                      {fmtDate(row.c.date)}
+                      {row.c.who ? ` · ${row.c.who}` : ""}
+                      {" · depuis un revenu"}
                     </p>
                   </div>
                   <span className="shrink-0 text-sm font-semibold text-urgent">
-                    -{formatEuro(row.e.amount)}
+                    -{formatEuro(row.c.amount)}
                   </span>
-                </button>
-              </li>
-            ) : (
-              // Commission : dérivée d'un revenu, non modifiable ici (on ajuste
-              // l'écart en éditant le revenu concerné).
-              <li
-                key={row.c.id}
-                className="flex items-center gap-3 px-4 py-3"
-                title="Écart devis / encaissé — se modifie sur le revenu lié"
-              >
-                <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-orange-50 text-pending dark:bg-pending/15">
-                  <Percent className="h-3.5 w-3.5" />
-                </span>
-                <div className="min-w-0 flex-1">
-                  <p className="truncate font-medium">{row.c.label}</p>
-                  <p className="truncate text-xs text-muted">
-                    {fmtDate(row.c.date)}
-                    {row.c.who ? ` · ${row.c.who}` : ""}
-                    {" · depuis un revenu"}
-                  </p>
-                </div>
-                <span className="shrink-0 text-sm font-semibold text-urgent">
-                  -{formatEuro(row.c.amount)}
-                </span>
-              </li>
-            )
+                </li>
+              );
+            })}
+          </ul>
+          {(hiddenCount > 0 || expanded) && history.length > 5 && (
+            <button
+              onClick={() => setExpanded((v) => !v)}
+              className="mx-auto mt-2 block text-xs font-medium text-muted transition-colors hover:text-ink"
+            >
+              {expanded ? "Voir moins" : `Voir plus (${hiddenCount})`}
+            </button>
           )}
-        </ul>
+        </>
       )}
 
       {(creating || editing) && (

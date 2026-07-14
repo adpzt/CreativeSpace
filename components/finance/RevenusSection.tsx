@@ -1,12 +1,14 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { Plus, Wallet, ArrowRight } from "lucide-react";
+import { format } from "date-fns";
+import { Plus, Wallet, ArrowRight, Check } from "lucide-react";
 import Overlay from "@/components/ui/Overlay";
 import { Button } from "@/components/ui/Button";
 import EmptyState from "@/components/ui/EmptyState";
 import RevenuForm from "./RevenuForm";
+import { createPayment } from "@/app/(main)/finance/actions";
 import { PAYMENT_STATUS } from "@/lib/finance";
 import { paymentSourceLabel, formatEuro, depositAmount } from "@/lib/work";
 import type {
@@ -28,6 +30,8 @@ export default function RevenusSection({
   const [creating, setCreating] = useState(false);
   const [editing, setEditing] = useState<Payment | null>(null);
   const [prefill, setPrefill] = useState<Partial<Payment> | null>(null);
+  const [expanded, setExpanded] = useState(false);
+  const [isPending, start] = useTransition();
 
   const clientLabel = (id: string | null) => {
     const c = clients.find((x) => x.id === id);
@@ -38,24 +42,51 @@ export default function RevenusSection({
 
   // Seuls les projets FREELANCE ont une dimension financière (facturation).
   // Entreprise (alternance), École, Perso n'entrent jamais dans la banque.
-  const linkedProjectIds = new Set(payments.map((p) => p.project_id).filter(Boolean));
+  // Un acompte encaissé (paiement deposit_paid) ne "règle" PAS le projet : le
+  // solde reste à encaisser. Seuls les paiements normaux "valident" un projet.
+  const acompteByProject = new Map<string, Payment>();
+  for (const p of payments) {
+    if (p.deposit_paid && p.project_id) acompteByProject.set(p.project_id, p);
+  }
+  const settledProjectIds = new Set(
+    payments
+      .filter((p) => !p.deposit_paid)
+      .map((p) => p.project_id)
+      .filter(Boolean)
+  );
   const toValidate = projects.filter(
     (p) =>
       p.category === "freelance" &&
       p.status === "closed" &&
-      !linkedProjectIds.has(p.id)
+      !settledProjectIds.has(p.id)
   );
-  // Projets freelance en cours pas encore liés à un revenu : affichés en gris
-  // avec leur budget prévisionnel (ou "à compléter").
+  // Projets freelance en cours pas encore réglés : affichés en gris avec leur
+  // budget prévisionnel (ou l'acompte demandé, ou "à compléter").
   const inProgress = projects.filter(
     (p) =>
       p.category === "freelance" &&
       p.status !== "closed" &&
       p.status !== "cancelled" &&
-      !linkedProjectIds.has(p.id)
+      !settledProjectIds.has(p.id)
   );
   const projectBudget = (p: ProjectWithDeliverables) =>
     p.net_amount ?? p.gross_amount ?? null;
+
+  // Liste des revenus : les lignes "en attente" sont toujours visibles ; on ne
+  // plafonne QUE les encaissés à 5 (le reste derrière "Voir plus").
+  let paidShown = 0;
+  const shownPayments = expanded
+    ? payments
+    : payments.filter((p) => {
+        if (p.status !== "paid") return true;
+        if (paidShown < 5) {
+          paidShown++;
+          return true;
+        }
+        return false;
+      });
+  const paidCount = payments.filter((p) => p.status === "paid").length;
+  const hasMorePaid = paidCount > 5;
 
   function close() {
     setCreating(false);
@@ -65,13 +96,38 @@ export default function RevenusSection({
   }
 
   function openFromProject(p: ProjectWithDeliverables) {
+    // Si un acompte a déjà été encaissé, on pré-remplit le SOLDE (total - acompte)
+    // pour ne pas compter deux fois.
+    const acompte = acompteByProject.get(p.id)?.net_amount ?? 0;
     setPrefill({
       project_id: p.id,
       client_id: p.client_id,
       source: p.source,
-      net_amount: p.net_amount,
-      gross_amount: p.gross_amount,
+      net_amount: p.net_amount != null ? p.net_amount - acompte : null,
+      gross_amount: p.gross_amount != null ? p.gross_amount - acompte : null,
       status: p.paid ? "paid" : "pending",
+    });
+  }
+
+  // Encaisser l'acompte demandé : crée un vrai demi-paiement (encaissé
+  // aujourd'hui) marqué comme acompte. Le solde reste à valider ensuite.
+  function encaisserAcompte(p: ProjectWithDeliverables) {
+    const amt = depositAmount(p);
+    if (amt == null) return;
+    start(async () => {
+      await createPayment({
+        project_id: p.id,
+        client_id: p.client_id,
+        source: p.source,
+        gross_amount: amt,
+        net_amount: amt,
+        status: "paid",
+        received_date: format(new Date(), "yyyy-MM-dd"),
+        deposit_paid: true,
+        deposit_amount: amt,
+        notes: "Acompte",
+      });
+      router.refresh();
     });
   }
 
@@ -88,6 +144,7 @@ export default function RevenusSection({
     if (pay.project_id && clientLabel(pay.client_id))
       parts.push(clientLabel(pay.client_id)!);
     if (pay.source) parts.push(paymentSourceLabel(pay.source));
+    if (pay.deposit_paid) parts.push("acompte");
     return parts.join(" · ");
   }
 
@@ -143,10 +200,11 @@ export default function RevenusSection({
         <ul className="mb-5 divide-y divide-gray-100 overflow-hidden rounded-2xl border border-dashed border-gray-200 bg-gray-50/40 dark:divide-white/10 dark:border-hairline dark:bg-white/[0.06]">
           {inProgress.map((p) => {
             const budget = projectBudget(p);
-            // Acompte demandé : affiché grisé "acompte / total" tant que le
-            // projet n'est pas encaissé (purement informatif).
+            // Acompte demandé : affiché grisé "acompte / total" avec un bouton
+            // "Encaisser". Une fois encaissé, on montre "reste à encaisser".
             const deposit = depositAmount(p);
             const total = p.gross_amount ?? p.net_amount;
+            const acompte = acompteByProject.get(p.id);
             return (
               <li
                 key={p.id}
@@ -162,18 +220,38 @@ export default function RevenusSection({
                     {clientLabel(p.client_id) ? ` · ${clientLabel(p.client_id)}` : ""}
                   </p>
                 </div>
-                {deposit != null ? (
+                {acompte ? (
                   <div className="shrink-0 text-right">
-                    <p className="text-sm font-medium text-gray-400 dark:text-muted">
-                      {formatEuro(deposit)}
-                      <span className="text-gray-300 dark:text-white/40">
-                        {" / "}
-                        {total != null ? formatEuro(total) : "—"}
-                      </span>
+                    <p className="text-sm font-semibold text-success">
+                      Acompte encaissé
                     </p>
-                    <p className="text-[10px] font-medium uppercase tracking-wide text-gray-300 dark:text-white/40">
-                      acompte
+                    <p className="text-[11px] text-muted">
+                      reste {formatEuro((total ?? 0) - (acompte.net_amount ?? 0))}
                     </p>
+                  </div>
+                ) : deposit != null ? (
+                  <div className="flex shrink-0 items-center gap-2">
+                    <div className="text-right">
+                      <p className="text-sm font-medium text-gray-400 dark:text-muted">
+                        {formatEuro(deposit)}
+                        <span className="text-gray-300 dark:text-white/40">
+                          {" / "}
+                          {total != null ? formatEuro(total) : "—"}
+                        </span>
+                      </p>
+                      <p className="text-[10px] font-medium uppercase tracking-wide text-gray-300 dark:text-white/40">
+                        acompte
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => encaisserAcompte(p)}
+                      disabled={isPending}
+                      title="Encaisser l'acompte"
+                      className="inline-flex shrink-0 items-center gap-1 rounded-lg bg-ink px-2.5 py-1.5 text-xs font-medium text-white hover:opacity-90 disabled:opacity-50 dark:text-bg"
+                    >
+                      <Check className="h-3.5 w-3.5" />
+                      Encaisser
+                    </button>
                   </div>
                 ) : budget != null ? (
                   <span className="shrink-0 text-sm font-medium text-gray-400 dark:text-muted">
@@ -201,8 +279,9 @@ export default function RevenusSection({
           description="Valide un projet clôturé ci-dessus, ou ajoute un revenu manuel."
         />
       ) : (
+        <>
         <ul className="divide-y divide-gray-100 overflow-hidden rounded-2xl border border-gray-100 bg-white dark:divide-white/10 dark:border-hairline dark:bg-surface">
-          {payments.map((pay) => {
+          {shownPayments.map((pay) => {
             const st = PAYMENT_STATUS[pay.status];
             return (
               <li key={pay.id}>
@@ -232,6 +311,15 @@ export default function RevenusSection({
             );
           })}
         </ul>
+        {hasMorePaid && (
+          <button
+            onClick={() => setExpanded((v) => !v)}
+            className="mx-auto mt-2 block text-xs font-medium text-muted transition-colors hover:text-ink"
+          >
+            {expanded ? "Voir moins" : `Voir plus (${paidCount - 5})`}
+          </button>
+        )}
+        </>
       )}
 
       {(creating || prefill) && (

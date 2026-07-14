@@ -34,6 +34,8 @@ export async function createPayment(input: {
   due_date?: string | null;
   received_date?: string | null;
   notes?: string | null;
+  deposit_paid?: boolean;
+  deposit_amount?: number | null;
 }): Promise<void> {
   const supabase = createServerSupabase();
   const { error } = await supabase.from("payments").insert({
@@ -47,6 +49,8 @@ export async function createPayment(input: {
     due_date: input.due_date || null,
     received_date: input.received_date || null,
     notes: input.notes || null,
+    deposit_paid: input.deposit_paid ?? false,
+    deposit_amount: input.deposit_amount ?? null,
   });
 
   if (error) throw new Error(error.message);

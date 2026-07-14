@@ -82,8 +82,12 @@ export default async function HomePage() {
       (p.status === "pending" && p.due_date && p.due_date < todayStr)
   );
 
+  // Un acompte encaissé ne règle pas le projet : le solde reste "non validé".
   const linkedProjectIds = new Set(
-    payments.map((p) => p.project_id).filter(Boolean)
+    payments
+      .filter((p) => !p.deposit_paid)
+      .map((p) => p.project_id)
+      .filter(Boolean)
   );
   const unvalidated = projects
     .filter(
