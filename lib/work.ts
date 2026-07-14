@@ -135,6 +135,20 @@ export function formatEuro(n: number | null | undefined): string {
   );
 }
 
+// Montant € de l'acompte demandé : soit la valeur fixe, soit le % appliqué au
+// devis (à défaut au net). null si aucun acompte n'est demandé.
+export function depositAmount(p: {
+  gross_amount: number | null;
+  net_amount: number | null;
+  deposit_value: number | null;
+  deposit_is_percent: boolean;
+}): number | null {
+  if (p.deposit_value == null) return null;
+  if (!p.deposit_is_percent) return p.deposit_value;
+  const base = p.gross_amount ?? p.net_amount ?? 0;
+  return Math.round((base * p.deposit_value) / 100);
+}
+
 // Types de mission d'un projet (multi-sélection)
 export const MISSION_TYPES = [
   "Direction artistique",

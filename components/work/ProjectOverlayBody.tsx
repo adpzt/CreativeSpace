@@ -38,6 +38,7 @@ import {
   paymentSourceLabel,
   projectProgress,
   formatEuro,
+  depositAmount,
 } from "@/lib/work";
 import {
   updateProject,
@@ -84,6 +85,19 @@ export default function ProjectOverlayBody({
   const [org, setOrg] = useState<string>(project.org ?? "");
   const [missions, setMissions] = useState<string[]>(project.mission_types ?? []);
   const [source, setSource] = useState<string>(project.source ?? "");
+  const [grossAmount, setGrossAmount] = useState(
+    project.gross_amount != null ? String(project.gross_amount) : ""
+  );
+  const [netAmount, setNetAmount] = useState(
+    project.net_amount != null ? String(project.net_amount) : ""
+  );
+  const [depositOn, setDepositOn] = useState(project.deposit_value != null);
+  const [depositValue, setDepositValue] = useState(
+    project.deposit_value != null ? String(project.deposit_value) : ""
+  );
+  const [depositIsPercent, setDepositIsPercent] = useState(
+    project.deposit_is_percent
+  );
   const [deliverables, setDeliverables] = useState<Deliverable[]>(
     project.deliverables
   );
@@ -97,6 +111,22 @@ export default function ProjectOverlayBody({
 
   const client = clients.find((c) => c.id === clientId) ?? null;
   const clientLabel = client ? client.company || client.name : null;
+
+  // Raison d'écart : uniquement si net renseigné, différent du devis, hors Malt.
+  const showGapReason =
+    netAmount !== "" &&
+    grossAmount !== "" &&
+    parseFloat(netAmount) !== parseFloat(grossAmount) &&
+    source !== "malt";
+  // Aperçu € de l'acompte quand il est saisi en %
+  const depositPreview =
+    depositOn && depositValue
+      ? depositIsPercent
+        ? parseFloat(grossAmount)
+          ? Math.round((parseFloat(grossAmount) * parseFloat(depositValue)) / 100)
+          : null
+        : parseFloat(depositValue) || 0
+      : null;
 
   // ----- Champs projet -----
   async function changeStatus(s: ProjectStatus) {
@@ -140,6 +170,30 @@ export default function ProjectOverlayBody({
     }, 600);
     return () => clearTimeout(t);
   }, [expenses, project.id, project.mission_expenses]);
+
+  // Sauvegarde différée de l'acompte (valeur + %/€)
+  useEffect(() => {
+    const val = depositOn && depositValue ? parseFloat(depositValue) : null;
+    if (
+      val === (project.deposit_value ?? null) &&
+      depositIsPercent === project.deposit_is_percent
+    )
+      return;
+    const t = setTimeout(() => {
+      updateProject(project.id, {
+        deposit_value: val,
+        deposit_is_percent: depositIsPercent,
+      });
+    }, 600);
+    return () => clearTimeout(t);
+  }, [
+    depositOn,
+    depositValue,
+    depositIsPercent,
+    project.id,
+    project.deposit_value,
+    project.deposit_is_percent,
+  ]);
 
   async function toggleMission(m: string) {
     const next = missions.includes(m)
@@ -331,6 +385,15 @@ export default function ProjectOverlayBody({
               <InfoRow icon={Wallet}>
                 <span className="text-muted">Devis </span>
                 {formatEuro(project.gross_amount)}
+              </InfoRow>
+            )}
+            {project.deposit_value != null && (
+              <InfoRow icon={Wallet}>
+                <span className="text-muted">Acompte demandé </span>
+                {formatEuro(depositAmount(project))}
+                {project.deposit_is_percent && (
+                  <span className="text-muted"> ({project.deposit_value}%)</span>
+                )}
               </InfoRow>
             )}
             {(project.devis_number || project.invoice_number) && (
@@ -554,19 +617,22 @@ export default function ProjectOverlayBody({
           )}
         </div>
 
-        {/* Argent gagné + détail (freelance uniquement) */}
+        {/* Argent : devis d'abord, puis le détail (net, écart, dépenses, acompte) */}
         {category === "freelance" && (
         <div>
           <AutoSaveField
-            label="Argent gagné (€)"
+            label="Prix du devis (€)"
             type="number"
             initialValue={
-              project.net_amount != null ? String(project.net_amount) : ""
+              project.gross_amount != null ? String(project.gross_amount) : ""
             }
-            placeholder="600"
-            save={(v) =>
-              updateProject(project.id, { net_amount: v ? parseFloat(v) : null })
-            }
+            placeholder="695"
+            save={(v) => {
+              setGrossAmount(v);
+              return updateProject(project.id, {
+                gross_amount: v ? parseFloat(v) : null,
+              });
+            }}
           />
           <button
             type="button"
@@ -582,21 +648,38 @@ export default function ProjectOverlayBody({
           </button>
           {showDetail && (
             <div className="mt-3 space-y-4">
-              <AutoSaveField
-                label="Prix sur le devis (€)"
-                type="number"
-                initialValue={
-                  project.gross_amount != null
-                    ? String(project.gross_amount)
-                    : ""
-                }
-                placeholder="695"
-                save={(v) =>
-                  updateProject(project.id, {
-                    gross_amount: v ? parseFloat(v) : null,
-                  })
-                }
-              />
+              <div>
+                <AutoSaveField
+                  label="Prix réellement gagné (€)"
+                  type="number"
+                  initialValue={
+                    project.net_amount != null ? String(project.net_amount) : ""
+                  }
+                  placeholder="600"
+                  save={(v) => {
+                    setNetAmount(v);
+                    return updateProject(project.id, {
+                      net_amount: v ? parseFloat(v) : null,
+                    });
+                  }}
+                />
+                <p className="mt-1 text-[11px] text-muted">
+                  Ce que tu touches vraiment après commission (Malt…). Vide si
+                  identique au devis.
+                </p>
+              </div>
+              {showGapReason && (
+                <AutoSaveField
+                  label="Raison de l'écart"
+                  initialValue={project.net_gap_reason ?? ""}
+                  placeholder="ex : frais bancaires, remise client…"
+                  save={(v) =>
+                    updateProject(project.id, {
+                      net_gap_reason: v.trim() || null,
+                    })
+                  }
+                />
+              )}
               <div>
                 <p className={labelClass}>Dépenses de la mission</p>
                 {expenses.length > 0 && (
@@ -660,6 +743,63 @@ export default function ProjectOverlayBody({
                   <Plus className="h-3.5 w-3.5" />
                   Dépense
                 </button>
+              </div>
+
+              {/* Acompte demandé (versé pour lancer la production) */}
+              <div>
+                <label className="flex cursor-pointer items-center gap-2 text-xs font-medium uppercase tracking-wide text-muted">
+                  <input
+                    type="checkbox"
+                    checked={depositOn}
+                    onChange={(e) => setDepositOn(e.target.checked)}
+                    className="h-4 w-4 rounded border-gray-300 dark:border-hairline"
+                  />
+                  Acompte demandé
+                </label>
+                {depositOn && (
+                  <div className="mt-2">
+                    <div className="flex items-center gap-1.5">
+                      <input
+                        value={depositValue}
+                        onChange={(e) => setDepositValue(e.target.value)}
+                        type="number"
+                        min={0}
+                        placeholder={depositIsPercent ? "35" : "300"}
+                        className="min-w-0 flex-1 rounded-xl border border-gray-200 dark:border-hairline px-3.5 py-2.5 text-sm outline-none focus:border-active focus:ring-4 focus:ring-active/12"
+                      />
+                      <div className="flex shrink-0 items-center rounded-lg border border-gray-200 dark:border-hairline p-0.5">
+                        <button
+                          type="button"
+                          onClick={() => setDepositIsPercent(true)}
+                          className={`rounded-md px-2.5 py-1.5 text-sm font-medium transition-colors ${
+                            depositIsPercent
+                              ? "bg-ink text-white dark:text-bg"
+                              : "text-muted hover:text-ink"
+                          }`}
+                        >
+                          %
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setDepositIsPercent(false)}
+                          className={`rounded-md px-2.5 py-1.5 text-sm font-medium transition-colors ${
+                            !depositIsPercent
+                              ? "bg-ink text-white dark:text-bg"
+                              : "text-muted hover:text-ink"
+                          }`}
+                        >
+                          €
+                        </button>
+                      </div>
+                    </div>
+                    <p className="mt-1 text-[11px] text-muted">
+                      Somme versée pour lancer la production.
+                      {depositIsPercent && depositPreview != null && (
+                        <> ≈ {formatEuro(depositPreview)} sur le devis.</>
+                      )}
+                    </p>
+                  </div>
+                )}
               </div>
             </div>
           )}

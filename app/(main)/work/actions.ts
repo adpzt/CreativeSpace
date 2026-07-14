@@ -109,6 +109,9 @@ export async function createProject(input: {
   source?: PaymentSource | null;
   gross_amount?: number | null;
   net_amount?: number | null;
+  net_gap_reason?: string | null;
+  deposit_value?: number | null;
+  deposit_is_percent?: boolean;
   org?: string | null;
   start_date?: string | null;
   end_date?: string | null;
@@ -126,6 +129,9 @@ export async function createProject(input: {
       source: input.source ?? null,
       gross_amount: input.gross_amount ?? null,
       net_amount: input.net_amount ?? null,
+      net_gap_reason: input.net_gap_reason ?? null,
+      deposit_value: input.deposit_value ?? null,
+      deposit_is_percent: input.deposit_is_percent ?? false,
       org: input.org ?? null,
       start_date: input.start_date || null,
       end_date: input.end_date || null,

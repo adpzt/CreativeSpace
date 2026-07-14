@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/Button";
 import EmptyState from "@/components/ui/EmptyState";
 import RevenuForm from "./RevenuForm";
 import { PAYMENT_STATUS } from "@/lib/finance";
-import { paymentSourceLabel, formatEuro } from "@/lib/work";
+import { paymentSourceLabel, formatEuro, depositAmount } from "@/lib/work";
 import type {
   Client,
   Payment,
@@ -143,6 +143,10 @@ export default function RevenusSection({
         <ul className="mb-5 divide-y divide-gray-100 overflow-hidden rounded-2xl border border-dashed border-gray-200 bg-gray-50/40 dark:divide-white/10 dark:border-hairline dark:bg-white/[0.06]">
           {inProgress.map((p) => {
             const budget = projectBudget(p);
+            // Acompte demandé : affiché grisé "acompte / total" tant que le
+            // projet n'est pas encaissé (purement informatif).
+            const deposit = depositAmount(p);
+            const total = p.gross_amount ?? p.net_amount;
             return (
               <li
                 key={p.id}
@@ -158,7 +162,20 @@ export default function RevenusSection({
                     {clientLabel(p.client_id) ? ` · ${clientLabel(p.client_id)}` : ""}
                   </p>
                 </div>
-                {budget != null ? (
+                {deposit != null ? (
+                  <div className="shrink-0 text-right">
+                    <p className="text-sm font-medium text-gray-400 dark:text-muted">
+                      {formatEuro(deposit)}
+                      <span className="text-gray-300 dark:text-white/40">
+                        {" / "}
+                        {total != null ? formatEuro(total) : "—"}
+                      </span>
+                    </p>
+                    <p className="text-[10px] font-medium uppercase tracking-wide text-gray-300 dark:text-white/40">
+                      acompte
+                    </p>
+                  </div>
+                ) : budget != null ? (
                   <span className="shrink-0 text-sm font-medium text-gray-400 dark:text-muted">
                     {formatEuro(budget)}
                   </span>

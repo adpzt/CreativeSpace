@@ -55,11 +55,20 @@ export default function DepensesSection({
     .map((p) => {
       const proj = projects.find((x) => x.id === p.project_id);
       const src = paymentSourceLabel(p.source);
+      // Malt -> "Commission Malt". Sinon, si le projet précise une raison
+      // d'écart, on l'utilise comme libellé (ex : "Frais bancaires"). À défaut,
+      // libellé générique.
+      const reason = proj?.net_gap_reason?.trim();
+      let label: string;
+      if (p.source === "malt") label = "Commission Malt";
+      else if (reason) label = reason;
+      else if (src) label = `Commission ${src}`;
+      else label = "Commission plateforme";
       return {
         id: `comm-${p.id}`,
         date: p.received_date ?? p.created_at.slice(0, 10),
         amount: paymentCommission(p),
-        label: src ? `Commission ${src}` : "Commission plateforme",
+        label,
         who: proj?.name ?? clientLabel(p.client_id),
       };
     });

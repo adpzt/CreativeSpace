@@ -90,6 +90,11 @@ export type Project = {
   source: PaymentSource | null;
   gross_amount: number | null;
   net_amount: number | null;
+  // Écart net/devis non lié à Malt : sa raison (sert de libellé de commission)
+  net_gap_reason: string | null;
+  // Acompte demandé pour lancer la production : valeur + si c'est un % du devis
+  deposit_value: number | null;
+  deposit_is_percent: boolean;
   mission_expenses: MissionExpense[];
   paid: boolean | null;
   cost: number | null;

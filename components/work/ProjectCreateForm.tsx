@@ -12,6 +12,7 @@ import {
   CALENDAR_CATEGORIES,
   MISSION_TYPES,
   PAYMENT_SOURCES,
+  formatEuro,
 } from "@/lib/work";
 import {
   createProject,
@@ -63,6 +64,10 @@ export default function ProjectCreateForm({
   const [source, setSource] = useState("");
   const [gross, setGross] = useState("");
   const [net, setNet] = useState("");
+  const [gapReason, setGapReason] = useState("");
+  const [depositOn, setDepositOn] = useState(false);
+  const [depositValue, setDepositValue] = useState("");
+  const [depositIsPercent, setDepositIsPercent] = useState(true);
   const [showDetail, setShowDetail] = useState(false);
   const [expenses, setExpenses] = useState<
     { label: string; amount: number }[]
@@ -107,6 +112,10 @@ export default function ProjectCreateForm({
     setSource("");
     setGross("");
     setNet("");
+    setGapReason("");
+    setDepositOn(false);
+    setDepositValue("");
+    setDepositIsPercent(true);
     setExpenses([]);
     setDevis("");
     setInvoice("");
@@ -148,6 +157,10 @@ export default function ProjectCreateForm({
         source: fl ? (source as PaymentSource) || null : null,
         gross_amount: fl && gross ? parseFloat(gross) : null,
         net_amount: fl && net ? parseFloat(net) : null,
+        net_gap_reason: fl && gapReason.trim() ? gapReason.trim() : null,
+        deposit_value:
+          fl && depositOn && depositValue ? parseFloat(depositValue) : null,
+        deposit_is_percent: depositIsPercent,
         org:
           category === "entreprise" || category === "ecole" ? org || null : null,
         start_date: startDate || null,
@@ -183,6 +196,21 @@ export default function ProjectCreateForm({
   }
 
   const noteRow = delivs.find((r) => r.tempId === noteRowId);
+
+  // Raison d'écart : uniquement si net renseigné, différent du devis, hors Malt.
+  const showGapReason =
+    net !== "" &&
+    gross !== "" &&
+    parseFloat(net) !== parseFloat(gross) &&
+    source !== "malt";
+  // Aperçu € de l'acompte (si saisi en %)
+  const depositPreview = (() => {
+    if (!depositOn || !depositValue) return null;
+    const v = parseFloat(depositValue) || 0;
+    if (!depositIsPercent) return v;
+    const base = parseFloat(gross) || 0;
+    return base ? Math.round((base * v) / 100) : null;
+  })();
 
   return (
     <>
@@ -358,16 +386,16 @@ export default function ProjectCreateForm({
           )}
         </div>
 
-        {/* Argent gagné + détail (freelance uniquement) */}
+        {/* Argent : devis d'abord, puis le détail (net, écart, dépenses, acompte) */}
         {category === "freelance" && (
         <div>
-          <label className={labelClass}>Argent gagné (€)</label>
+          <label className={labelClass}>Prix du devis (€)</label>
           <input
-            value={net}
-            onChange={(e) => setNet(e.target.value)}
+            value={gross}
+            onChange={(e) => setGross(e.target.value)}
             type="number"
             min={0}
-            placeholder="600"
+            placeholder="695"
             className={inputClass}
           />
           <button
@@ -385,16 +413,35 @@ export default function ProjectCreateForm({
           {showDetail && (
             <div className="mt-3 space-y-4">
               <div>
-                <label className={labelClass}>Prix sur le devis (€)</label>
+                <label className={labelClass}>Prix réellement gagné (€)</label>
                 <input
-                  value={gross}
-                  onChange={(e) => setGross(e.target.value)}
+                  value={net}
+                  onChange={(e) => setNet(e.target.value)}
                   type="number"
                   min={0}
-                  placeholder="695"
+                  placeholder="600"
                   className={inputClass}
                 />
+                <p className="mt-1 text-[11px] text-muted">
+                  Ce que tu touches vraiment après commission (Malt…). Vide si
+                  identique au devis.
+                </p>
               </div>
+              {showGapReason && (
+                <div>
+                  <label className={labelClass}>Raison de l&apos;écart</label>
+                  <input
+                    value={gapReason}
+                    onChange={(e) => setGapReason(e.target.value)}
+                    placeholder="ex : frais bancaires, remise client…"
+                    className={inputClass}
+                  />
+                  <p className="mt-1 text-[11px] text-muted">
+                    Malt non renseigné : d&apos;où vient l&apos;écart ? Il
+                    apparaîtra dans « Dépense &amp; commission ».
+                  </p>
+                </div>
+              )}
               <div>
                 <label className={labelClass}>Dépenses de la mission</label>
                 {expenses.length > 0 && (
@@ -461,6 +508,63 @@ export default function ProjectCreateForm({
                   <Plus className="h-3.5 w-3.5" />
                   Dépense
                 </button>
+              </div>
+
+              {/* Acompte demandé (versé pour lancer la production) */}
+              <div>
+                <label className="flex cursor-pointer items-center gap-2 text-xs font-medium uppercase tracking-wide text-muted">
+                  <input
+                    type="checkbox"
+                    checked={depositOn}
+                    onChange={(e) => setDepositOn(e.target.checked)}
+                    className="h-4 w-4 rounded border-gray-300 dark:border-hairline"
+                  />
+                  Acompte demandé
+                </label>
+                {depositOn && (
+                  <div className="mt-2">
+                    <div className="flex items-center gap-1.5">
+                      <input
+                        value={depositValue}
+                        onChange={(e) => setDepositValue(e.target.value)}
+                        type="number"
+                        min={0}
+                        placeholder={depositIsPercent ? "35" : "300"}
+                        className="min-w-0 flex-1 rounded-xl border border-gray-200 dark:border-hairline px-3.5 py-2.5 text-sm outline-none focus:border-active focus:ring-4 focus:ring-active/12"
+                      />
+                      <div className="flex shrink-0 items-center rounded-lg border border-gray-200 dark:border-hairline p-0.5">
+                        <button
+                          type="button"
+                          onClick={() => setDepositIsPercent(true)}
+                          className={`rounded-md px-2.5 py-1.5 text-sm font-medium transition-colors ${
+                            depositIsPercent
+                              ? "bg-ink text-white dark:text-bg"
+                              : "text-muted hover:text-ink"
+                          }`}
+                        >
+                          %
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setDepositIsPercent(false)}
+                          className={`rounded-md px-2.5 py-1.5 text-sm font-medium transition-colors ${
+                            !depositIsPercent
+                              ? "bg-ink text-white dark:text-bg"
+                              : "text-muted hover:text-ink"
+                          }`}
+                        >
+                          €
+                        </button>
+                      </div>
+                    </div>
+                    <p className="mt-1 text-[11px] text-muted">
+                      Somme versée pour lancer la production.
+                      {depositIsPercent && depositPreview != null && (
+                        <> ≈ {formatEuro(depositPreview)} sur le devis.</>
+                      )}
+                    </p>
+                  </div>
+                )}
               </div>
             </div>
           )}
