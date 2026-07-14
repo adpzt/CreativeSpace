@@ -3,9 +3,11 @@ import Logo from "@/components/ui/Logo";
 import CommunicationView from "@/components/freelance/CommunicationView";
 import ProductionView from "@/components/freelance/ProductionView";
 import ProspectsBoard from "@/components/freelance/ProspectsBoard";
+import DevisSimulator from "@/components/freelance/DevisSimulator";
 import { getMeSettings } from "../me/actions";
 import { getProspects } from "./actions";
 import { PRO_FIELDS, TJM_KEY, TJM_DEFAULT } from "@/lib/me";
+import { urssafRate } from "@/lib/finance";
 
 export const dynamic = "force-dynamic";
 
@@ -15,6 +17,9 @@ export default async function FreelancePage() {
     getProspects(),
   ]);
   const tjm = settings[TJM_KEY] ?? TJM_DEFAULT;
+  // Taux URSSAF du mois courant (ACRE-aware), pour le simulateur de devis.
+  const nowDate = new Date();
+  const urssafNow = urssafRate(nowDate.getFullYear(), nowDate.getMonth() + 1);
 
   return (
     <div className="space-y-8">
@@ -61,6 +66,11 @@ export default async function FreelancePage() {
           ))}
         </div>
       </section>
+
+      {/* Simulateur de devis : ce qui reste vraiment après commission + URSSAF */}
+      <Section title="Simulateur de devis">
+        <DevisSimulator rate={urssafNow} />
+      </Section>
 
       {/* Trouver des clients (juste sous le profil "moi") */}
       <Section title="Trouver des clients">
