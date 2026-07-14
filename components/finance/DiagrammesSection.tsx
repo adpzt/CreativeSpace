@@ -396,44 +396,60 @@ function MonthlyCard({
                 tickLine={false}
                 width={48}
               />
-              <Tooltip
-                formatter={(v, name) => [
-                  formatEuro(Number(v)),
-                  name === "gross"
-                    ? "Facturé"
-                    : name === "net"
-                      ? "Net gagné"
-                      : "Après URSSAF",
-                ]}
-                cursor={{ fill: "#f9fafb" }}
-                contentStyle={{
-                  borderRadius: 12,
-                  border: "1px solid #f3f4f6",
-                  fontSize: 13,
-                }}
-              />
+              <Tooltip content={<MonthTooltip />} cursor={{ fill: "#f9fafb" }} />
               <Bar
                 dataKey="gross"
                 fill={GROSS_COLOR}
                 radius={[6, 6, 0, 0]}
-                barSize={32}
+                barSize={34}
               />
               <Bar
                 dataKey="net"
                 fill={NET_COLOR}
                 radius={[6, 6, 0, 0]}
-                barSize={22}
+                barSize={26}
               />
               <Bar
                 dataKey="afterUrssaf"
                 fill={AFTER_COLOR}
                 radius={[6, 6, 0, 0]}
-                barSize={13}
+                barSize={18}
               />
             </BarChart>
           </ResponsiveContainer>
         </div>
       )}
+    </div>
+  );
+}
+
+// Tooltip du graphe mensuel : uniquement les montants colorés (la légende
+// au-dessus donne déjà la correspondance couleur → nom), du plus grand au plus
+// petit (facturé > net gagné > après URSSAF).
+function MonthTooltip({
+  active,
+  label,
+  payload,
+}: {
+  active?: boolean;
+  label?: string;
+  payload?: { dataKey?: string | number; value?: number }[];
+}) {
+  if (!active || !payload?.length) return null;
+  const val = (k: string) =>
+    Number(payload.find((p) => p.dataKey === k)?.value ?? 0);
+  return (
+    <div className="rounded-xl border border-gray-100 bg-white px-3 py-2 text-[13px] shadow-float">
+      <p className="mb-1 font-semibold text-ink">{label}</p>
+      <p className="font-medium" style={{ color: GROSS_COLOR }}>
+        {formatEuro(val("gross"))}
+      </p>
+      <p className="font-medium" style={{ color: NET_COLOR }}>
+        {formatEuro(val("net"))}
+      </p>
+      <p className="font-medium" style={{ color: AFTER_COLOR }}>
+        {formatEuro(val("afterUrssaf"))}
+      </p>
     </div>
   );
 }
