@@ -138,15 +138,17 @@ export default function DepensesSection({
                   </span>
                   <div className="min-w-0 flex-1">
                     <p className="truncate font-medium">
-                      {row.e.description || row.e.category || "Dépense"}
+                      {row.e.category || row.e.description || "Dépense"}
                     </p>
                     <p className="truncate text-xs text-muted">
                       {fmtDate(row.e.date)}
-                      {row.e.category ? ` · ${row.e.category}` : ""}
+                      {row.e.category && row.e.description
+                        ? ` · ${row.e.description}`
+                        : ""}
                     </p>
                   </div>
-                  <span className="shrink-0 text-sm font-medium">
-                    {formatEuro(row.e.amount)}
+                  <span className="shrink-0 text-sm font-semibold text-urgent">
+                    -{formatEuro(row.e.amount)}
                   </span>
                 </button>
               </li>
@@ -169,8 +171,8 @@ export default function DepensesSection({
                     {" · depuis un revenu"}
                   </p>
                 </div>
-                <span className="shrink-0 text-sm font-medium text-pending">
-                  {formatEuro(row.c.amount)}
+                <span className="shrink-0 text-sm font-semibold text-urgent">
+                  -{formatEuro(row.c.amount)}
                 </span>
               </li>
             )

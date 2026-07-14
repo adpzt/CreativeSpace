@@ -7,7 +7,6 @@ import {
 } from "date-fns";
 import { fr } from "date-fns/locale";
 import {
-  Wallet,
   CheckCircle2,
   CalendarClock,
   TrendingUp,
@@ -19,6 +18,7 @@ import { getNotes } from "./notes/actions";
 import { getMeSettings } from "./me/actions";
 import TodayTasks from "@/components/home/TodayTasks";
 import OverdueAlert from "@/components/home/OverdueAlert";
+import RotatingKpi, { type KpiSlide } from "@/components/home/RotatingKpi";
 import InfoWidget from "@/components/home/InfoWidget";
 import QuickNote from "@/components/home/QuickNote";
 import { InstagramWidget, BehanceWidget } from "@/components/home/SocialWidgets";
@@ -157,11 +157,35 @@ export default async function HomePage() {
   const grossMonth = payments
     .filter((p) => p.status === "paid" && p.received_date?.startsWith(ym))
     .reduce((s, p) => s + (p.gross_amount ?? p.net_amount ?? 0), 0);
+  // URSSAF que prélèvera la fin de mois (sur le CA facturé du mois)
+  const rateMonth = urssafRate(now.getFullYear(), now.getMonth() + 1);
+  const urssafMonth = grossMonth * rateMonth;
 
-  // Dernière déclaration URSSAF cochée (montant + date) pour le KPI "CA du mois"
-  const lastDeclared = urssaf
-    .filter((r) => r.completed && r.declared_at)
-    .sort((a, b) => (b.declared_at ?? "").localeCompare(a.declared_at ?? ""))[0];
+  // Widget tournant "CA du mois" : alterne CA brut / net réellement gagné /
+  // URSSAF du mois toutes les 10 s (voir RotatingKpi).
+  const caSlides: KpiSlide[] = [
+    {
+      label: "CA du mois",
+      value: formatEuro(grossMonth),
+      sub: `facturé (brut) · ${MONTHS[now.getMonth()]}`,
+      icon: "wallet",
+      tint: "pending",
+    },
+    {
+      label: "Réellement gagné",
+      value: formatEuro(caMonthNet),
+      sub: "net, après commission",
+      icon: "trending",
+      tint: "success",
+    },
+    {
+      label: "URSSAF ce mois",
+      value: formatEuro(urssafMonth),
+      sub: `à provisionner · ~${Math.round(rateMonth * 100)}% du CA`,
+      icon: "landmark",
+      tint: "urgent",
+    },
+  ];
 
   // --- Bénéfice net de l'année (bento) : CA net encaissé - dépenses - URSSAF ---
   // (même logique que la carte "Bénéfice net" en haut de la page Bank)
@@ -346,20 +370,7 @@ export default async function HomePage() {
 
       {/* KPI */}
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-        <Kpi
-          icon={Wallet}
-          tint="pending"
-          label="CA du mois"
-          value={formatEuro(caMonthNet)}
-          sub={
-            lastDeclared
-              ? `${formatEuro(lastDeclared.amount ?? 0)} déclaré le ${format(
-                  parseISO(lastDeclared.declared_at as string),
-                  "dd/MM/yy"
-                )}`
-              : "URSSAF : rien déclaré"
-          }
-        />
+        <RotatingKpi slides={caSlides} />
         <Kpi
           icon={CheckCircle2}
           tint="success"
