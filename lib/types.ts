@@ -39,6 +39,7 @@ export type Urssaf = {
   year: number;
   month: number;
   amount: number | null; // CA déclaré du mois
+  paid_amount: number | null; // URSSAF réellement payée (ajustée à la déclaration)
   declared_at: string | null;
   completed: boolean;
 };

@@ -136,7 +136,12 @@ export async function getUrssaf(): Promise<Urssaf[]> {
 export async function upsertUrssaf(
   year: number,
   month: number,
-  patch: { amount?: number | null; completed?: boolean; declared_at?: string | null }
+  patch: {
+    amount?: number | null;
+    paid_amount?: number | null;
+    completed?: boolean;
+    declared_at?: string | null;
+  }
 ): Promise<void> {
   const supabase = createServerSupabase();
   const { error } = await supabase

@@ -20,6 +20,7 @@ import {
   ChevronRight,
 } from "lucide-react";
 import { PAYMENT_SOURCES, PROJECT_COLORS, formatEuro } from "@/lib/work";
+import { urssafRate } from "@/lib/finance";
 import type { Payment, ProjectWithDeliverables } from "@/lib/types";
 
 const MONTHS_SHORT = [
@@ -66,9 +67,11 @@ const TYPE_COLOR: Record<string, string> = {
 // Couleur "pleine" pour les pastilles de légende (le dégradé url() n'y marche pas).
 const solidOf = (c: string) => (c.startsWith("url(") ? "#2563EB" : c);
 
-// Couleurs des barres mensuelles : facturé (orange) / net gagné (vert).
+// Couleurs des barres mensuelles : facturé (orange) / net gagné (vert) /
+// après URSSAF (bleu, l'argent qui reste vraiment après cotisations).
 const GROSS_COLOR = "#EA580C";
 const NET_COLOR = "#16A34A";
+const AFTER_COLOR = "#2563EB";
 
 export default function DiagrammesSection({
   payments,
@@ -136,11 +139,11 @@ export default function DiagrammesSection({
   const byMonth = MONTHS_SHORT.map((name, i) => {
     const mym = `${monthYear}-${String(i + 1).padStart(2, "0")}`;
     const monthPaid = paid.filter((p) => p.received_date?.startsWith(mym));
-    return {
-      name,
-      gross: monthPaid.reduce((a, p) => a + grossOf(p), 0),
-      net: monthPaid.reduce((a, p) => a + earned(p), 0),
-    };
+    const gross = monthPaid.reduce((a, p) => a + grossOf(p), 0);
+    const net = monthPaid.reduce((a, p) => a + earned(p), 0);
+    // Après URSSAF = net gagné - cotisations (calculées sur le facturé).
+    const afterUrssaf = Math.max(0, net - gross * urssafRate(monthYear, i + 1));
+    return { name, gross, net, afterUrssaf };
   });
 
   const sourceColors = bySource.map(
@@ -284,7 +287,12 @@ function ChartCard({
 
 // ---------- Argent par mois : facturé (orange) + net gagné (vert, superposé) ----------
 
-type MonthDatum = { name: string; gross: number; net: number };
+type MonthDatum = {
+  name: string;
+  gross: number;
+  net: number;
+  afterUrssaf: number;
+};
 
 function MonthlyCard({
   data,
@@ -304,10 +312,11 @@ function MonthlyCard({
       <div className="mb-3 flex items-center justify-between gap-2">
         <h3 className="text-[15px] font-bold tracking-tight">Argent par mois</h3>
         <div className="flex items-center gap-3">
-          {/* Légende facturé / net */}
+          {/* Légende facturé / net / après URSSAF */}
           <div className="hidden items-center gap-3 sm:flex">
             <Legend color={GROSS_COLOR} label="Facturé" />
             <Legend color={NET_COLOR} label="Net gagné" />
+            <Legend color={AFTER_COLOR} label="Après URSSAF" />
           </div>
           <div className="flex items-center gap-1">
             <button
@@ -354,9 +363,13 @@ function MonthlyCard({
                   <Legend color={GROSS_COLOR} label="Facturé" />
                   {formatEuro(d.gross)}
                 </span>
-                <span className="ml-auto flex items-center gap-1.5 font-medium">
+                <span className="flex items-center gap-1.5 font-medium">
                   <Legend color={NET_COLOR} label="Net" />
                   {formatEuro(d.net)}
+                </span>
+                <span className="ml-auto flex items-center gap-1.5 font-medium">
+                  <Legend color={AFTER_COLOR} label="Après URSSAF" />
+                  {formatEuro(d.afterUrssaf)}
                 </span>
               </li>
             ))}
@@ -386,7 +399,11 @@ function MonthlyCard({
               <Tooltip
                 formatter={(v, name) => [
                   formatEuro(Number(v)),
-                  name === "gross" ? "Facturé" : "Net gagné",
+                  name === "gross"
+                    ? "Facturé"
+                    : name === "net"
+                      ? "Net gagné"
+                      : "Après URSSAF",
                 ]}
                 cursor={{ fill: "#f9fafb" }}
                 contentStyle={{
@@ -399,13 +416,19 @@ function MonthlyCard({
                 dataKey="gross"
                 fill={GROSS_COLOR}
                 radius={[6, 6, 0, 0]}
-                barSize={30}
+                barSize={32}
               />
               <Bar
                 dataKey="net"
                 fill={NET_COLOR}
                 radius={[6, 6, 0, 0]}
                 barSize={22}
+              />
+              <Bar
+                dataKey="afterUrssaf"
+                fill={AFTER_COLOR}
+                radius={[6, 6, 0, 0]}
+                barSize={13}
               />
             </BarChart>
           </ResponsiveContainer>

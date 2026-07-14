@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { ChevronLeft, ChevronRight, Check, ChevronDown, HelpCircle, Clock } from "lucide-react";
 import { urssafRate, URSSAF_COTISATION_BNC } from "@/lib/finance";
 import { formatEuro } from "@/lib/work";
@@ -36,12 +37,16 @@ export default function UrssafSection({
   rows: Urssaf[];
   payments: Payment[];
 }) {
+  const router = useRouter();
   const now = new Date();
   const curY = now.getFullYear();
   const curM = now.getMonth() + 1;
+  const todayMid = new Date(curY, now.getMonth(), now.getDate()).getTime();
 
   const [view, setView] = useState<View>("mois");
-  const [focus, setFocus] = useState({ y: curY, m: curM });
+  // Déclarations validées de façon optimiste (avant que le serveur ne renvoie
+  // la ligne mise à jour), pour un passage immédiat au vert.
+  const [declared, setDeclared] = useState<Set<string>>(new Set());
 
   // CA à déclarer d'un mois = montant FACTURÉ (brut) des paiements encaissés ce
   // mois-là. L'URSSAF se calcule sur le facturé, pas sur le net après commission.
@@ -54,9 +59,14 @@ export default function UrssafSection({
   const rowOf = (y: number, m: number) =>
     rows.find((r) => r.year === y && r.month === m);
   const isCurrent = (y: number, m: number) => y === curY && m === curM;
+  const keyOf = (y: number, m: number) => `${y}-${m}`;
+  const isDeclared = (y: number, m: number) =>
+    declared.has(keyOf(y, m)) || !!rowOf(y, m)?.completed;
+  // On ne peut déclarer le CA d'un mois qu'à partir du 1er du mois SUIVANT.
+  const canDeclareMonth = (y: number, m: number) =>
+    new Date(y, m, 1).getTime() <= todayMid;
 
   const tauxActuel = urssafRate(curY, curM);
-  // Libellé calculé depuis le taux réel (ACRE ~13,03%, plein ~26,06%)
   const pct = (r: number) =>
     (r * 100).toLocaleString("fr-FR", { maximumFractionDigits: 2 }) + " %";
   const tauxLabel =
@@ -66,7 +76,7 @@ export default function UrssafSection({
         )})`
       : pct(URSSAF_COTISATION_BNC);
 
-  // Total estimé sur tous les mois encaissés (depuis le début)
+  // Tous les mois encaissés (pour les totaux + le mois de départ)
   const allMonths = new Map<string, { y: number; m: number; enc: number }>();
   for (const p of payments) {
     if (p.status !== "paid" || !p.received_date) continue;
@@ -79,13 +89,45 @@ export default function UrssafSection({
   }
   const monthsList = Array.from(allMonths.values());
   const totalEncaisse = monthsList.reduce((s, x) => s + x.enc, 0);
-  const totalUrssaf = monthsList.reduce(
-    (s, x) => s + x.enc * urssafRate(x.y, x.m),
-    0
-  );
+  // Total URSSAF : montant réellement payé si déclaré, sinon la prédiction.
+  const totalUrssaf = monthsList.reduce((s, x) => {
+    const r = rowOf(x.y, x.m);
+    const actual =
+      r?.completed && r.paid_amount != null
+        ? r.paid_amount
+        : x.enc * urssafRate(x.y, x.m);
+    return s + actual;
+  }, 0);
   const declaredCount = rows.filter((r) => r.completed).length;
 
-  // Vue Mois : mois précédent (grisé), mois en cours/focus, 2 mois suivants
+  // Mois de DÉPART : le premier mois encaissé, déclarable et pas encore déclaré
+  // (sinon le mois courant). Une fois un mois déclaré, on avance sur le suivant,
+  // qui devient donc naturellement le mois de départ au prochain chargement.
+  const [focus, setFocus] = useState(() => {
+    const pending = monthsList
+      .filter(
+        (x) =>
+          x.enc > 0 && canDeclareMonth(x.y, x.m) && !rowOf(x.y, x.m)?.completed
+      )
+      .sort((a, b) => a.y - b.y || a.m - b.m)[0];
+    return pending ? { y: pending.y, m: pending.m } : { y: curY, m: curM };
+  });
+
+  // Déclaration d'un mois : marque vert immédiatement, enregistre le montant
+  // exact, puis anime le passage à la carte du mois suivant.
+  function declare(y: number, m: number, paidAmount: number) {
+    setDeclared((s) => new Set(s).add(keyOf(y, m)));
+    upsertUrssaf(y, m, {
+      amount: encaisseOf(y, m),
+      paid_amount: paidAmount,
+      completed: true,
+      declared_at: new Date().toISOString().slice(0, 10),
+    });
+    setFocus(shift(y, m, 1));
+    router.refresh();
+  }
+
+  // Vue Mois : mois précédent (grisé), mois de focus, 2 mois suivants
   const fenetre = [
     { ...shift(focus.y, focus.m, -1), dim: true },
     { ...focus, dim: false },
@@ -100,7 +142,6 @@ export default function UrssafSection({
           <h2 className="text-[22px] font-bold tracking-[-0.01em]">URSSAF</h2>
           <p className="text-sm text-muted">Taux actuel : {tauxLabel}</p>
         </div>
-        {/* Bascule de vue */}
         <div className="flex items-center gap-1 rounded-xl bg-gray-100 p-1 text-sm dark:bg-white/[0.06]">
           {(
             [
@@ -133,8 +174,11 @@ export default function UrssafSection({
           >
             <ChevronLeft className="h-5 w-5" />
           </button>
-          {/* Mobile : 1 carte (le mois focus) ; desktop : fenêtre de plusieurs mois */}
-          <div className="flex flex-1 gap-3 overflow-x-auto pb-1">
+          {/* key={focus} : fondu à chaque changement de mois (passage animé) */}
+          <div
+            key={`${focus.y}-${focus.m}`}
+            className="flex flex-1 animate-fade-in gap-3 overflow-x-auto pb-1"
+          >
             {fenetre.map((c, i) => (
               <div
                 key={`${c.y}-${c.m}`}
@@ -145,11 +189,14 @@ export default function UrssafSection({
                   month={c.m}
                   label={`${MONTHS[c.m - 1]} ${c.y}`}
                   rate={urssafRate(c.y, c.m)}
-                  row={rowOf(c.y, c.m)}
                   encaisse={encaisseOf(c.y, c.m)}
+                  completed={isDeclared(c.y, c.m)}
+                  paidAmount={rowOf(c.y, c.m)?.paid_amount ?? null}
+                  canDeclare={canDeclareMonth(c.y, c.m)}
                   current={isCurrent(c.y, c.m)}
                   dim={c.dim}
                   now={now}
+                  onDeclare={declare}
                 />
               </div>
             ))}
@@ -168,7 +215,7 @@ export default function UrssafSection({
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
           <RecapCard label="CA facturé (total)" value={formatEuro(totalEncaisse)} />
           <RecapCard
-            label="URSSAF estimée (total)"
+            label="URSSAF (total)"
             value={formatEuro(totalUrssaf)}
             accent
           />
@@ -212,8 +259,7 @@ function Tuto() {
             <li>Aller sur autoentrepreneur.urssaf.fr</li>
             <li>Se connecter avec son numéro d&apos;affilié</li>
             <li>Déclarer le CA du mois (le montant indiqué ici)</li>
-            <li>Valider le paiement</li>
-            <li>Revenir ici et cocher « déclaré »</li>
+            <li>Ajuster si besoin la somme réelle, puis « À déclarer »</li>
           </ol>
         </div>
       )}
@@ -226,57 +272,54 @@ function MonthCard({
   month,
   label,
   rate,
-  row,
   encaisse,
+  completed,
+  paidAmount,
+  canDeclare,
   current,
   dim,
   now,
+  onDeclare,
 }: {
   year: number;
   month: number;
   label: string;
   rate: number;
-  row?: Urssaf;
   encaisse: number;
+  completed: boolean;
+  paidAmount: number | null;
+  canDeclare: boolean;
   current: boolean;
   dim?: boolean;
   now: Date;
+  onDeclare: (y: number, m: number, paidAmount: number) => void;
 }) {
-  const [completed, setCompleted] = useState(row?.completed ?? false);
-  const urssaf = encaisse * rate;
-
-  // On ne peut déclarer le CA d'un mois qu'à partir du 1er du mois SUIVANT.
-  // new Date(year, month, 1) = 1er du mois suivant (month est en base 1, l'index
-  // JS étant en base 0, l'index `month` pointe donc le mois d'après).
+  const predicted = encaisse * rate;
   const openDate = new Date(year, month, 1);
   const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-  const canDeclare = today.getTime() >= openDate.getTime();
   const daysUntil = Math.ceil(
     (openDate.getTime() - today.getTime()) / 86_400_000
   );
-  // Mois d'ouverture de la déclaration, en MM (le mois suivant `month`).
   const openMM = String((month % 12) + 1).padStart(2, "0");
-
   const aDeclarer = canDeclare && encaisse > 0 && !completed;
 
-  function toggle() {
-    const next = !completed;
-    setCompleted(next);
-    upsertUrssaf(year, month, {
-      amount: encaisse,
-      completed: next,
-      declared_at: next ? new Date().toISOString().slice(0, 10) : null,
-    });
-  }
+  // Montant URSSAF ajustable avant déclaration (pré-rempli avec la prédiction).
+  const [amt, setAmt] = useState(
+    paidAmount != null
+      ? String(paidAmount)
+      : String(Math.round(predicted * 100) / 100)
+  );
 
-  // Mois courant = carte BLANCHE avec un contour bleu (pas de fond bleu plein).
-  const border = current
-    ? "border-active bg-white ring-1 ring-active/40"
-    : completed
-      ? "border-success/50 bg-green-50"
-      : aDeclarer
-        ? "border-pending/50 bg-orange-50"
+  // Priorité : déclaré (vert) > à déclarer (rouge) > mois courant (bleu).
+  const border = completed
+    ? "border-success/50 bg-green-50"
+    : aDeclarer
+      ? "border-urgent/50 bg-red-50"
+      : current
+        ? "border-active bg-white ring-1 ring-active/40"
         : "border-black/[0.06] bg-white";
+
+  const shownUrssaf = completed && paidAmount != null ? paidAmount : predicted;
 
   return (
     <div
@@ -297,31 +340,46 @@ function MonthCard({
         </p>
         <p className="flex items-center justify-between">
           <span className="text-muted">URSSAF</span>
-          <span className="font-medium">{formatEuro(urssaf)}</span>
+          {aDeclarer ? (
+            <span className="flex items-center rounded-lg border border-black/15 pr-1.5 focus-within:border-ink">
+              <input
+                value={amt}
+                onChange={(e) => setAmt(e.target.value)}
+                type="number"
+                min={0}
+                step="any"
+                aria-label="Montant URSSAF à payer"
+                className="w-20 rounded-lg border-0 bg-transparent py-1 pl-2 text-right text-sm font-semibold outline-none"
+              />
+              <span className="text-[11px] text-muted">€</span>
+            </span>
+          ) : (
+            <span className="font-medium">{formatEuro(shownUrssaf)}</span>
+          )}
         </p>
       </div>
+
       {completed ? (
-        <button
-          onClick={toggle}
-          className="mt-3 flex w-full items-center justify-center gap-1.5 rounded-lg bg-success px-3 py-2 text-xs font-semibold text-white transition-colors"
-        >
+        // Déclaré : vert + grisé, non cliquable
+        <div className="mt-3 flex w-full cursor-default items-center justify-center gap-1.5 rounded-lg bg-success px-3 py-2 text-xs font-semibold text-white opacity-70">
           <Check className="h-3.5 w-3.5" />
           Déclaré
+        </div>
+      ) : aDeclarer ? (
+        // À déclarer : bouton rouge tant que ce n'est pas fait
+        <button
+          onClick={() => onDeclare(year, month, parseFloat(amt) || predicted)}
+          className="mt-3 flex w-full items-center justify-center gap-1.5 rounded-lg bg-urgent px-3 py-2 text-xs font-semibold text-white transition-opacity hover:opacity-90"
+        >
+          À déclarer
         </button>
       ) : canDeclare ? (
-        <button
-          onClick={toggle}
-          className={`mt-3 flex w-full items-center justify-center gap-1.5 rounded-lg px-3 py-2 text-xs font-semibold transition-colors ${
-            aDeclarer
-              ? "bg-pending text-white hover:opacity-90"
-              : "border border-black/[0.1] text-ink-soft hover:border-black/25 hover:text-ink"
-          }`}
-        >
-          Marquer déclaré
-        </button>
+        // Fenêtre ouverte mais rien encaissé ce mois-là
+        <div className="mt-3 flex w-full items-center justify-center gap-1.5 rounded-lg border border-dashed border-black/[0.12] px-3 py-2 text-xs font-medium text-muted">
+          Rien à déclarer
+        </div>
       ) : (
-        // Fenêtre de déclaration pas encore ouverte : on ne peut rien cocher.
-        // Mois en cours -> compte à rebours ; mois plus lointains -> date d'ouverture.
+        // Fenêtre pas encore ouverte : compte à rebours / date d'ouverture
         <div className="mt-3 flex w-full items-center justify-center gap-1.5 rounded-lg border border-dashed border-black/[0.12] px-3 py-2 text-xs font-medium text-muted">
           <Clock className="h-3.5 w-3.5" />
           {current
