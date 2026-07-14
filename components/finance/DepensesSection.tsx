@@ -1,26 +1,22 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { format, parseISO } from "date-fns";
 import { fr } from "date-fns/locale";
-import { Plus, Receipt, Briefcase, Check, Percent } from "lucide-react";
+import { Plus, Receipt, Percent } from "lucide-react";
 import Overlay from "@/components/ui/Overlay";
 import { Button } from "@/components/ui/Button";
 import EmptyState from "@/components/ui/EmptyState";
 import ExpenseForm from "./ExpenseForm";
 import { formatEuro, paymentSourceLabel } from "@/lib/work";
 import { paymentCommission } from "@/lib/finance";
-import { createExpense } from "@/app/(main)/finance/actions";
 import type {
   Client,
   Expense,
   Payment,
   ProjectWithDeliverables,
 } from "@/lib/types";
-
-// Catégorie utilisée pour une dépense de mission validée (sert aussi à la dédup)
-const MISSION_CAT = "Dépense de mission";
 
 // Ligne de commission dérivée automatiquement d'un revenu (écart devis / net).
 // Non stockée : elle vit dans l'historique tant que l'écart existe sur le revenu.
@@ -46,30 +42,6 @@ export default function DepensesSection({
   const router = useRouter();
   const [creating, setCreating] = useState(false);
   const [editing, setEditing] = useState<Expense | null>(null);
-  const [isPending, start] = useTransition();
-
-  // Dépenses de mission proposées par les projets (label + montant)
-  const missionExpenses = projects.flatMap((p) =>
-    (p.mission_expenses ?? [])
-      .filter((e) => e.amount)
-      .map((e) => ({
-        projectName: p.name,
-        label: e.label,
-        amount: e.amount,
-        // description telle qu'enregistrée une fois validée
-        desc: `${e.label || "Dépense"} · ${p.name}`,
-      }))
-  );
-
-  // Une proposition est déjà validée s'il existe une dépense manuelle qui la reprend
-  const isValidated = (m: { desc: string; amount: number }) =>
-    expenses.some(
-      (e) =>
-        e.category === MISSION_CAT &&
-        e.description === m.desc &&
-        e.amount === m.amount
-    );
-  const pending = missionExpenses.filter((m) => !isValidated(m));
 
   // Commissions dérivées : pour chaque encaissement, l'écart entre le prix du
   // devis et le net réellement reçu. Si une provenance est renseignée (Malt…),
@@ -92,8 +64,7 @@ export default function DepensesSection({
       };
     });
 
-  // Totaux : dépenses validées/manuelles + commissions (les propositions de
-  // mission "à valider" ne comptent pas tant qu'elles ne sont pas validées).
+  // Totaux : dépenses saisies + commissions dérivées.
   const expenseTotal = expenses.reduce((s, e) => s + (e.amount ?? 0), 0);
   const commTotal = commissions.reduce((s, c) => s + c.amount, 0);
   const total = expenseTotal + commTotal;
@@ -106,18 +77,6 @@ export default function DepensesSection({
     ...expenses.map((e) => ({ kind: "expense" as const, date: e.date, e })),
     ...commissions.map((c) => ({ kind: "commission" as const, date: c.date, c })),
   ].sort((a, b) => (a.date < b.date ? 1 : a.date > b.date ? -1 : 0));
-
-  function validate(m: { desc: string; amount: number }) {
-    start(async () => {
-      await createExpense({
-        date: format(new Date(), "yyyy-MM-dd"),
-        amount: m.amount,
-        description: m.desc,
-        category: MISSION_CAT,
-      });
-      router.refresh();
-    });
-  }
 
   function close() {
     setCreating(false);
@@ -150,104 +109,64 @@ export default function DepensesSection({
         </Button>
       </div>
 
-      {history.length === 0 && pending.length === 0 ? (
+      {history.length === 0 ? (
         <EmptyState
           icon={Receipt}
           title="Aucune dépense"
-          description="Ajoute une dépense (Adobe, URSSAF...), note des dépenses dans un projet, ou renseigne un écart devis / encaissé sur un revenu pour voir la commission ici."
+          description="Ajoute une dépense (Adobe, URSSAF...), ou renseigne un écart devis / encaissé sur un revenu pour voir la commission apparaître ici."
         />
       ) : (
-        <>
-          {/* À valider : dépenses détectées sur les projets */}
-          {pending.length > 0 && (
-            <div className="mb-5 rounded-2xl border border-dashed border-gray-200 bg-gray-50/40 p-4 dark:border-hairline dark:bg-white/[0.06]">
-              <p className="mb-2 text-xs font-medium uppercase tracking-wide text-muted">
-                Dépenses de mission à valider ({pending.length})
-              </p>
-              <ul className="space-y-1.5">
-                {pending.map((m, i) => (
-                  <li
-                    key={`p-${i}`}
-                    className="flex items-center gap-3 rounded-xl bg-white px-3 py-2 dark:bg-surface"
-                  >
-                    <Briefcase className="h-4 w-4 shrink-0 text-muted" />
-                    <div className="min-w-0 flex-1">
-                      <p className="truncate text-sm text-gray-500 dark:text-muted">
-                        {m.label || "Dépense"}
-                      </p>
-                      <p className="truncate text-xs text-muted">
-                        Mission · {m.projectName}
-                      </p>
-                    </div>
-                    <span className="shrink-0 text-sm font-medium text-gray-400 dark:text-muted">
-                      {formatEuro(m.amount)}
-                    </span>
-                    <button
-                      onClick={() => validate(m)}
-                      disabled={isPending}
-                      className="inline-flex shrink-0 items-center gap-1 rounded-lg bg-ink px-2.5 py-1.5 text-xs font-medium text-white hover:opacity-90 disabled:opacity-50 dark:text-bg"
-                    >
-                      <Check className="h-3.5 w-3.5" />
-                      Valider
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            </div>
+        <ul className="divide-y divide-gray-100 overflow-hidden rounded-2xl border border-gray-100 bg-white dark:divide-white/10 dark:border-hairline dark:bg-surface">
+          {history.map((row) =>
+            row.kind === "expense" ? (
+              <li key={row.e.id}>
+                <button
+                  onClick={() => setEditing(row.e)}
+                  className="flex w-full items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-gray-50 dark:hover:bg-white/[0.06]"
+                >
+                  <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-gray-100 text-muted dark:bg-white/[0.06]">
+                    <Receipt className="h-3.5 w-3.5" />
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate font-medium">
+                      {row.e.description || row.e.category || "Dépense"}
+                    </p>
+                    <p className="truncate text-xs text-muted">
+                      {fmtDate(row.e.date)}
+                      {row.e.category ? ` · ${row.e.category}` : ""}
+                    </p>
+                  </div>
+                  <span className="shrink-0 text-sm font-medium">
+                    {formatEuro(row.e.amount)}
+                  </span>
+                </button>
+              </li>
+            ) : (
+              // Commission : dérivée d'un revenu, non modifiable ici (on ajuste
+              // l'écart en éditant le revenu concerné).
+              <li
+                key={row.c.id}
+                className="flex items-center gap-3 px-4 py-3"
+                title="Écart devis / encaissé — se modifie sur le revenu lié"
+              >
+                <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-orange-50 text-pending dark:bg-pending/15">
+                  <Percent className="h-3.5 w-3.5" />
+                </span>
+                <div className="min-w-0 flex-1">
+                  <p className="truncate font-medium">{row.c.label}</p>
+                  <p className="truncate text-xs text-muted">
+                    {fmtDate(row.c.date)}
+                    {row.c.who ? ` · ${row.c.who}` : ""}
+                    {" · depuis un revenu"}
+                  </p>
+                </div>
+                <span className="shrink-0 text-sm font-medium text-pending">
+                  {formatEuro(row.c.amount)}
+                </span>
+              </li>
+            )
           )}
-
-          {/* Historique : dépenses (modifiables) + commissions (auto, en lecture) */}
-          {history.length > 0 && (
-            <ul className="divide-y divide-gray-100 overflow-hidden rounded-2xl border border-gray-100 bg-white dark:divide-white/10 dark:border-hairline dark:bg-surface">
-              {history.map((row) =>
-                row.kind === "expense" ? (
-                  <li key={row.e.id}>
-                    <button
-                      onClick={() => setEditing(row.e)}
-                      className="flex w-full items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-gray-50 dark:hover:bg-white/[0.06]"
-                    >
-                      <div className="min-w-0 flex-1">
-                        <p className="truncate font-medium">
-                          {row.e.description || row.e.category || "Dépense"}
-                        </p>
-                        <p className="truncate text-xs text-muted">
-                          {fmtDate(row.e.date)}
-                          {row.e.category ? ` · ${row.e.category}` : ""}
-                        </p>
-                      </div>
-                      <span className="shrink-0 text-sm font-medium">
-                        {formatEuro(row.e.amount)}
-                      </span>
-                    </button>
-                  </li>
-                ) : (
-                  // Commission : dérivée d'un revenu, non modifiable ici (on ajuste
-                  // l'écart en éditant le revenu concerné).
-                  <li
-                    key={row.c.id}
-                    className="flex items-center gap-3 px-4 py-3"
-                    title="Écart devis / encaissé — se modifie sur le revenu lié"
-                  >
-                    <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-orange-50 text-pending dark:bg-pending/15">
-                      <Percent className="h-3.5 w-3.5" />
-                    </span>
-                    <div className="min-w-0 flex-1">
-                      <p className="truncate font-medium">{row.c.label}</p>
-                      <p className="truncate text-xs text-muted">
-                        {fmtDate(row.c.date)}
-                        {row.c.who ? ` · ${row.c.who}` : ""}
-                        {" · depuis un revenu"}
-                      </p>
-                    </div>
-                    <span className="shrink-0 text-sm font-medium text-pending">
-                      {formatEuro(row.c.amount)}
-                    </span>
-                  </li>
-                )
-              )}
-            </ul>
-          )}
-        </>
+        </ul>
       )}
 
       {(creating || editing) && (
