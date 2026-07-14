@@ -19,6 +19,7 @@ import { getMeSettings } from "./me/actions";
 import TodayTasks from "@/components/home/TodayTasks";
 import OverdueAlert from "@/components/home/OverdueAlert";
 import RotatingKpi, { type KpiSlide } from "@/components/home/RotatingKpi";
+import GlobalSearch, { type SearchItem } from "@/components/home/GlobalSearch";
 import InfoWidget from "@/components/home/InfoWidget";
 import QuickNote from "@/components/home/QuickNote";
 import { InstagramWidget, BehanceWidget } from "@/components/home/SocialWidgets";
@@ -64,6 +65,52 @@ export default async function HomePage() {
     const c = clients.find((x) => x.id === id);
     return c ? c.company || c.name : null;
   };
+  const projName = (id: string | null) =>
+    projects.find((p) => p.id === id)?.name ?? null;
+
+  // --- Bibliothèque de recherche globale (reconstruite à chaque chargement,
+  // donc tout nouvel élément est automatiquement indexé). ---
+  const stripTags = (s: string) =>
+    s.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim();
+  const searchItems: SearchItem[] = [
+    ...projects.map((p) => ({
+      id: `project-${p.id}`,
+      type: "project" as const,
+      label: p.name,
+      sub: clientName(p.client_id) ?? p.org ?? undefined,
+      href: `/work?project=${p.id}`,
+    })),
+    ...clients.map((c) => ({
+      id: `client-${c.id}`,
+      type: "client" as const,
+      label: c.company || c.name,
+      sub: (c.company ? c.name : c.email) ?? undefined,
+      href: `/work?client=${c.id}`,
+    })),
+    ...notes
+      .filter((n) => !n.deleted_at)
+      .map((n) => {
+        const raw = n.title?.trim() || stripTags(n.content ?? "");
+        const label = raw ? (raw.length > 70 ? raw.slice(0, 70) + "…" : raw) : "Note";
+        return {
+          id: `note-${n.id}`,
+          type: "note" as const,
+          label,
+          sub: n.is_task ? "Tâche" : undefined,
+          href: "/work",
+        };
+      }),
+    ...payments.map((pay) => {
+      const amt = pay.net_amount ?? pay.gross_amount;
+      return {
+        id: `payment-${pay.id}`,
+        type: "payment" as const,
+        label: projName(pay.project_id) ?? clientName(pay.client_id) ?? "Revenu",
+        sub: amt != null ? formatEuro(amt) : undefined,
+        href: "/finance",
+      };
+    }),
+  ];
 
   // --- Aujourd'hui ---
   const todayBlocks = blocks.filter(
@@ -318,6 +365,10 @@ export default async function HomePage() {
           <QuickNote />
         </div>
       </header>
+
+      {/* Recherche globale (projets, clients, notes, revenus) */}
+      <GlobalSearch items={searchItems} />
+
 
       {/* À traiter : un seul rectangle compact (rouge si urgence) */}
       {aTraiter.length > 0 && (

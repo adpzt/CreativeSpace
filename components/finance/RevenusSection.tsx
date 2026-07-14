@@ -2,7 +2,8 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { format } from "date-fns";
+import { format, parseISO } from "date-fns";
+import { fr } from "date-fns/locale";
 import { Plus, Wallet, ArrowRight, Check } from "lucide-react";
 import Overlay from "@/components/ui/Overlay";
 import { Button } from "@/components/ui/Button";
@@ -140,7 +141,10 @@ export default function RevenusSection({
     );
   }
   function rowSub(pay: Payment) {
-    const parts = [];
+    const parts: string[] = [];
+    // Date en tête (encaissement, sinon échéance, sinon création)
+    const d = pay.received_date ?? pay.due_date ?? pay.created_at?.slice(0, 10);
+    if (d) parts.push(format(parseISO(d), "d MMM yyyy", { locale: fr }));
     if (pay.project_id && clientLabel(pay.client_id))
       parts.push(clientLabel(pay.client_id)!);
     if (pay.source) parts.push(paymentSourceLabel(pay.source));

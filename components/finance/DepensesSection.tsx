@@ -142,10 +142,11 @@ export default function DepensesSection({
                   ? parts[0]
                   : row.e.category || "Dépense";
                 const rest = parts.slice(1).join(" · ");
+                // Sous-ligne : date · projet · catégorie
                 const sub = [
                   fmtDate(row.e.date),
-                  hasDesc ? row.e.category : null,
                   hasDesc ? rest : null,
+                  hasDesc ? row.e.category : null,
                 ]
                   .filter(Boolean)
                   .join(" · ");

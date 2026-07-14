@@ -103,6 +103,16 @@ export default function ProjectsSection({
   const openProject = projects.find((p) => p.id === openId) ?? null;
   const openClient = clients.find((c) => c.id === openClientId) ?? null;
 
+  // Ouverture directe depuis la recherche globale (?project=… / ?client=…).
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const pid = params.get("project");
+    if (pid && projects.some((p) => p.id === pid)) setOpenId(pid);
+    const cid = params.get("client");
+    if (cid && clients.some((c) => c.id === cid)) setOpenClientId(cid);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const filtered =
     filter === "active"
       ? projects.filter((p) => !HIDDEN_BY_DEFAULT.includes(p.status))
