@@ -21,7 +21,7 @@ function Sparkline({ data }: { data: number[] }) {
   return (
     <svg
       viewBox={`0 0 ${w} ${h}`}
-      className="h-[46px] w-32"
+      className="h-[42px] w-full sm:h-[46px] sm:w-32"
       preserveAspectRatio="none"
       aria-hidden
     >
@@ -70,18 +70,19 @@ export default function RotatingKpi({
   if (!s) return null;
 
   return (
-    <div className="cs-hero animate-rise rounded-3xl border border-active/[0.16] bg-gradient-to-br from-active/[0.08] via-[#7c3aed]/[0.10] to-[#0d9488]/[0.07] p-8 shadow-[inset_0_1px_0_rgba(255,255,255,.9),0_1px_2px_rgba(0,0,0,.03),0_22px_50px_-22px_rgba(37,99,235,.4)]">
-      <div className="relative flex items-start justify-between gap-4">
+    <div className="cs-hero animate-rise rounded-[22px] border border-active/[0.16] bg-gradient-to-br from-active/[0.08] via-[#7c3aed]/[0.10] to-[#0d9488]/[0.07] p-5 shadow-[inset_0_1px_0_rgba(255,255,255,.9),0_1px_2px_rgba(0,0,0,.03),0_22px_50px_-22px_rgba(37,99,235,.4)] sm:rounded-3xl sm:p-8">
+      {/* Mobile : chiffre puis sparkline pleine largeur dessous. Desktop : côte à côte. */}
+      <div className="relative flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
         {/* key={i} relance le fondu a chaque changement de chiffre */}
         <div key={i} className="animate-fade-in min-w-0">
           <p className="lbl">{s.label}</p>
-          <p className="mt-2.5 text-[52px] font-black leading-none tracking-[-0.03em] tabular-nums">
+          <p className="mt-2.5 text-[40px] font-black leading-none tracking-[-0.03em] tabular-nums sm:text-[52px]">
             {s.value}
           </p>
           {s.sub && <p className="mt-2 text-[13px] text-muted">{s.sub}</p>}
         </div>
         {spark && spark.some((v) => v > 0) && (
-          <div className="shrink-0 pt-1">
+          <div className="shrink-0 sm:pt-1">
             <Sparkline data={spark} />
           </div>
         )}
