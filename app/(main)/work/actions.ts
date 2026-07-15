@@ -358,25 +358,11 @@ export async function updateCalendarBlock(
 
   if (error) throw new Error(error.message);
 
-  // Bloc coché/décoché lié à un livrable -> on répercute sur le livrable
-  // (et sa progression) pour que tout reste synchronisé.
-  if (patch.completed !== undefined) {
-    const { data: blk } = await supabase
-      .from("calendar_blocks")
-      .select("deliverable_id")
-      .eq("id", id)
-      .maybeSingle();
-    if (blk?.deliverable_id) {
-      await supabase
-        .from("deliverables")
-        .update(
-          patch.completed
-            ? { completed: true, progress: 100 }
-            : { completed: false }
-        )
-        .eq("id", blk.deliverable_id);
-    }
-  }
+  // NB : barrer un bloc du semainier = "j'ai fini de bosser dessus aujourd'hui",
+  // PAS "le livrable est terminé". On ne répercute donc PAS `completed` sur le
+  // livrable. Pour marquer un livrable terminé : le passer à 100 % ou le cocher
+  // depuis le projet (ce sens-là, livrable -> blocs, reste géré par
+  // updateDeliverable).
   revalidatePath("/work");
   revalidatePath("/");
 }
