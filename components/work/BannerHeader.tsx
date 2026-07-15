@@ -26,7 +26,7 @@ export default function BannerHeader({
   }
 
   return (
-    <div className="group relative h-[170px] overflow-hidden rounded-[22px] shadow-[0_18px_44px_-20px_rgba(0,0,0,.5)]">
+    <div className="group relative h-[128px] overflow-hidden rounded-[20px] shadow-[0_18px_44px_-20px_rgba(0,0,0,.5)] md:h-[170px] md:rounded-[22px]">
       {url ? (
         // eslint-disable-next-line @next/next/no-img-element
         <img src={url} alt="Bannière" className="h-full w-full object-cover" />

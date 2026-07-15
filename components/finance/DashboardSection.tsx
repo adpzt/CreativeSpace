@@ -158,10 +158,11 @@ export default function DashboardSection({
         </div>
       </div>
 
-      {/* Rangee principale : benefice (hero) / CA (sparkline) / colonne empilee */}
-      <div className="grid gap-4 md:grid-cols-[1.15fr_1fr_1fr]">
+      {/* Rangee principale. Mobile : benefice pleine largeur + 2 tuiles (CA |
+          Depenses/URSSAF). Desktop : 3 colonnes. */}
+      <div className="grid grid-cols-2 gap-3 md:grid-cols-[1.15fr_1fr_1fr] md:gap-4">
         {/* Benefice net = hero success (la donnee reine) */}
-        <div className="cs-hero animate-rise rounded-3xl border border-success/20 bg-gradient-to-br from-success/[0.08] to-success/[0.15] p-6 shadow-[inset_0_1px_0_rgba(255,255,255,.9),0_1px_2px_rgba(0,0,0,.03),0_22px_50px_-24px_rgba(22,163,74,.4)]">
+        <div className="cs-hero animate-rise col-span-2 rounded-3xl border border-success/20 bg-gradient-to-br from-success/[0.08] to-success/[0.15] p-5 shadow-[inset_0_1px_0_rgba(255,255,255,.9),0_1px_2px_rgba(0,0,0,.03),0_22px_50px_-24px_rgba(22,163,74,.4)] md:col-span-1 md:p-6">
           <div className="relative">
             <p className="lbl">Bénéfice net</p>
             <p className="mt-2.5 text-[40px] font-black leading-none tracking-[-0.02em] tabular-nums text-[#146c34]">
@@ -172,14 +173,14 @@ export default function DashboardSection({
         </div>
 
         {/* CA + sparkline pleine largeur en pied */}
-        <div className="animate-rise relative flex flex-col overflow-hidden rounded-3xl border border-black/[0.06] bg-white p-6 shadow-card">
+        <div className="animate-rise relative flex flex-col overflow-hidden rounded-3xl border border-black/[0.06] bg-white p-4 shadow-card md:p-6">
           <p className="lbl">CA {mode === "mois" ? "du mois" : "de l'année"}</p>
-          <p className="mt-2.5 text-[29px] font-extrabold leading-none tracking-[-0.02em] tabular-nums">
+          <p className="mt-2 text-[20px] font-extrabold leading-none tracking-[-0.02em] tabular-nums md:mt-2.5 md:text-[29px]">
             {formatEuro(ca)}
           </p>
           <p className="mt-1.5 text-xs text-muted">brut (facturé)</p>
           {hasSpark && (
-            <div className="-mx-6 -mb-6 mt-4 h-16">
+            <div className="-mx-4 -mb-4 mt-4 h-16 md:-mx-6 md:-mb-6">
               <Spark data={caSpark} />
             </div>
           )}
@@ -247,7 +248,7 @@ function MiniStat({
   sub?: string;
 }) {
   return (
-    <div className="animate-rise flex-1 rounded-2xl border border-black/[0.06] bg-white p-5 shadow-card transition duration-[180ms] ease-ios hover:-translate-y-0.5 hover:shadow-lift">
+    <div className="animate-rise flex-1 rounded-2xl border border-black/[0.06] bg-white p-4 shadow-card transition duration-[180ms] ease-ios hover:-translate-y-0.5 hover:shadow-lift md:p-5">
       <div className="mb-2 flex items-center gap-2">
         <span
           className={`flex h-[30px] w-[30px] items-center justify-center rounded-[9px] bg-black/[0.04] ${tint}`}
@@ -257,7 +258,7 @@ function MiniStat({
         <p className="text-[13px] text-muted">{label}</p>
       </div>
       <p
-        className={`text-[26px] font-extrabold tracking-[-0.02em] tabular-nums ${valueClass ?? ""}`}
+        className={`text-[19px] font-extrabold tracking-[-0.02em] tabular-nums md:text-[26px] ${valueClass ?? ""}`}
       >
         {value}
       </p>

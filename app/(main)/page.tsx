@@ -422,8 +422,8 @@ export default async function HomePage() {
       {/* Hero monétaire (pièce maîtresse) : carte large rotative */}
       <RotatingKpi slides={caSlides} spark={caSpark} />
 
-      {/* KPI : 3 colonnes */}
-      <div className="grid gap-4 sm:grid-cols-3">
+      {/* KPI : 2 colonnes sur mobile, 3 sur desktop */}
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4">
         <Kpi
           icon={CheckCircle2}
           tint="success"
@@ -456,8 +456,10 @@ export default async function HomePage() {
             <p className="text-lg font-extrabold text-muted">—</p>
           )}
         </div>
-        {/* Information à venir : widget entièrement modifiable */}
-        <InfoWidget initial={settings} />
+        {/* Information à venir : widget entièrement modifiable (pleine largeur sur mobile) */}
+        <div className="col-span-2 sm:col-span-1">
+          <InfoWidget initial={settings} />
+        </div>
       </div>
 
       {/* Aujourd'hui */}
