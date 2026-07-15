@@ -31,6 +31,7 @@ import {
   PROJECT_STATUS_ORDER,
   HIDDEN_BY_DEFAULT,
   projectProgress,
+  CATEGORY_COLOR,
 } from "@/lib/work";
 import type {
   CalendarCategory,
@@ -250,6 +251,7 @@ export default function ProjectsSection({
           <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
             {pageProjects.map((p) => {
               const cat = p.category ? CATEGORY[p.category] : null;
+              const catHex = p.category ? CATEGORY_COLOR[p.category] : null;
               const company = clientCompany(p.client_id) || p.org;
               const closed = p.status === "closed";
               const pinned = isPinned(p);
@@ -260,13 +262,22 @@ export default function ProjectsSection({
                 <div key={p.id} className="group relative">
                   <button
                     onClick={() => setOpenId(p.id)}
-                    // Contour = couleur choisie sur le projet (sinon hairline neutre)
-                    style={p.color ? { borderColor: p.color } : undefined}
-                    className={`flex h-full w-full flex-col rounded-2xl border bg-white p-5 text-left shadow-card transition duration-[180ms] ease-ios hover:-translate-y-1 hover:shadow-lift ${
-                      p.color ? "" : "border-black/[0.06]"
+                    // Contour + glow = couleur de la CATÉGORIE (lisible au 1er coup d'œil)
+                    style={
+                      catHex
+                        ? {
+                            borderColor: catHex,
+                            boxShadow: `0 1px 2px rgba(0,0,0,.04), 0 12px 26px -14px ${catHex}4D`,
+                          }
+                        : undefined
+                    }
+                    className={`flex h-full w-full flex-col rounded-[18px] border-[1.5px] bg-white p-5 text-left transition duration-[180ms] ease-ios hover:-translate-y-0.5 ${
+                      catHex ? "" : "border-black/[0.06] shadow-card hover:shadow-lift"
                     } ${closed ? "opacity-[0.82] hover:opacity-100" : ""}`}
                   >
-                    <p className="text-[17px] font-semibold leading-snug">{p.name}</p>
+                    <p className="text-lg font-extrabold leading-snug tracking-[-0.01em]">
+                      {p.name}
+                    </p>
 
                     {/* Client · catégorie + échéance alignée à droite */}
                     <div className="mb-3 mt-1 flex items-baseline justify-between gap-2">
@@ -274,13 +285,13 @@ export default function ProjectsSection({
                         {company}
                         {company && cat ? " · " : ""}
                         {cat && (
-                          <span className={`font-medium ${cat.className}`}>
+                          <span className={`font-semibold ${cat.className}`}>
                             {cat.label}
                           </span>
                         )}
                       </p>
                       {due && (
-                        <span className="shrink-0 text-[12px] font-medium text-muted">
+                        <span className="shrink-0 text-[12px] font-medium text-muted tabular-nums">
                           {due}
                         </span>
                       )}
@@ -291,7 +302,7 @@ export default function ProjectsSection({
                       {p.mission_types.slice(0, 4).map((t) => (
                         <span
                           key={t}
-                          className="rounded-md bg-[#F1F1F4] px-2 py-0.5 text-[11px] font-medium text-ink-soft"
+                          className="rounded-lg border border-black/[0.04] bg-surface-2 px-2.5 py-1 text-[11px] font-medium text-ink-soft"
                         >
                           {t}
                         </span>
@@ -310,9 +321,10 @@ export default function ProjectsSection({
                         <ProgressBar
                           percent={projectProgress(p.deliverables)}
                           showLabel={false}
+                          color={catHex ?? undefined}
                         />
                       </div>
-                      <span className="text-sm font-semibold text-ink-soft">
+                      <span className="text-sm font-bold tabular-nums text-ink-soft">
                         {projectProgress(p.deliverables)}%
                       </span>
                     </div>

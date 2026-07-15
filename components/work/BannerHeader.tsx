@@ -26,13 +26,32 @@ export default function BannerHeader({
   }
 
   return (
-    <div className="group relative h-[132px] overflow-hidden rounded-[20px]">
+    <div className="group relative h-[170px] overflow-hidden rounded-[22px] shadow-[0_18px_44px_-20px_rgba(0,0,0,.5)]">
       {url ? (
         // eslint-disable-next-line @next/next/no-img-element
         <img src={url} alt="Bannière" className="h-full w-full object-cover" />
       ) : (
-        <div className="h-full w-full bg-[linear-gradient(110deg,#DDE7FF_0%,#E7DEFB_45%,#FCE7D6_100%)]" />
+        <div className="h-full w-full bg-gradient-to-br from-[#1e293b] via-[#334155] to-active" />
       )}
+      {/* Calque coloré (halos) sur le dégradé par défaut */}
+      {!url && (
+        <div
+          className="pointer-events-none absolute inset-0"
+          style={{
+            background:
+              "radial-gradient(70% 120% at 15% 20%, rgba(124,58,237,.5), transparent 60%), radial-gradient(60% 120% at 90% 90%, rgba(13,148,136,.45), transparent 60%)",
+          }}
+        />
+      )}
+      {/* Scrim bas pour la lisibilité du texte */}
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-2/3 bg-gradient-to-t from-black/45 to-transparent" />
+      {/* Sur-titre + titre, bas-gauche */}
+      <div className="absolute bottom-[22px] left-[26px] text-white">
+        <p className="text-xs font-bold uppercase tracking-[0.14em] opacity-70">
+          pztdesign · studio
+        </p>
+        <p className="text-[26px] font-extrabold tracking-[-0.02em]">L&apos;atelier</p>
+      </div>
       <button
         onClick={() => inputRef.current?.click()}
         disabled={isPending}

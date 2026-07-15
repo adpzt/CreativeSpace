@@ -101,6 +101,33 @@ select {
   }
 }
 
+@layer components {
+  /* Sur-titre / label de section : petit texte gris au-dessus du gros titre.
+     "Encaissements", "Analyse", "A faire"... Unite d'ancrage reutilisee partout. */
+  .lbl {
+    @apply text-[11px] font-bold uppercase tracking-[0.11em] text-muted;
+  }
+
+  /* Carte "hero" (motif systeme) : degrade + ring + sheen defini en Tailwind,
+     et un halo blanc en pseudo-element ajoute par cette classe. 1 seule par
+     ecran, reservee a la donnee reine. */
+  .cs-hero {
+    position: relative;
+    overflow: hidden;
+  }
+  .cs-hero::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: radial-gradient(
+      120% 70% at 88% -20%,
+      rgba(255, 255, 255, 0.65),
+      transparent 55%
+    );
+  }
+}
+
 /* Panneau latéral façon Notion : glisse depuis la droite */
 @keyframes slideRight {
   from {

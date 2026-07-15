@@ -1,38 +1,58 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Wallet, TrendingUp, Landmark } from "lucide-react";
-import type { LucideIcon } from "lucide-react";
 
-// Une "diapo" du widget tournant : un chiffre du mois avec son libellé.
-export type KpiSlide = {
-  label: string;
-  value: string;
-  sub?: string;
-  icon: "wallet" | "trending" | "landmark";
-  tint: "pending" | "success" | "urgent" | "active";
-};
+// Une "diapo" du hero monétaire : un chiffre du mois avec son libellé.
+export type KpiSlide = { label: string; value: string; sub?: string };
 
-const ICONS: Record<KpiSlide["icon"], LucideIcon> = {
-  wallet: Wallet,
-  trending: TrendingUp,
-  landmark: Landmark,
-};
-const TINT: Record<KpiSlide["tint"], string> = {
-  active: "bg-blue-50 text-active",
-  pending: "bg-orange-50 text-pending",
-  success: "bg-green-50 text-success",
-  urgent: "bg-red-50 text-urgent",
-};
+// Mini-sparkline area en SVG pur (léger, pas de dépendance).
+function Sparkline({ data }: { data: number[] }) {
+  const max = Math.max(1, ...data);
+  const w = 128;
+  const h = 46;
+  const pts = data.map((v, i) => [
+    data.length > 1 ? (i / (data.length - 1)) * w : 0,
+    h - (v / max) * (h - 3) - 1.5,
+  ]);
+  const line = pts
+    .map((p, i) => `${i === 0 ? "M" : "L"}${p[0].toFixed(1)},${p[1].toFixed(1)}`)
+    .join(" ");
+  const area = `${line} L${w},${h} L0,${h} Z`;
+  return (
+    <svg
+      viewBox={`0 0 ${w} ${h}`}
+      className="h-[46px] w-32"
+      preserveAspectRatio="none"
+      aria-hidden
+    >
+      <defs>
+        <linearGradient id="cs-hero-spark" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="#2563EB" stopOpacity="0.28" />
+          <stop offset="100%" stopColor="#2563EB" stopOpacity="0" />
+        </linearGradient>
+      </defs>
+      <path d={area} fill="url(#cs-hero-spark)" />
+      <path
+        d={line}
+        fill="none"
+        stroke="#2563EB"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
 
-// Carte KPI qui alterne automatiquement entre plusieurs chiffres (toutes les
-// `intervalMs`). Purement automatique : aucune interaction (les points ne sont
-// qu'un indicateur visuel).
+// Hero monétaire de l'accueil : grande carte "glass 2026" (dégradé + ring +
+// sheen + halo) qui alterne automatiquement CA / net / URSSAF. Non interactif.
 export default function RotatingKpi({
   slides,
-  intervalMs = 10000,
+  spark,
+  intervalMs = 5200,
 }: {
   slides: KpiSlide[];
+  spark?: number[];
   intervalMs?: number;
 }) {
   const [i, setI] = useState(0);
@@ -48,45 +68,36 @@ export default function RotatingKpi({
 
   const s = slides[i] ?? slides[0];
   if (!s) return null;
-  const Icon = ICONS[s.icon];
 
   return (
-    <div className="animate-rise flex flex-col rounded-2xl border border-black/[0.06] bg-white p-5 shadow-card">
-      <div className="mb-3 flex items-center justify-between gap-2">
-        <div className="flex min-w-0 items-center gap-2">
-          <span
-            className={`flex h-7 w-7 items-center justify-center rounded-lg transition-colors ${TINT[s.tint]}`}
-          >
-            <Icon className="h-4 w-4" />
-          </span>
-          <span className="truncate text-[13px] font-medium text-ink-soft">
-            {s.label}
-          </span>
+    <div className="cs-hero animate-rise rounded-3xl border border-active/[0.16] bg-gradient-to-br from-active/[0.08] via-[#7c3aed]/[0.10] to-[#0d9488]/[0.07] p-8 shadow-[inset_0_1px_0_rgba(255,255,255,.9),0_1px_2px_rgba(0,0,0,.03),0_22px_50px_-22px_rgba(37,99,235,.4)]">
+      <div className="relative flex items-start justify-between gap-4">
+        {/* key={i} relance le fondu a chaque changement de chiffre */}
+        <div key={i} className="animate-fade-in min-w-0">
+          <p className="lbl">{s.label}</p>
+          <p className="mt-2.5 text-[52px] font-black leading-none tracking-[-0.03em] tabular-nums">
+            {s.value}
+          </p>
+          {s.sub && <p className="mt-2 text-[13px] text-muted">{s.sub}</p>}
         </div>
-        {slides.length > 1 && (
-          <div className="flex shrink-0 items-center gap-1" aria-hidden>
-            {slides.map((_, idx) => (
-              <span
-                key={idx}
-                className={`h-1.5 w-1.5 rounded-full transition-colors ${
-                  idx === i ? "bg-ink/60" : "bg-black/15"
-                }`}
-              />
-            ))}
+        {spark && spark.some((v) => v > 0) && (
+          <div className="shrink-0 pt-1">
+            <Sparkline data={spark} />
           </div>
         )}
       </div>
-      {/* key={i} relance le fondu d'entrée à chaque changement de chiffre */}
-      <div key={i} className="animate-fade-in">
-        <p className="text-[32px] font-bold leading-none tracking-tight text-ink">
-          {s.value}
-        </p>
-        {s.sub && (
-          <p className="mt-1.5 truncate text-[12px] text-ink-soft" title={s.sub}>
-            {s.sub}
-          </p>
-        )}
-      </div>
+      {slides.length > 1 && (
+        <div className="relative mt-5 flex items-center gap-1.5" aria-hidden>
+          {slides.map((_, idx) => (
+            <span
+              key={idx}
+              className={`h-2 rounded-full transition-all duration-300 ${
+                idx === i ? "w-[22px] bg-active" : "w-2 bg-active/25"
+              }`}
+            />
+          ))}
+        </div>
+      )}
     </div>
   );
 }

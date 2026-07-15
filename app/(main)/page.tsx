@@ -10,6 +10,7 @@ import {
   CheckCircle2,
   CalendarClock,
   TrendingUp,
+  ChevronRight,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { getCalendarBlocks, getProjects, getClients } from "./work/actions";
@@ -216,27 +217,34 @@ export default async function HomePage() {
   // URSSAF du mois toutes les 10 s (voir RotatingKpi).
   const caSlides: KpiSlide[] = [
     {
-      label: "CA du mois",
+      label: `CA du mois · ${MONTHS[now.getMonth()]}`,
       value: formatEuro(grossMonth),
-      sub: `facturé (brut) · ${MONTHS[now.getMonth()]}`,
-      icon: "wallet",
-      tint: "pending",
+      sub: "chiffre d'affaires brut (facturé)",
     },
     {
       label: "Réellement gagné",
       value: formatEuro(caMonthNet),
-      sub: "net, après commission",
-      icon: "trending",
-      tint: "success",
+      sub: "net, après commission de plateforme",
     },
     {
       label: "URSSAF ce mois",
       value: formatEuro(urssafMonth),
       sub: `à provisionner · ~${Math.round(rateMonth * 100)}% du CA`,
-      icon: "landmark",
-      tint: "urgent",
     },
   ];
+  // Mini-tendance : CA brut des 6 derniers mois (pour la sparkline du hero).
+  const grossMonthOf = (yy: number, mm: number) =>
+    payments
+      .filter(
+        (p) =>
+          p.status === "paid" &&
+          p.received_date?.startsWith(`${yy}-${String(mm).padStart(2, "0")}`)
+      )
+      .reduce((s, p) => s + (p.gross_amount ?? p.net_amount ?? 0), 0);
+  const caSpark = Array.from({ length: 6 }, (_, i) => {
+    const d = new Date(now.getFullYear(), now.getMonth() - (5 - i), 1);
+    return grossMonthOf(d.getFullYear(), d.getMonth() + 1);
+  });
 
   // --- Bénéfice net de l'année (bento) : CA net encaissé - dépenses - URSSAF ---
   // (même logique que la carte "Bénéfice net" en haut de la page Bank)
@@ -342,7 +350,6 @@ export default async function HomePage() {
 
   // Éléments en retard : popup à l'arrivée + emoji urgent.
   const overdue = aTraiter.filter((a) => a.days < 0);
-  const hasUrgent = aTraiter.some((a) => a.days <= 0);
   // Libellé "J-X" / "Aujourd'hui" / "En retard" (null si pas de date réelle)
   const jLabel = (d: number) =>
     d < 0 ? "En retard" : d === 0 ? "Aujourd'hui" : d >= 900 ? null : `J-${d}`;
@@ -353,12 +360,12 @@ export default async function HomePage() {
       <OverdueAlert items={overdue.map((a) => a.text)} />
 
       {/* En-tête */}
-      <header className="flex flex-wrap items-start justify-between gap-4">
+      <header className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h1 className="text-[26px] font-bold leading-tight tracking-tight md:text-[34px]">
+          <h1 className="text-[32px] font-extrabold leading-none tracking-[-0.035em] md:text-[41px]">
             Bonjour Adrien
           </h1>
-          <p className="mt-1 text-sm capitalize text-muted">{today}</p>
+          <p className="mt-2.5 text-[15px] font-medium capitalize text-muted">{today}</p>
         </div>
         <div className="flex items-center gap-2">
           <ButtonLink href="/work">+ Nouveau projet</ButtonLink>
@@ -370,52 +377,41 @@ export default async function HomePage() {
       <GlobalSearch items={searchItems} />
 
 
-      {/* À traiter : un seul rectangle compact (rouge si urgence) */}
+      {/* À traiter : pile de cartes avec capsule de date colorée */}
       {aTraiter.length > 0 && (
         <section>
-          <h2 className="mb-3 text-[11px] font-bold uppercase tracking-[0.08em] text-muted">
-            À traiter
-          </h2>
-          <div
-            className={`overflow-hidden rounded-2xl border shadow-card ${
-              hasUrgent
-                ? "border-urgent/25 bg-red-50/60"
-                : "border-black/[0.06] bg-white"
-            }`}
-          >
+          <p className="lbl mb-3">À faire</p>
+          <div className="space-y-2.5">
             {aTraiter.map((a) => {
-              const dot =
-                a.days <= 0
-                  ? "bg-urgent"
-                  : a.level === "warning" || a.days <= 2
-                    ? "bg-pending"
-                    : a.level === "urgent"
-                      ? "bg-urgent"
-                      : "bg-active";
-              const prefixColor =
-                a.days <= 0
-                  ? "text-urgent"
-                  : a.days <= 2
-                    ? "text-pending"
-                    : "text-muted";
-              const isLate = a.days < 0;
+              const tone =
+                a.days <= 0 ? "urgent" : a.days <= 2 ? "pending" : "active";
+              const capsule =
+                tone === "urgent"
+                  ? "bg-urgent/10 text-urgent"
+                  : tone === "pending"
+                    ? "bg-pending/10 text-pending"
+                    : "bg-active/10 text-active";
               const prefix = jLabel(a.days);
               return (
                 <Link
                   key={a.key}
                   href={a.href}
-                  className="flex items-center gap-3 border-b border-black/[0.06] px-4 py-3 transition-colors last:border-0 hover:bg-black/[0.03]"
+                  className="flex items-center gap-4 rounded-2xl border border-black/[0.06] bg-white px-[18px] py-[15px] shadow-card transition duration-[180ms] ease-ios hover:-translate-y-0.5 hover:shadow-lift"
                 >
-                  <span className={`h-2.5 w-2.5 shrink-0 rounded-full ${dot}`} />
-                  <span className="min-w-0 flex-1 truncate text-[15px]">
-                    {isLate && "🚨 "}
-                    {prefix && (
-                      <span className={`font-bold ${prefixColor}`}>
-                        {prefix} :{" "}
-                      </span>
-                    )}
-                    <span className="font-medium">{a.text}</span>
+                  {prefix ? (
+                    <span
+                      className={`min-w-[78px] shrink-0 rounded-[9px] px-[11px] py-[7px] text-center text-xs font-extrabold tabular-nums ${capsule}`}
+                    >
+                      {prefix}
+                    </span>
+                  ) : (
+                    <span className="h-2.5 w-2.5 shrink-0 rounded-full bg-active" />
+                  )}
+                  <span className="min-w-0 flex-1 truncate text-[15px] font-semibold">
+                    {a.days < 0 && "🚨 "}
+                    {a.text}
                   </span>
+                  <ChevronRight className="h-4 w-4 shrink-0 text-muted" />
                 </Link>
               );
             })}
@@ -423,9 +419,11 @@ export default async function HomePage() {
         </section>
       )}
 
-      {/* KPI */}
-      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-        <RotatingKpi slides={caSlides} />
+      {/* Hero monétaire (pièce maîtresse) : carte large rotative */}
+      <RotatingKpi slides={caSlides} spark={caSpark} />
+
+      {/* KPI : 3 colonnes */}
+      <div className="grid gap-4 sm:grid-cols-3">
         <Kpi
           icon={CheckCircle2}
           tint="success"
@@ -445,17 +443,17 @@ export default async function HomePage() {
           </div>
           {nextDeadlineProject ? (
             <>
-              <p className="text-[19px] font-bold leading-tight tracking-tight text-ink">
+              <p className="text-lg font-extrabold leading-tight tracking-[-0.01em] text-ink">
                 {nextDeadlineProject.name}
               </p>
               {nextDeadline && (
-                <p className="mt-1.5 text-[13px] font-medium text-ink-soft">
+                <p className="mt-1.5 text-[13px] font-medium text-pending tabular-nums">
                   échéance {format(nextDeadline, "d MMM yyyy", { locale: fr })}
                 </p>
               )}
             </>
           ) : (
-            <p className="text-[19px] font-bold text-muted">—</p>
+            <p className="text-lg font-extrabold text-muted">—</p>
           )}
         </div>
         {/* Information à venir : widget entièrement modifiable */}
@@ -472,24 +470,20 @@ export default async function HomePage() {
 
       {/* Objectifs & raccourcis (bento) */}
       <section>
-        <h2 className="mb-3 text-[11px] font-bold uppercase tracking-[0.08em] text-muted">
-          Objectifs
-        </h2>
+        <p className="lbl mb-3">Objectifs</p>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          {/* Bénéfice net de l'année (net - dépenses - URSSAF), comme sur Bank */}
-          <div className="flex flex-col rounded-2xl border border-black/[0.06] bg-white p-5 shadow-card">
-            <div className="flex items-center gap-2">
-              <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-green-50 text-success">
+          {/* Bénéfice net de l'année = hero card success (donnée reine) */}
+          <div className="cs-hero flex flex-col rounded-3xl border border-success/20 bg-gradient-to-br from-success/[0.07] to-success/[0.14] p-6 shadow-[inset_0_1px_0_rgba(255,255,255,.9),0_1px_2px_rgba(0,0,0,.03),0_22px_50px_-24px_rgba(22,163,74,.4)]">
+            <div className="relative flex items-center gap-2">
+              <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-success/15 text-success">
                 <TrendingUp className="h-4 w-4" />
               </span>
-              <span className="text-[13px] font-medium text-ink-soft">
-                Bénéfice net · année
-              </span>
+              <span className="lbl">Bénéfice net · année</span>
             </div>
-            <p className="mt-3 text-[30px] font-extrabold leading-none tracking-[-0.02em] text-ink">
+            <p className="relative mt-3 text-[38px] font-black leading-none tracking-[-0.02em] tabular-nums text-[#146c34]">
               {formatEuro(beneficeYear)}
             </p>
-            <p className="mt-2 text-[12px] text-ink-soft">
+            <p className="relative mt-2 text-[12px] text-ink-soft">
               net encaissé − dépenses − URSSAF · {yStr}
             </p>
           </div>

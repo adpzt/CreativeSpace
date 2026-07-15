@@ -25,7 +25,7 @@ export default async function FreelancePage() {
     <div className="space-y-8">
       {/* En-tête */}
       <header>
-        <h1 className="text-[24px] font-extrabold tracking-[-0.02em] md:text-[30px]">Freelance</h1>
+        <h1 className="text-[32px] font-extrabold tracking-[-0.035em] leading-none md:text-[41px]">Freelance</h1>
         <p className="mt-1 text-[15px] text-muted">
           Ton guide opérationnel : à ouvrir quand tu as un doute avec un client.
           Tunnel, scripts, red flags, questionnaire.
@@ -98,7 +98,7 @@ function Section({
 }) {
   return (
     <section>
-      <h2 className="mb-4 text-[22px] font-bold tracking-[-0.01em]">{title}</h2>
+      <h2 className="mb-4 text-[28px] font-extrabold tracking-[-0.03em]">{title}</h2>
       {children}
     </section>
   );

@@ -102,12 +102,13 @@ export default function DepensesSection({
 
   return (
     <section>
-      <div className="mb-4 flex items-center justify-between">
+      <div className="mb-4 flex items-end justify-between gap-3">
         <div>
-          <h2 className="text-[22px] font-bold tracking-[-0.01em]">
+          <p className="lbl">Sorties</p>
+          <h2 className="text-2xl font-extrabold tracking-[-0.02em]">
             Dépense &amp; commission
           </h2>
-          <p className="text-sm text-muted">
+          <p className="mt-1 text-sm text-muted tabular-nums">
             Total : {formatEuro(total)}
             {commTotal > 0 && (
               <span className="text-muted">
@@ -131,7 +132,7 @@ export default function DepensesSection({
         />
       ) : (
         <>
-          <ul className="divide-y divide-gray-100 overflow-hidden rounded-2xl border border-gray-100 bg-white dark:divide-white/10 dark:border-hairline dark:bg-surface">
+          <ul className="overflow-hidden rounded-[18px] border border-black/[0.05] bg-[#FBFBFC]">
             {shownHistory.map((row) => {
               if (row.kind === "expense") {
                 // Le libellé (avant " · ") passe en titre ; la catégorie et le
@@ -151,19 +152,19 @@ export default function DepensesSection({
                   .filter(Boolean)
                   .join(" · ");
                 return (
-                  <li key={row.e.id}>
+                  <li key={row.e.id} className="border-b border-black/[0.045] last:border-0">
                     <button
                       onClick={() => setEditing(row.e)}
-                      className="flex w-full items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-gray-50 dark:hover:bg-white/[0.06]"
+                      className="flex w-full items-center gap-3.5 px-[18px] py-[15px] text-left transition-colors hover:bg-black/[0.02]"
                     >
-                      <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-gray-100 text-muted dark:bg-white/[0.06]">
-                        <Receipt className="h-3.5 w-3.5" />
+                      <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-[10px] bg-black/[0.04] text-muted">
+                        <Receipt className="h-4 w-4" />
                       </span>
                       <div className="min-w-0 flex-1">
-                        <p className="truncate font-medium">{mainLabel}</p>
-                        <p className="truncate text-xs text-muted">{sub}</p>
+                        <p className="truncate text-[14.5px] font-bold">{mainLabel}</p>
+                        <p className="truncate text-xs text-muted tabular-nums">{sub}</p>
                       </div>
-                      <span className="shrink-0 text-sm font-semibold text-urgent">
+                      <span className="min-w-[92px] shrink-0 text-right text-[15px] font-extrabold tabular-nums text-urgent">
                         -{formatEuro(row.e.amount)}
                       </span>
                     </button>
@@ -175,21 +176,21 @@ export default function DepensesSection({
               return (
                 <li
                   key={row.c.id}
-                  className="flex items-center gap-3 px-4 py-3"
+                  className="flex items-center gap-3.5 border-b border-black/[0.045] px-[18px] py-[15px] last:border-0"
                   title="Écart devis / encaissé — se modifie sur le revenu lié"
                 >
-                  <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-orange-50 text-pending dark:bg-pending/15">
-                    <Percent className="h-3.5 w-3.5" />
+                  <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-[10px] bg-pending/10 text-pending">
+                    <Percent className="h-4 w-4" />
                   </span>
                   <div className="min-w-0 flex-1">
-                    <p className="truncate font-medium">{row.c.label}</p>
-                    <p className="truncate text-xs text-muted">
+                    <p className="truncate text-[14.5px] font-bold">{row.c.label}</p>
+                    <p className="truncate text-xs text-muted tabular-nums">
                       {fmtDate(row.c.date)}
                       {row.c.who ? ` · ${row.c.who}` : ""}
                       {" · depuis un revenu"}
                     </p>
                   </div>
-                  <span className="shrink-0 text-sm font-semibold text-urgent">
+                  <span className="min-w-[92px] shrink-0 text-right text-[15px] font-extrabold tabular-nums text-urgent">
                     -{formatEuro(row.c.amount)}
                   </span>
                 </li>

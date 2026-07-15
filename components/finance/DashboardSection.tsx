@@ -2,10 +2,8 @@
 
 import { useState } from "react";
 import {
-  Wallet,
   Receipt,
   Landmark,
-  PiggyBank,
   Clock,
   ChevronLeft,
   ChevronRight,
@@ -116,101 +114,106 @@ export default function DashboardSection({
 
   return (
     <section>
-      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-        <h2 className="text-[22px] font-bold tracking-[-0.01em]">Tableau de bord</h2>
-        <div className="flex items-center gap-1 rounded-xl bg-gray-100 p-1 text-sm dark:bg-white/[0.06]">
-          <button
-            onClick={() => setMode("mois")}
-            className={`rounded-lg px-3 py-1.5 font-medium transition-colors ${
-              mode === "mois" ? "bg-white text-ink shadow-sm dark:bg-surface" : "text-muted hover:text-ink"
-            }`}
-          >
-            Mois
-          </button>
-          <button
-            onClick={() => setMode("annee")}
-            className={`rounded-lg px-3 py-1.5 font-medium transition-colors ${
-              mode === "annee" ? "bg-white text-ink shadow-sm dark:bg-surface" : "text-muted hover:text-ink"
-            }`}
-          >
-            Année
-          </button>
+      {/* En-tete : titre a gauche, periode + bascule Mois/Annee a droite */}
+      <div className="mb-5 flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <p className="lbl">Vue d&apos;ensemble</p>
+          <h2 className="text-2xl font-extrabold tracking-[-0.02em]">Tableau de bord</h2>
+        </div>
+        <div className="flex items-center gap-2.5">
+          {mode === "mois" && (
+            <div className="flex items-center gap-0.5">
+              <button
+                onClick={() => setFocus((f) => shift(f.y, f.m, -1))}
+                aria-label="Mois précédent"
+                className="rounded-lg p-1.5 text-muted transition-colors hover:bg-black/5 hover:text-ink"
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </button>
+              <span className="min-w-[124px] text-center text-sm font-semibold tabular-nums">
+                {periodLabel}
+              </span>
+              <button
+                onClick={() => setFocus((f) => shift(f.y, f.m, 1))}
+                aria-label="Mois suivant"
+                className="rounded-lg p-1.5 text-muted transition-colors hover:bg-black/5 hover:text-ink"
+              >
+                <ChevronRight className="h-4 w-4" />
+              </button>
+            </div>
+          )}
+          <div className="flex items-center gap-1 rounded-[11px] bg-black/5 p-[3px] text-sm">
+            {(["mois", "annee"] as const).map((m) => (
+              <button
+                key={m}
+                onClick={() => setMode(m)}
+                className={`rounded-[9px] px-3 py-1.5 font-semibold transition-colors ${
+                  mode === m ? "bg-white text-ink shadow-sm" : "text-muted hover:text-ink"
+                }`}
+              >
+                {m === "mois" ? "Mois" : "Année"}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
 
-      {/* Période */}
-      <div className="mb-3 flex items-center justify-between">
-        {mode === "mois" ? (
-          <div className="flex items-center gap-1">
-            <button
-              onClick={() => setFocus((f) => shift(f.y, f.m, -1))}
-              aria-label="Mois précédent"
-              className="rounded-lg p-1.5 text-muted hover:bg-gray-100 hover:text-ink dark:hover:bg-white/[0.06]"
-            >
-              <ChevronLeft className="h-4 w-4" />
-            </button>
-            <span className="min-w-[130px] text-center text-sm font-medium">
-              {periodLabel}
-            </span>
-            <button
-              onClick={() => setFocus((f) => shift(f.y, f.m, 1))}
-              aria-label="Mois suivant"
-              className="rounded-lg p-1.5 text-muted hover:bg-gray-100 hover:text-ink dark:hover:bg-white/[0.06]"
-            >
-              <ChevronRight className="h-4 w-4" />
-            </button>
-            {!(focus.y === curY && focus.m === curM) && (
-              <button
-                onClick={() => setFocus({ y: curY, m: curM })}
-                className="ml-1 text-xs text-active hover:underline"
-              >
-                Ce mois
-              </button>
-            )}
+      {/* Rangee principale : benefice (hero) / CA (sparkline) / colonne empilee */}
+      <div className="grid gap-4 md:grid-cols-[1.15fr_1fr_1fr]">
+        {/* Benefice net = hero success (la donnee reine) */}
+        <div className="cs-hero animate-rise rounded-3xl border border-success/20 bg-gradient-to-br from-success/[0.08] to-success/[0.15] p-6 shadow-[inset_0_1px_0_rgba(255,255,255,.9),0_1px_2px_rgba(0,0,0,.03),0_22px_50px_-24px_rgba(22,163,74,.4)]">
+          <div className="relative">
+            <p className="lbl">Bénéfice net</p>
+            <p className="mt-2.5 text-[40px] font-black leading-none tracking-[-0.02em] tabular-nums text-[#146c34]">
+              {formatEuro(benefice)}
+            </p>
+            <p className="mt-2 text-xs text-muted">net encaissé − dépenses − URSSAF</p>
           </div>
-        ) : (
-          <span className="text-sm font-medium">{periodLabel}</span>
-        )}
+        </div>
+
+        {/* CA + sparkline pleine largeur en pied */}
+        <div className="animate-rise relative flex flex-col overflow-hidden rounded-3xl border border-black/[0.06] bg-white p-6 shadow-card">
+          <p className="lbl">CA {mode === "mois" ? "du mois" : "de l'année"}</p>
+          <p className="mt-2.5 text-[29px] font-extrabold leading-none tracking-[-0.02em] tabular-nums">
+            {formatEuro(ca)}
+          </p>
+          <p className="mt-1.5 text-xs text-muted">brut (facturé)</p>
+          {hasSpark && (
+            <div className="-mx-6 -mb-6 mt-4 h-16">
+              <Spark data={caSpark} />
+            </div>
+          )}
+        </div>
+
+        {/* Colonne empilee : depenses & commission + URSSAF */}
+        <div className="flex flex-col gap-4">
+          <MiniStat
+            icon={Receipt}
+            tint="text-urgent"
+            label="Dépenses & commission"
+            value={`- ${formatEuro(depComm)}`}
+            valueClass="text-urgent"
+            sub={comm > 0 ? `dont ${formatEuro(comm)} de commission` : undefined}
+          />
+          <MiniStat
+            icon={Landmark}
+            tint="text-ink-soft"
+            label="URSSAF estimée"
+            value={formatEuro(urssaf)}
+          />
+        </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <Metric
-          icon={Wallet}
-          tint="text-success"
-          label="CA"
-          value={formatEuro(ca)}
-          sub="brut (facturé)"
-          spark={hasSpark ? caSpark : undefined}
-        />
-        <Metric
-          icon={Receipt}
-          tint="text-muted"
-          label="Dépenses & commission"
-          value={formatEuro(depComm)}
-          sub={comm > 0 ? `dont ${formatEuro(comm)} de commission` : undefined}
-        />
-        <Metric icon={Landmark} tint="text-muted" label="URSSAF estimée" value={formatEuro(urssaf)} />
-        <Metric
-          icon={PiggyBank}
-          tint={benefice >= 0 ? "text-success" : "text-urgent"}
-          label="Bénéfice net"
-          value={formatEuro(benefice)}
-          highlight={benefice >= 0 ? "success" : "urgent"}
-        />
-      </div>
-
-      {/* En attente : indicateur global, jamais rattaché à un mois */}
+      {/* En attente / du : indicateur global, jamais rattaché à un mois */}
       {enAttente > 0 && (
-        <div className="mt-3 flex items-center gap-3 rounded-2xl border border-gray-100 bg-white p-4 dark:border-hairline dark:bg-surface">
-          <span className="flex h-7 w-7 items-center justify-center rounded-full bg-gray-50 text-pending dark:bg-white/[0.06]">
+        <div className="mt-4 flex items-center gap-3 rounded-2xl border border-black/[0.06] bg-white p-4 shadow-card">
+          <span className="flex h-8 w-8 items-center justify-center rounded-[10px] bg-pending/10 text-pending">
             <Clock className="h-4 w-4" />
           </span>
-          <div className="flex-1">
-            <p className="text-xs font-medium uppercase tracking-wide text-muted">
-              En attente / dû (toutes périodes)
-            </p>
-            <p className="text-lg font-semibold text-pending">{formatEuro(enAttente)}</p>
-          </div>
+          <p className="lbl flex-1">En attente / dû (toutes périodes)</p>
+          <p className="text-xl font-extrabold tabular-nums text-pending">
+            {formatEuro(enAttente)}
+          </p>
         </div>
       )}
 
@@ -227,73 +230,62 @@ export default function DashboardSection({
   );
 }
 
-function Metric({
+// Petite carte stat (colonne empilée : dépenses & commission, URSSAF).
+function MiniStat({
   icon: Icon,
   tint,
   label,
   value,
+  valueClass,
   sub,
-  highlight,
-  spark,
 }: {
   icon: LucideIcon;
   tint: string;
   label: string;
   value: string;
+  valueClass?: string;
   sub?: string;
-  highlight?: "success" | "urgent";
-  spark?: { v: number }[];
 }) {
-  const cardBg =
-    highlight === "success"
-      ? "border-success/30 bg-green-50/60 dark:bg-success/15"
-      : highlight === "urgent"
-        ? "border-urgent/30 bg-red-50/60 dark:bg-urgent/15"
-        : "border-hairline bg-white dark:bg-surface";
   return (
-    <div
-      className={`animate-rise rounded-2xl border p-5 shadow-card transition duration-[180ms] ease-ios hover:-translate-y-1 hover:shadow-lift ${cardBg}`}
-    >
+    <div className="animate-rise flex-1 rounded-2xl border border-black/[0.06] bg-white p-5 shadow-card transition duration-[180ms] ease-ios hover:-translate-y-0.5 hover:shadow-lift">
       <div className="mb-2 flex items-center gap-2">
         <span
-          className={`flex h-[30px] w-[30px] items-center justify-center rounded-[9px] bg-black/[0.04] dark:bg-white/[0.06] ${tint}`}
+          className={`flex h-[30px] w-[30px] items-center justify-center rounded-[9px] bg-black/[0.04] ${tint}`}
         >
           <Icon className="h-4 w-4" />
         </span>
         <p className="text-[13px] text-muted">{label}</p>
       </div>
       <p
-        className={`text-3xl font-bold tracking-tight ${
-          highlight === "success" ? "text-success" : highlight === "urgent" ? "text-urgent" : ""
-        }`}
+        className={`text-[26px] font-extrabold tracking-[-0.02em] tabular-nums ${valueClass ?? ""}`}
       >
         {value}
       </p>
       {sub && <p className="mt-0.5 text-[12px] text-muted">{sub}</p>}
-      {spark && (
-        // text-active pilote la couleur : currentColor suit le token (bleu qui
-        // s'éclaircit en dark). Dégradé un peu plus marqué en nuit.
-        <div className="mt-3 h-12 w-full text-active">
-          <ResponsiveContainer width="100%" height="100%">
-            <AreaChart data={spark} margin={{ top: 2, right: 0, bottom: 0, left: 0 }}>
-              <defs>
-                <linearGradient id="caSpark" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="currentColor" stopOpacity={0.3} />
-                  <stop offset="100%" stopColor="currentColor" stopOpacity={0} />
-                </linearGradient>
-              </defs>
-              <Area
-                type="monotone"
-                dataKey="v"
-                stroke="currentColor"
-                strokeWidth={2.5}
-                fill="url(#caSpark)"
-                isAnimationActive={false}
-              />
-            </AreaChart>
-          </ResponsiveContainer>
-        </div>
-      )}
     </div>
+  );
+}
+
+// Mini-tendance (CA des 6 derniers mois) affichée en pied de la carte CA.
+function Spark({ data }: { data: { v: number }[] }) {
+  return (
+    <ResponsiveContainer width="100%" height="100%">
+      <AreaChart data={data} margin={{ top: 2, right: 0, bottom: 0, left: 0 }}>
+        <defs>
+          <linearGradient id="caSpark" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="#2563EB" stopOpacity={0.18} />
+            <stop offset="100%" stopColor="#2563EB" stopOpacity={0} />
+          </linearGradient>
+        </defs>
+        <Area
+          type="monotone"
+          dataKey="v"
+          stroke="#2563EB"
+          strokeWidth={2.5}
+          fill="url(#caSpark)"
+          isAnimationActive={false}
+        />
+      </AreaChart>
+    </ResponsiveContainer>
   );
 }

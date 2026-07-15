@@ -102,7 +102,7 @@ export default function GlobalSearch({ items }: { items: SearchItem[] }) {
 
   return (
     <div ref={boxRef} className="relative">
-      <div className="flex items-center gap-2.5 rounded-2xl border border-black/[0.08] bg-white px-4 py-2.5 shadow-card transition focus-within:border-active focus-within:ring-4 focus-within:ring-active/12">
+      <div className="flex items-center gap-2.5 rounded-2xl border border-black/[0.06] bg-white/70 px-[18px] py-[15px] shadow-[0_1px_2px_rgba(0,0,0,.03),inset_0_1px_0_rgba(255,255,255,.6)] backdrop-blur-xl transition focus-within:border-active focus-within:ring-4 focus-within:ring-active/12">
         <Search className="h-[18px] w-[18px] shrink-0 text-muted" />
         <input
           ref={inputRef}

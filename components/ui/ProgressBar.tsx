@@ -2,9 +2,12 @@
 export default function ProgressBar({
   percent,
   showLabel = true,
+  color,
 }: {
   percent: number;
   showLabel?: boolean;
+  // Couleur de remplissage optionnelle (ex : couleur de catégorie du projet)
+  color?: string;
 }) {
   const p = Math.max(0, Math.min(100, Math.round(percent)));
   return (
@@ -15,12 +18,12 @@ export default function ProgressBar({
           <span className="font-medium text-ink">{p}%</span>
         </div>
       )}
-      <div className="h-2 w-full overflow-hidden rounded-full bg-black/[0.07]">
+      <div className="h-1.5 w-full overflow-hidden rounded-full bg-black/[0.06]">
         <div
           className={`h-full rounded-full transition-[width] duration-300 ease-ios ${
-            p === 100 ? "bg-success" : "bg-active"
+            color ? "" : p === 100 ? "bg-success" : "bg-active"
           }`}
-          style={{ width: `${p}%` }}
+          style={{ width: `${p}%`, ...(color ? { backgroundColor: color } : {}) }}
         />
       </div>
     </div>

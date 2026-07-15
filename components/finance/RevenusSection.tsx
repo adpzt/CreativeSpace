@@ -154,8 +154,11 @@ export default function RevenusSection({
 
   return (
     <section>
-      <div className="mb-4 flex items-center justify-between">
-        <h2 className="text-[22px] font-bold tracking-[-0.01em]">Revenus</h2>
+      <div className="mb-4 flex items-end justify-between gap-3">
+        <div>
+          <p className="lbl">Encaissements</p>
+          <h2 className="text-2xl font-extrabold tracking-[-0.02em]">Revenus</h2>
+        </div>
         <Button onClick={() => setCreating(true)}>
           <Plus className="h-4 w-4" />
           Revenu manuel
@@ -284,30 +287,30 @@ export default function RevenusSection({
         />
       ) : (
         <>
-        <ul className="divide-y divide-gray-100 overflow-hidden rounded-2xl border border-gray-100 bg-white dark:divide-white/10 dark:border-hairline dark:bg-surface">
+        <ul className="overflow-hidden rounded-[18px] border border-black/[0.05] bg-[#FBFBFC]">
           {shownPayments.map((pay) => {
             const st = PAYMENT_STATUS[pay.status];
             return (
-              <li key={pay.id}>
+              <li key={pay.id} className="border-b border-black/[0.045] last:border-0">
                 <button
                   onClick={() => setEditing(pay)}
-                  className="flex w-full items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-gray-50 dark:hover:bg-white/[0.06]"
+                  className="flex w-full items-center gap-3.5 px-[18px] py-[15px] text-left transition-colors hover:bg-black/[0.02]"
                 >
                   <span
-                    className={`h-2 w-2 shrink-0 rounded-full ${st.dot}`}
+                    className={`h-[9px] w-[9px] shrink-0 rounded-full ${st.dot}`}
                   />
                   <div className="min-w-0 flex-1">
-                    <p className="truncate font-medium">{rowLabel(pay)}</p>
+                    <p className="truncate text-[14.5px] font-bold">{rowLabel(pay)}</p>
                     {rowSub(pay) && (
-                      <p className="truncate text-xs text-muted">{rowSub(pay)}</p>
+                      <p className="truncate text-xs text-muted tabular-nums">{rowSub(pay)}</p>
                     )}
                   </div>
                   <span
-                    className={`shrink-0 rounded-full px-2.5 py-1 text-[12.5px] font-semibold ${st.badge}`}
+                    className={`shrink-0 rounded-full px-[11px] py-1 text-xs font-bold ${st.badge}`}
                   >
                     {st.label}
                   </span>
-                  <span className="w-20 shrink-0 text-right text-sm font-medium">
+                  <span className="min-w-[92px] shrink-0 text-right text-[15px] font-extrabold tabular-nums">
                     {pay.net_amount != null ? formatEuro(pay.net_amount) : "—"}
                   </span>
                 </button>

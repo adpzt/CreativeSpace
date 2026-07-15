@@ -611,31 +611,26 @@ export default function CalendarSection({
         >
           {/* Vue LISTE = carrousel : hier (grisé, à gauche) · le jour au centre ·
               demain (à droite). Les flèches en haut naviguent jour par jour. */}
-          <div className="flex items-stretch justify-center gap-3 sm:gap-4">
+          <div className="grid items-stretch gap-3 sm:gap-4 md:grid-cols-[.8fr_1.4fr_.8fr]">
             {[addDays(refDate, -1), refDate, addDays(refDate, 1)].map((d, idx) => {
               const focus = idx === 1;
               const dayIso = iso(d);
               if (!focus) {
-                // Aperçu latéral (hier / demain), non interactif, cliquable pour
-                // le recentrer. Hier est légèrement grisé.
+                // Jour off (hier / demain) : carte atténuée, cliquable pour recentrer.
                 const preview = dayBlocks(dayIso);
                 return (
                   <button
                     key={dayIso}
                     onClick={() => setRefDate(d)}
-                    className={`hidden w-[190px] shrink-0 flex-col overflow-hidden rounded-2xl border border-black/[0.06] bg-white text-left shadow-card transition hover:shadow-lift md:flex ${
-                      idx === 0 ? "opacity-55 hover:opacity-80" : "opacity-80 hover:opacity-100"
-                    }`}
+                    className="hidden flex-col overflow-hidden rounded-2xl border border-black/[0.06] bg-white p-4 text-left opacity-75 shadow-card transition duration-[180ms] ease-ios hover:-translate-y-0.5 hover:opacity-100 hover:shadow-lift md:flex"
                   >
-                    <div className="border-b border-black/[0.05] bg-[#F6F6F7] px-3.5 py-2.5">
-                      <span className="text-[13px] font-bold capitalize">
+                    <div className="mb-2">
+                      <p className="text-[15px] font-extrabold capitalize">
                         {format(d, "EEE d", { locale: fr })}
-                      </span>
-                      <span className="ml-1.5 text-[11px] text-muted">
-                        {idx === 0 ? "hier" : "demain"}
-                      </span>
+                      </p>
+                      <p className="lbl">{idx === 0 ? "hier" : "demain"}</p>
                     </div>
-                    <div className="flex-1 space-y-1 px-3 py-2.5">
+                    <div className="flex-1 space-y-1">
                       {preview.length === 0 ? (
                         <p className="text-[12px] text-muted">Rien de prévu.</p>
                       ) : (
@@ -663,33 +658,32 @@ export default function CalendarSection({
                   </button>
                 );
               }
-              // Carte centrale = jour focus, entièrement interactive.
+              // Carte centrale = jour focus. Aujourd'hui = mini hero active.
+              const today = isToday(d);
               return (
                 <div
                   key={dayIso}
-                  className={`w-full max-w-[560px] shrink-0 overflow-hidden rounded-2xl border-2 bg-white shadow-lift ${
-                    isToday(d) ? "border-active/50" : "border-black/[0.10]"
+                  className={`w-full overflow-hidden rounded-3xl border ${
+                    today
+                      ? "cs-hero border-active/[0.18] bg-gradient-to-br from-active/[0.05] to-active/[0.02] shadow-[inset_0_1px_0_rgba(255,255,255,.9),0_1px_2px_rgba(0,0,0,.03),0_18px_44px_-22px_rgba(37,99,235,.35)]"
+                      : "border-black/[0.10] bg-white shadow-lift"
                   }`}
                 >
-                  <div
-                    className={`flex items-baseline gap-2 px-4 py-3 ${
-                      isToday(d) ? "bg-blue-50" : "bg-[#F6F6F7]"
-                    }`}
-                  >
-                    <span className="text-[15px] font-bold capitalize">
+                  <div className="relative px-5 py-4">
+                    <p className="text-base font-extrabold capitalize tracking-[-0.01em]">
                       {format(d, "EEEE d MMMM", { locale: fr })}
-                    </span>
-                    {isToday(d) && (
-                      <span className="text-[11px] font-semibold text-active">
+                    </p>
+                    {today && (
+                      <p className="text-xs font-semibold text-active">
                         aujourd&apos;hui
-                      </span>
+                      </p>
                     )}
                   </div>
-                  <div className="divide-y divide-black/[0.05]">
+                  <div className="relative divide-y divide-black/[0.05]">
                     {CALENDAR_CATEGORIES.map((cat) => (
-                      <div key={cat.key} className="flex items-start gap-2 px-3 py-2.5">
+                      <div key={cat.key} className="flex items-start gap-2.5 px-4 py-3">
                         <span
-                          className="mt-1 inline-flex w-20 shrink-0 items-center text-[11px] font-semibold"
+                          className="mt-1 inline-flex w-20 shrink-0 items-center text-xs font-bold tracking-[0.02em]"
                           style={{ color: cat.color }}
                         >
                           {cat.label}

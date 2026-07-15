@@ -45,7 +45,7 @@ export default function SeuilsSection({ payments }: { payments: Payment[] }) {
 
   return (
     <section>
-      <h3 className="mb-4 text-[22px] font-bold tracking-[-0.01em]">
+      <h3 className="mb-4 text-2xl font-extrabold tracking-[-0.02em]">
         Seuils à surveiller
       </h3>
       <div className="grid gap-4 lg:grid-cols-2">
