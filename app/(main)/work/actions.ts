@@ -224,14 +224,10 @@ export async function updateDeliverable(
       .update({ title: patch.name })
       .eq("deliverable_id", id);
   }
-  // Livrable marqué fini/non fini -> on coche/décoche aussi les blocs liés du
-  // calendrier (sinon le "fini" ne remonte pas sur l'Accueil / le semainier).
-  if (effective.completed !== undefined) {
-    await supabase
-      .from("calendar_blocks")
-      .update({ completed: effective.completed })
-      .eq("deliverable_id", id);
-  }
+  // NB : on ne répercute PAS la complétion/le % du livrable sur l'état "barré"
+  // des blocs du calendrier. Barrer un bloc = "fini de bosser dessus ce jour-là",
+  // c'est indépendant : ça se change UNIQUEMENT au double-clic sur le bloc. Ainsi,
+  // ajuster le % d'un livrable (< 100 %) ne débarre plus un bloc barré à la main.
   revalidatePath("/work");
   revalidatePath("/notes");
   revalidatePath("/");

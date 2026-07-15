@@ -596,12 +596,19 @@ export default function CalendarSection({
         </div>
       </div>
 
-      {/* Le board déborde du conteneur (largeur), la barre de contrôle reste centrée */}
-      {/* Le board déborde du conteneur (largeur), la barre de contrôle reste centrée.
-          Ce wrapper est en transform : il devient donc le bloc conteneur de tout
-          position:fixed à l'intérieur -> le DragOverlay est rendu via un portal sur
-          <body> (voir OverlayPortal) pour ne pas être décalé. */}
-      <div className="relative left-1/2 w-[min(1360px,94vw)] -translate-x-1/2">
+      {/* Vue SEMAINE : le board déborde du conteneur (largeur) pour montrer tous
+          les jours, la barre de contrôle reste centrée. Ce wrapper est en transform :
+          il devient le bloc conteneur de tout position:fixed à l'intérieur -> le
+          DragOverlay est rendu via un portal sur <body> (voir OverlayPortal).
+          Vue LISTE : PAS de débordement -> on reste dans la largeur de la page
+          (alignée avec le reste), sinon ça dépasse sur les côtés. */}
+      <div
+        className={
+          isListView
+            ? ""
+            : "relative left-1/2 w-[min(1360px,94vw)] -translate-x-1/2"
+        }
+      >
       {view === "list" ? (
         <DndContext
           sensors={sensors}
