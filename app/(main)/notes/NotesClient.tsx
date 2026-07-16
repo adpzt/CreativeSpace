@@ -553,14 +553,14 @@ function MobileTaskCard({
 
   return (
     <div
-      className={`flex items-start gap-3 rounded-2xl border border-black/[0.06] p-3.5 shadow-card ${
+      className={`flex items-start gap-3 rounded-xl border border-black/[0.06] p-3 shadow-card ${
         near ? PRIO_ROW[note.priority] : "bg-white"
       }`}
     >
       <button
         onClick={onToggle}
         aria-label={note.done ? "Marquer à faire" : "Marquer faite"}
-        className={`mt-0.5 flex h-[22px] w-[22px] shrink-0 items-center justify-center rounded-full border-2 transition-colors ${
+        className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 transition-colors ${
           note.done
             ? "animate-pop border-success bg-success text-white"
             : "border-black/[0.18]"
@@ -579,7 +579,7 @@ function MobileTaskCard({
             {title}
           </span>
         </span>
-        <div className="mt-2 flex flex-wrap items-center gap-2">
+        <div className="mt-1.5 flex flex-wrap items-center gap-2">
           <span
             className={`inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-semibold ${
               PRIO_BADGE[note.priority]
