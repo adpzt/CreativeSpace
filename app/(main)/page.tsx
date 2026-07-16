@@ -24,7 +24,6 @@ import GlobalSearch, { type SearchItem } from "@/components/home/GlobalSearch";
 import InfoWidget from "@/components/home/InfoWidget";
 import QuickNote from "@/components/home/QuickNote";
 import { InstagramWidget, BehanceWidget } from "@/components/home/SocialWidgets";
-import { ButtonLink } from "@/components/ui/Button";
 import { formatEuro } from "@/lib/work";
 import { urssafRate } from "@/lib/finance";
 
@@ -355,33 +354,30 @@ export default async function HomePage() {
     d < 0 ? "En retard" : d === 0 ? "Aujourd'hui" : d >= 900 ? null : `J-${d}`;
 
   return (
-    <div className="space-y-10">
+    <div className="flex flex-col gap-8 md:gap-10">
       {/* Popup si des éléments sont en retard */}
       <OverdueAlert items={overdue.map((a) => a.text)} />
 
-      {/* En-tête */}
-      <header className="flex flex-wrap items-end justify-between gap-4">
+      {/* En-tête : titre + bouton "+" note rapide (noir sur blanc) à droite */}
+      <header className="flex items-start justify-between gap-4">
         <div>
           <h1 className="text-[32px] font-extrabold leading-none tracking-[-0.035em] md:text-[41px]">
             Bonjour Adrien
           </h1>
           <p className="mt-2.5 text-[15px] font-medium capitalize text-muted">{today}</p>
         </div>
-        <div className="flex items-center gap-2">
-          <ButtonLink href="/work">+ Nouveau projet</ButtonLink>
-          <QuickNote />
-        </div>
+        <QuickNote iconOnly />
       </header>
 
       {/* Recherche globale (projets, clients, notes, revenus) */}
       <GlobalSearch items={searchItems} />
 
 
-      {/* À traiter : pile de cartes avec capsule de date colorée */}
+      {/* À traiter : sous les widgets sur mobile (order), pile compacte */}
       {aTraiter.length > 0 && (
-        <section>
+        <section className="order-1 md:order-none">
           <p className="lbl mb-3">À faire</p>
-          <div className="space-y-2.5">
+          <div className="space-y-2">
             {aTraiter.map((a) => {
               const tone =
                 a.days <= 0 ? "urgent" : a.days <= 2 ? "pending" : "active";
@@ -396,18 +392,18 @@ export default async function HomePage() {
                 <Link
                   key={a.key}
                   href={a.href}
-                  className="flex items-center gap-4 rounded-2xl border border-black/[0.06] bg-white px-[18px] py-[15px] shadow-card transition duration-[180ms] ease-ios hover:-translate-y-0.5 hover:shadow-lift"
+                  className="flex items-center gap-3 rounded-xl border border-black/[0.06] bg-white px-3.5 py-2.5 shadow-card transition duration-[180ms] ease-ios hover:-translate-y-0.5 hover:shadow-lift"
                 >
                   {prefix ? (
                     <span
-                      className={`min-w-[78px] shrink-0 rounded-[9px] px-[11px] py-[7px] text-center text-xs font-extrabold tabular-nums ${capsule}`}
+                      className={`min-w-[62px] shrink-0 rounded-lg px-2 py-1 text-center text-[11px] font-extrabold tabular-nums ${capsule}`}
                     >
                       {prefix}
                     </span>
                   ) : (
                     <span className="h-2.5 w-2.5 shrink-0 rounded-full bg-active" />
                   )}
-                  <span className="min-w-0 flex-1 truncate text-[15px] font-semibold">
+                  <span className="min-w-0 flex-1 truncate text-[14px] font-semibold">
                     {a.days < 0 && "🚨 "}
                     {a.text}
                   </span>
@@ -463,15 +459,13 @@ export default async function HomePage() {
       </div>
 
       {/* Aujourd'hui */}
-      <section>
-        <h2 className="mb-3 text-[11px] font-bold uppercase tracking-[0.08em] text-muted">
-          Aujourd&apos;hui
-        </h2>
+      <section className="order-2 md:order-none">
+        <p className="lbl mb-3">Aujourd&apos;hui</p>
         <TodayTasks blocks={todayBlocks} projects={projects} clients={clients} />
       </section>
 
       {/* Objectifs & raccourcis (bento) */}
-      <section>
+      <section className="order-3 md:order-none">
         <p className="lbl mb-3">Objectifs</p>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           {/* Bénéfice net de l'année = hero card success (donnée reine) */}

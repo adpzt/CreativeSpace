@@ -32,22 +32,26 @@ export default async function FreelancePage() {
         </p>
       </header>
 
-      {/* Profil pro (compact : logo PP + infos éditables) */}
-      <section className="rounded-3xl border border-black/[0.06] bg-white p-5 shadow-card sm:p-6">
-        <div className="flex items-center gap-4">
+      {/* Profil pro = hero widget (logo + nom + TJM) puis infos éditables */}
+      <section className="cs-hero rounded-3xl border border-active/[0.16] bg-gradient-to-br from-active/[0.08] via-[#7c3aed]/[0.10] to-[#0d9488]/[0.05] p-5 shadow-[inset_0_1px_0_rgba(255,255,255,.9),0_1px_2px_rgba(0,0,0,.03),0_22px_50px_-24px_rgba(37,99,235,.4)] sm:p-6">
+        <div className="relative flex items-center gap-4">
           {/* PP = logo pztdesign : étoile bleue sur fond blanc, contour bleu */}
           <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl border-2 border-[#3704F0] bg-white">
             <Logo className="h-7 w-7" color="#3704F0" />
           </span>
-          <div className="min-w-0">
+          <div className="min-w-0 flex-1">
             <h2 className="text-[22px] font-extrabold tracking-[-0.02em]">Adrien Poizat</h2>
-            <p className="truncate text-sm text-muted">
-              pztdesign · Auto-entrepreneur · TJM {tjm} €/j
+            <p className="truncate text-sm text-muted">pztdesign · Auto-entrepreneur</p>
+          </div>
+          <div className="shrink-0 text-right">
+            <p className="lbl">TJM</p>
+            <p className="text-[20px] font-black tabular-nums tracking-[-0.02em] text-[#141b4d]">
+              {tjm} €
             </p>
           </div>
         </div>
 
-        <div className="mt-5 grid gap-x-8 gap-y-1 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="relative mt-5 grid gap-x-8 gap-y-1 sm:grid-cols-2 lg:grid-cols-3">
           <EditableField
             flat
             label="TJM"

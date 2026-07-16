@@ -575,7 +575,7 @@ export default function CalendarSection({
               Week-end
             </button>
           )}
-          <div className="flex rounded-lg bg-gray-100 dark:bg-white/[0.06] p-0.5 text-xs font-medium">
+          <div className="hidden rounded-lg bg-gray-100 p-0.5 text-xs font-medium dark:bg-white/[0.06] md:flex">
             <button
               onClick={() => setView("week")}
               className={`rounded-md px-2.5 py-1 ${

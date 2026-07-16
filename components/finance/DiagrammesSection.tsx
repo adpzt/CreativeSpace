@@ -197,7 +197,10 @@ function ChartCard({
   colors: string[];
 }) {
   const [asList, setAsList] = useState(false);
+  // Part active (mobile) : au clic sur une part du cercle, on affiche sa légende.
+  const [active, setActive] = useState(0);
   const total = data.reduce((s, d) => s + d.value, 0);
+  const cur = data[active] ?? data[0];
 
   return (
     <div className="rounded-2xl border border-black/[0.06] bg-white p-4 shadow-card">
@@ -251,9 +254,10 @@ function ChartCard({
                   innerRadius={34}
                   outerRadius={62}
                   paddingAngle={2}
+                  onClick={(_, i) => setActive(i)}
                 >
                   {data.map((_, i) => (
-                    <Cell key={i} fill={colors[i]} />
+                    <Cell key={i} fill={colors[i]} className="cursor-pointer" />
                   ))}
                 </Pie>
                 <Tooltip
@@ -267,7 +271,8 @@ function ChartCard({
               </PieChart>
             </ResponsiveContainer>
           </div>
-          <ul className="flex-1 space-y-1.5">
+          {/* Desktop : légende complète à côté du cercle */}
+          <ul className="hidden flex-1 space-y-1.5 sm:block">
             {data.map((d, i) => (
               <li key={d.name} className="flex items-center gap-2 text-sm">
                 <span
@@ -279,6 +284,25 @@ function ChartCard({
               </li>
             ))}
           </ul>
+          {/* Mobile : légende de la part touchée (évite une longue liste) */}
+          {cur && (
+            <div className="w-full sm:hidden">
+              <div className="flex items-center gap-2.5 rounded-xl bg-surface-2 px-3 py-2.5 text-sm">
+                <span
+                  className="h-2.5 w-2.5 shrink-0 rounded-full"
+                  style={{ background: solidOf(colors[active] ?? colors[0]) }}
+                />
+                <span className="flex-1 truncate font-semibold">{cur.name}</span>
+                <span className="text-muted">
+                  {total > 0 ? Math.round((cur.value / total) * 100) : 0}%
+                </span>
+                <span className="font-bold tabular-nums">{formatEuro(cur.value)}</span>
+              </div>
+              <p className="mt-1.5 text-center text-[11px] text-muted">
+                Touche une part du cercle · ou la liste ↗
+              </p>
+            </div>
+          )}
         </div>
       )}
     </div>

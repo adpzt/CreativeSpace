@@ -27,14 +27,20 @@ export default async function WorkPage() {
 
   return (
     <div className="space-y-8">
+      {/* Titre "Work" (mobile only : l'app affiche un grand titre en haut) */}
+      <h1 className="text-[32px] font-extrabold leading-none tracking-[-0.035em] md:hidden">
+        Work
+      </h1>
       <BannerHeader initialUrl={banner} />
 
       {/* PROJETS - section principale (Clients accessibles via un bouton) */}
       <ProjectsSection projects={projects} clients={clients} />
 
-      {/* CALENDRIER (titre + contrôles centrés ; seul le board déborde) */}
+      {/* CALENDRIER (titre desktop ; sur mobile le semainier se suffit) */}
       <div>
-        <h2 className="mb-5 text-[22px] font-extrabold tracking-[-0.02em] md:text-[26px]">Calendrier</h2>
+        <h2 className="mb-5 hidden text-[22px] font-extrabold tracking-[-0.02em] md:block md:text-[26px]">
+          Calendrier
+        </h2>
         <CalendarSection
           initial={blocks}
           projects={projects}

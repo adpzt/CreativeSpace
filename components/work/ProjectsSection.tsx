@@ -211,12 +211,24 @@ export default function ProjectsSection({
             <Users className="h-4 w-4" />
             Clients
           </Button>
-          <Button onClick={() => setCreating(true)}>
-            <Plus className="h-4 w-4" />
-            Projet
-          </Button>
+          {/* Sur mobile, "+ Projet" devient un bouton flottant (voir plus bas) */}
+          <div className="hidden md:contents">
+            <Button onClick={() => setCreating(true)}>
+              <Plus className="h-4 w-4" />
+              Projet
+            </Button>
+          </div>
         </div>
       </div>
+
+      {/* Bouton flottant "+" (mobile) : créer un projet, toujours accessible */}
+      <button
+        onClick={() => setCreating(true)}
+        aria-label="Nouveau projet"
+        className="fixed bottom-[92px] right-4 z-40 flex h-14 w-14 items-center justify-center rounded-[18px] bg-ink text-white shadow-[0_16px_34px_-10px_rgba(0,0,0,.55),inset_0_1px_0_rgba(255,255,255,.15)] transition active:scale-95 md:hidden"
+      >
+        <Plus className="h-6 w-6" />
+      </button>
 
       {/* ---------- PROJETS ---------- */}
       {projects.length === 0 ? (

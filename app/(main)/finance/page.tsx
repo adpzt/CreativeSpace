@@ -44,8 +44,14 @@ export default async function FinancePage() {
       {/* ============== FREELANCE (titre de page) ============== */}
       <div className="space-y-8">
         <header>
-          <h1 className="text-[30px] font-extrabold tracking-[-0.02em]">Freelance</h1>
-          <p className="mt-1 text-[15px] text-muted">
+          {/* Mobile = app "Bank" ; desktop = section "Freelance" avec sous-titre */}
+          <h1 className="text-[32px] font-extrabold leading-none tracking-[-0.035em] md:hidden">
+            Bank
+          </h1>
+          <h1 className="hidden text-[30px] font-extrabold tracking-[-0.02em] md:block">
+            Freelance
+          </h1>
+          <p className="mt-1 hidden text-[15px] text-muted md:block">
             Ton activité de micro-entrepreneur : revenus, dépenses, cotisations.
           </p>
         </header>

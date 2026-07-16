@@ -116,7 +116,9 @@ export default function DashboardSection({
     <section>
       {/* En-tete : titre a gauche, periode + bascule Mois/Annee a droite */}
       <div className="mb-5 flex flex-wrap items-end justify-between gap-3">
-        <div>
+        {/* Titre de section : desktop uniquement (sur mobile, l'appli montre
+            directement les widgets sous le titre "Bank" de la page). */}
+        <div className="hidden md:block">
           <p className="lbl">Vue d&apos;ensemble</p>
           <h2 className="text-2xl font-extrabold tracking-[-0.02em]">Tableau de bord</h2>
         </div>
@@ -218,8 +220,8 @@ export default function DashboardSection({
         </div>
       )}
 
-      {/* Règle d'encaissement (lève la confusion juin/juillet) */}
-      <div className="mt-3 flex items-start gap-1.5 text-xs text-muted">
+      {/* Règle d'encaissement (desktop only : trop verbeux pour l'app mobile) */}
+      <div className="mt-3 hidden items-start gap-1.5 text-xs text-muted md:flex">
         <Info className="mt-0.5 h-3.5 w-3.5 shrink-0" />
         <span>
           Tout est compté au mois de l&apos;encaissement (date de réception), pas au
