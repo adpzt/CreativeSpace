@@ -156,12 +156,12 @@ export default function RevenusSection({
     <section>
       <div className="mb-4 flex items-end justify-between gap-3">
         <div>
-          <p className="lbl">Encaissements</p>
+          <p className="lbl hidden md:block">Encaissements</p>
           <h2 className="text-2xl font-extrabold tracking-[-0.02em]">Revenus</h2>
         </div>
         <Button onClick={() => setCreating(true)}>
           <Plus className="h-4 w-4" />
-          Revenu manuel
+          <span className="hidden md:inline">Revenu manuel</span>
         </Button>
       </div>
 

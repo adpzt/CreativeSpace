@@ -12,9 +12,9 @@ export default function MainLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="min-h-screen pt-4">
+    <div className="min-h-screen pt-[max(1.75rem,env(safe-area-inset-top))] md:pt-4">
       <TopNav />
-      <main className="mx-auto w-full max-w-[1040px] px-4 pb-32 md:px-6 md:pb-16">
+      <main className="mx-auto w-full max-w-[1040px] px-5 pb-32 md:px-6 md:pb-16">
         <PageTransition>{children}</PageTransition>
       </main>
       <BottomNav />

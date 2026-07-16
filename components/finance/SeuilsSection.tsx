@@ -80,10 +80,10 @@ export default function SeuilsSection({ payments }: { payments: Payment[] }) {
           />
           <div className="border-t border-black/[0.06] pt-4">
             <div className="flex items-center justify-between gap-3">
-              <span className="text-[15px] font-semibold">
+              <span className="min-w-0 truncate text-[15px] font-semibold">
                 Réellement gagné · depuis le début
               </span>
-              <span className="text-[15px] font-bold tracking-tight text-success">
+              <span className="shrink-0 whitespace-nowrap text-[15px] font-bold tabular-nums tracking-tight text-success">
                 {formatEuro(reelGagne)}
               </span>
             </div>
@@ -126,8 +126,8 @@ function ThresholdBar({
     return (
       <div>
         <div className="mb-2 flex items-center justify-between gap-3">
-          <span className="text-[15px] font-semibold">{label}</span>
-          <span className="text-[15px] font-bold tracking-tight">
+          <span className="min-w-0 truncate text-[15px] font-semibold">{label}</span>
+          <span className="shrink-0 whitespace-nowrap text-[15px] font-bold tabular-nums tracking-tight">
             {formatEuro(current)}{" "}
             <span className="text-[13px] font-medium text-muted">
               / {formatEuro(max)}
@@ -169,13 +169,13 @@ function ThresholdBar({
   return (
     <div>
       <div className="mb-2 flex items-center justify-between gap-3">
-        <span className="flex items-center gap-1.5 text-[15px] font-semibold">
+        <span className="flex min-w-0 items-center gap-1.5 text-[15px] font-semibold">
           {(exceeded || warning) && (
             <AlertTriangle
-              className={`h-4 w-4 ${exceeded ? "text-urgent" : "text-pending"}`}
+              className={`h-4 w-4 shrink-0 ${exceeded ? "text-urgent" : "text-pending"}`}
             />
           )}
-          {label}
+          <span className="truncate">{label}</span>
         </span>
         <span className="text-[15px] font-bold tracking-tight">
           {formatEuro(current)}{" "}

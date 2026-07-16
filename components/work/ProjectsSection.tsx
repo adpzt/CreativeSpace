@@ -92,6 +92,11 @@ export default function ProjectsSection({
   const [filter, setFilter] = useState<Filter>("active");
   const [menuOpen, setMenuOpen] = useState(false);
   const [page, setPage] = useState(0);
+  // Mobile : "voir plus" (3 projets par défaut) + bascule Projets/Clients inline
+  const [expanded, setExpanded] = useState(false);
+  const [mobilePane, setMobilePane] = useState<"projects" | "clients">(
+    "projects"
+  );
   // État local des épingles (MAJ optimiste)
   const [pins, setPins] = useState<Record<string, boolean>>({});
 
@@ -142,6 +147,13 @@ export default function ProjectsSection({
   const pageCount = Math.max(1, Math.ceil(visible.length / perPage));
   const safePage = Math.min(page, pageCount - 1);
   const pageProjects = visible.slice(safePage * perPage, safePage * perPage + perPage);
+  // Mobile : pas de pagination par flèches -> pile verticale (3 max + voir plus).
+  const isMobile = perPage === 1;
+  const shown = isMobile
+    ? expanded
+      ? visible
+      : visible.slice(0, 3)
+    : pageProjects;
 
   function togglePin(p: ProjectWithDeliverables) {
     const next = !isPinned(p);
@@ -163,7 +175,30 @@ export default function ProjectsSection({
       <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
         <h2 className="text-[22px] font-extrabold tracking-[-0.02em] md:text-[26px]">Projets</h2>
 
-        <div className="flex items-center gap-2">
+        {/* Mobile : segmented Tous / Clients (bascule inline, sans popup) */}
+        <div className="flex rounded-[11px] bg-black/5 p-[3px] text-sm md:hidden">
+          {(
+            [
+              ["projects", "Tous"],
+              ["clients", "Clients"],
+            ] as const
+          ).map(([k, label]) => (
+            <button
+              key={k}
+              onClick={() => {
+                setMobilePane(k);
+                setExpanded(false);
+              }}
+              className={`rounded-lg px-3.5 py-1.5 font-semibold transition-colors ${
+                mobilePane === k ? "bg-white text-ink shadow-sm" : "text-muted"
+              }`}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+
+        <div className="hidden items-center gap-2 md:flex">
           {projects.length > 0 && (
             <div className="relative">
               <button
@@ -230,8 +265,39 @@ export default function ProjectsSection({
         <Plus className="h-6 w-6" />
       </button>
 
-      {/* ---------- PROJETS ---------- */}
-      {projects.length === 0 ? (
+      {/* ---------- CLIENTS inline (mobile, via le segmented) ---------- */}
+      {isMobile && mobilePane === "clients" ? (
+        <div className="space-y-2.5">
+          {clients.length === 0 ? (
+            <p className="text-sm text-muted">Aucun client pour l&apos;instant.</p>
+          ) : (
+            clients.map((c) => (
+              <button
+                key={c.id}
+                onClick={() => setOpenClientId(c.id)}
+                className="flex w-full items-center gap-3 rounded-2xl border border-black/[0.06] bg-white px-4 py-3 text-left shadow-card transition active:scale-[0.99]"
+              >
+                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-surface-2 text-sm font-bold text-ink-soft">
+                  {(c.company || c.name).slice(0, 1).toUpperCase()}
+                </span>
+                <div className="min-w-0 flex-1">
+                  <p className="truncate font-bold">{c.company || c.name}</p>
+                  {c.company && c.name && (
+                    <p className="truncate text-xs text-muted">{c.name}</p>
+                  )}
+                </div>
+                <ChevronRight className="h-4 w-4 shrink-0 text-muted" />
+              </button>
+            ))
+          )}
+          <button
+            onClick={() => setCreatingClient(true)}
+            className="flex w-full items-center justify-center gap-1.5 rounded-2xl border border-dashed border-black/15 px-4 py-3 text-sm font-medium text-muted transition active:scale-[0.99]"
+          >
+            <Plus className="h-4 w-4" /> Nouveau client
+          </button>
+        </div>
+      ) : projects.length === 0 ? (
         <EmptyState
           icon={FolderOpen}
           title="Aucun projet pour l'instant"
@@ -254,14 +320,14 @@ export default function ProjectsSection({
               onClick={() => setPage((p) => Math.max(0, p - 1))}
               disabled={safePage === 0}
               aria-label="Projets précédents"
-              className="absolute -left-2 top-1/2 z-20 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full bg-white/80 text-muted shadow-card backdrop-blur transition-colors hover:bg-white hover:text-ink disabled:opacity-25 md:-left-9 md:bg-transparent md:shadow-none md:backdrop-blur-0"
+              className="absolute -left-2 top-1/2 z-20 hidden h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full bg-white/80 text-muted shadow-card backdrop-blur transition-colors hover:bg-white hover:text-ink disabled:opacity-25 md:flex md:-left-9 md:bg-transparent md:shadow-none md:backdrop-blur-0"
             >
               <ChevronLeft className="h-6 w-6" />
             </button>
           )}
 
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-            {pageProjects.map((p) => {
+          <div className="grid grid-cols-1 gap-3 md:grid-cols-3 md:gap-4">
+            {shown.map((p) => {
               const cat = p.category ? CATEGORY[p.category] : null;
               const catHex = p.category ? CATEGORY_COLOR[p.category] : null;
               const company = clientCompany(p.client_id) || p.org;
@@ -365,9 +431,19 @@ export default function ProjectsSection({
               onClick={() => setPage((p) => Math.min(pageCount - 1, p + 1))}
               disabled={safePage >= pageCount - 1}
               aria-label="Projets suivants"
-              className="absolute -right-2 top-1/2 z-20 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full bg-white/80 text-muted shadow-card backdrop-blur transition-colors hover:bg-white hover:text-ink disabled:opacity-25 md:-right-9 md:bg-transparent md:shadow-none md:backdrop-blur-0"
+              className="absolute -right-2 top-1/2 z-20 hidden h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full bg-white/80 text-muted shadow-card backdrop-blur transition-colors hover:bg-white hover:text-ink disabled:opacity-25 md:flex md:-right-9 md:bg-transparent md:shadow-none md:backdrop-blur-0"
             >
               <ChevronRight className="h-6 w-6" />
+            </button>
+          )}
+
+          {/* Mobile : voir plus / voir moins (pile verticale, pas de flèches) */}
+          {isMobile && visible.length > 3 && (
+            <button
+              onClick={() => setExpanded((v) => !v)}
+              className="mx-auto mt-3 block text-sm font-semibold text-muted transition-colors hover:text-ink"
+            >
+              {expanded ? "Voir moins" : `Voir plus (${visible.length - 3})`}
             </button>
           )}
         </div>

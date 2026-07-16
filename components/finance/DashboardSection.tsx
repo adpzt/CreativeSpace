@@ -122,8 +122,10 @@ export default function DashboardSection({
           <p className="lbl">Vue d&apos;ensemble</p>
           <h2 className="text-2xl font-extrabold tracking-[-0.02em]">Tableau de bord</h2>
         </div>
-        <div className="flex items-center gap-2.5">
-          {mode === "mois" && (
+        {/* w-full + justify-between sur mobile : la période reste à gauche et le
+            toggle ancré à droite -> plus de saut quand on passe Mois <-> Année. */}
+        <div className="flex w-full items-center justify-between gap-2.5 md:w-auto md:justify-end">
+          {mode === "mois" ? (
             <div className="flex items-center gap-0.5">
               <button
                 onClick={() => setFocus((f) => shift(f.y, f.m, -1))}
@@ -132,7 +134,7 @@ export default function DashboardSection({
               >
                 <ChevronLeft className="h-4 w-4" />
               </button>
-              <span className="min-w-[124px] text-center text-sm font-semibold tabular-nums">
+              <span className="min-w-[112px] text-center text-sm font-semibold tabular-nums">
                 {periodLabel}
               </span>
               <button
@@ -143,6 +145,8 @@ export default function DashboardSection({
                 <ChevronRight className="h-4 w-4" />
               </button>
             </div>
+          ) : (
+            <span className="text-sm font-semibold tabular-nums">{periodLabel}</span>
           )}
           <div className="flex items-center gap-1 rounded-[11px] bg-black/5 p-[3px] text-sm">
             {(["mois", "annee"] as const).map((m) => (

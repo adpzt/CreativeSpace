@@ -93,9 +93,9 @@ export default function TodayTasks({
             >
               {b.completed && <Check className="h-3.5 w-3.5" />}
             </button>
-            {/* Heure EN PREMIER (comme le semainier) */}
+            {/* Heure EN PREMIER (comme le semainier), largeur naturelle */}
             {b.time && (
-              <span className="w-11 shrink-0 text-[13px] font-bold tabular-nums text-ink">
+              <span className="shrink-0 text-[13px] font-bold tabular-nums text-ink">
                 {b.time.replace(":00", "h").replace(":", "h")}
               </span>
             )}

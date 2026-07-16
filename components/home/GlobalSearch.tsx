@@ -113,7 +113,7 @@ export default function GlobalSearch({ items }: { items: SearchItem[] }) {
           }}
           onFocus={() => setOpen(true)}
           onKeyDown={onKeyDown}
-          placeholder="Rechercher un projet, client, note, revenu…"
+          placeholder="Rechercher…"
           className="min-w-0 flex-1 bg-transparent text-[15px] outline-none placeholder:text-muted"
         />
         <kbd className="hidden shrink-0 items-center rounded-md border border-black/[0.08] bg-gray-50 px-1.5 py-0.5 text-[11px] font-medium text-muted sm:flex">
