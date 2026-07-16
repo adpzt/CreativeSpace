@@ -68,9 +68,9 @@ export default function EditableField({
           className="w-full rounded-lg border border-black/10 px-2.5 py-1.5 text-sm outline-none focus:border-active focus:ring-4 focus:ring-active/12"
         />
       ) : (
-        <div className="flex items-center gap-2">
+        <div className="flex min-w-0 items-center gap-2">
           <span
-            className={`flex-1 truncate text-sm font-medium ${
+            className={`min-w-0 flex-1 truncate text-sm font-medium ${
               value ? "" : "text-muted"
             }`}
           >
@@ -82,7 +82,7 @@ export default function EditableField({
               setEditing(true);
             }}
             aria-label="Modifier"
-            className="rounded-lg p-1.5 text-muted opacity-0 transition-all hover:bg-black/5 hover:text-ink focus:opacity-100 group-hover:opacity-100"
+            className="shrink-0 rounded-lg p-1.5 text-muted transition-all hover:bg-black/5 hover:text-ink md:opacity-0 md:focus:opacity-100 md:group-hover:opacity-100"
           >
             <Pencil className="h-3.5 w-3.5" />
           </button>
@@ -90,7 +90,7 @@ export default function EditableField({
             <button
               onClick={copy}
               aria-label="Copier"
-              className={`rounded-lg p-1.5 transition-colors ${
+              className={`shrink-0 rounded-lg p-1.5 transition-colors ${
                 copied
                   ? "text-success"
                   : "text-muted hover:bg-black/5 hover:text-ink"

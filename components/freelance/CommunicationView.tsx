@@ -96,7 +96,7 @@ export default function CommunicationView() {
                     className="rounded-xl border border-black/[0.06] bg-[#FAFAFA] p-3.5"
                   >
                     <div className="mb-1 flex items-start justify-between gap-3">
-                      <p className="text-sm font-semibold">{s.title}</p>
+                      <p className="min-w-0 text-sm font-semibold">{s.title}</p>
                       <CopyButton text={s.text} />
                     </div>
                     <p className="text-sm leading-relaxed text-ink-soft">

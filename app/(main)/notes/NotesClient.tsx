@@ -350,7 +350,7 @@ export default function NotesClient({
                 <button
                   key={n.id}
                   onClick={() => setEditing(n)}
-                  className="flex min-h-[240px] flex-col rounded-2xl border border-black/[0.06] bg-white p-5 text-left shadow-card transition-transform duration-150 ease-ios hover:-translate-y-0.5 hover:shadow-lift"
+                  className="flex min-h-[150px] flex-col rounded-2xl border border-black/[0.06] bg-white p-4 text-left shadow-card transition-transform duration-150 ease-ios hover:-translate-y-0.5 hover:shadow-lift md:min-h-[200px] md:p-5"
                 >
                   <p className="mb-2 text-[17px] font-bold leading-snug text-ink">
                     {titleTxt || "Bloc sans titre"}

@@ -48,6 +48,8 @@ export default function DashboardSection({
 
   const [mode, setMode] = useState<"mois" | "annee">("mois");
   const [focus, setFocus] = useState({ y: curY, m: curM });
+  // Année sélectionnée en vue "Année" (navigable : 2026, 2027, 2028…)
+  const [focusYear, setFocusYear] = useState(curY);
 
   const net = (p: Payment) => p.net_amount ?? 0;
   // CA affiché = montant FACTURÉ (brut) ; c'est aussi la base URSSAF/impôt.
@@ -86,15 +88,16 @@ export default function DashboardSection({
     urssaf = grossIn(ym) * urssafRate(focus.y, focus.m);
     periodLabel = `${MONTHS[focus.m - 1]} ${focus.y}`;
   } else {
-    const y = String(curY);
+    const y = String(focusYear);
     ca = grossIn(y);
     dep = depIn(y);
     comm = commIn(y);
     urssaf = 0;
     for (let m = 1; m <= 12; m++) {
-      urssaf += grossIn(`${y}-${String(m).padStart(2, "0")}`) * urssafRate(curY, m);
+      urssaf +=
+        grossIn(`${y}-${String(m).padStart(2, "0")}`) * urssafRate(focusYear, m);
     }
-    periodLabel = `Année ${curY}`;
+    periodLabel = `Année ${focusYear}`;
   }
   // La bulle "Dépenses & commission" regroupe les vraies dépenses ET la
   // commission perdue sur les plateformes.
@@ -105,7 +108,7 @@ export default function DashboardSection({
 
   // Mini-tendance : CA brut des 6 derniers mois (jusqu'au mois affiché, sinon
   // jusqu'au mois courant en vue annuelle). Affichée sur la carte CA.
-  const spEnd = mode === "mois" ? focus : { y: curY, m: curM };
+  const spEnd = mode === "mois" ? focus : { y: focusYear, m: 12 };
   const caSpark = Array.from({ length: 6 }, (_, i) => {
     const s = shift(spEnd.y, spEnd.m, i - 5);
     return { v: grossIn(`${s.y}-${String(s.m).padStart(2, "0")}`) };
@@ -146,7 +149,25 @@ export default function DashboardSection({
               </button>
             </div>
           ) : (
-            <span className="text-sm font-semibold tabular-nums">{periodLabel}</span>
+            <div className="flex items-center gap-0.5">
+              <button
+                onClick={() => setFocusYear((y) => y - 1)}
+                aria-label="Année précédente"
+                className="rounded-lg p-1.5 text-muted transition-colors hover:bg-black/5 hover:text-ink"
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </button>
+              <span className="min-w-[112px] text-center text-sm font-semibold tabular-nums">
+                {periodLabel}
+              </span>
+              <button
+                onClick={() => setFocusYear((y) => y + 1)}
+                aria-label="Année suivante"
+                className="rounded-lg p-1.5 text-muted transition-colors hover:bg-black/5 hover:text-ink"
+              >
+                <ChevronRight className="h-4 w-4" />
+              </button>
+            </div>
           )}
           <div className="flex items-center gap-1 rounded-[11px] bg-black/5 p-[3px] text-sm">
             {(["mois", "annee"] as const).map((m) => (

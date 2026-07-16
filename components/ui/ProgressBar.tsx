@@ -18,7 +18,7 @@ export default function ProgressBar({
           <span className="font-medium text-ink">{p}%</span>
         </div>
       )}
-      <div className="h-1.5 w-full overflow-hidden rounded-full bg-black/[0.06]">
+      <div className="h-2 w-full overflow-hidden rounded-full bg-black/[0.09]">
         <div
           className={`h-full rounded-full transition-[width] duration-300 ease-ios ${
             color ? "" : p === 100 ? "bg-success" : "bg-active"

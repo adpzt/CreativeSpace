@@ -49,7 +49,7 @@ export default function SeuilsSection({ payments }: { payments: Payment[] }) {
         Seuils à surveiller
       </h3>
       <div className="grid gap-4 lg:grid-cols-2">
-        <div className="space-y-5 rounded-2xl border border-black/[0.06] bg-white p-5 shadow-card">
+        <div className="min-w-0 space-y-5 rounded-2xl border border-black/[0.06] bg-white p-5 shadow-card">
           <ThresholdBar
             label="Plafond micro-BNC"
             current={caYear}
@@ -68,7 +68,7 @@ export default function SeuilsSection({ payments }: { payments: Payment[] }) {
             )}). Au-delà, tu dois facturer la TVA.`}
           />
         </div>
-        <div className="space-y-5 rounded-2xl border border-black/[0.06] bg-white p-5 shadow-card">
+        <div className="min-w-0 space-y-5 rounded-2xl border border-black/[0.06] bg-white p-5 shadow-card">
           <ThresholdBar
             label="Objectif freelance · ce mois"
             current={caMonth}

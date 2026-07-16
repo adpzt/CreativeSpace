@@ -40,6 +40,14 @@ body {
   background-color: #f6f7fb;
 }
 
+/* Verrou horizontal : la page ne se décale jamais sur les côtés (un débordement
+   accidentel est rogné, pas scrollable). `clip` ne casse pas position:sticky. */
+html,
+body {
+  overflow-x: clip;
+  max-width: 100%;
+}
+
 body::before {
   content: "";
   position: fixed;

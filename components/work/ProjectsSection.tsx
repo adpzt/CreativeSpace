@@ -349,16 +349,16 @@ export default function ProjectsSection({
                           }
                         : undefined
                     }
-                    className={`flex h-full w-full flex-col rounded-[18px] border-[1.5px] bg-white p-5 text-left transition duration-[180ms] ease-ios hover:-translate-y-0.5 ${
+                    className={`flex h-full w-full flex-col rounded-[16px] border-[1.5px] bg-white p-4 text-left transition duration-[180ms] ease-ios hover:-translate-y-0.5 ${
                       catHex ? "" : "border-black/[0.06] shadow-card hover:shadow-lift"
                     } ${closed ? "opacity-[0.82] hover:opacity-100" : ""}`}
                   >
-                    <p className="text-lg font-extrabold leading-snug tracking-[-0.01em]">
+                    <p className="text-[17px] font-extrabold leading-snug tracking-[-0.01em]">
                       {p.name}
                     </p>
 
                     {/* Client · catégorie + échéance alignée à droite */}
-                    <div className="mb-3 mt-1 flex items-baseline justify-between gap-2">
+                    <div className="mb-2.5 mt-0.5 flex items-baseline justify-between gap-2">
                       <p className="min-w-0 truncate text-[13px] text-muted">
                         {company}
                         {company && cat ? " · " : ""}
@@ -376,7 +376,7 @@ export default function ProjectsSection({
                     </div>
 
                     {/* Types de mission + statut (contour) à droite */}
-                    <div className="mb-4 flex flex-wrap items-center gap-1.5">
+                    <div className="mb-2.5 flex flex-wrap items-center gap-1.5">
                       {p.mission_types.slice(0, 4).map((t) => (
                         <span
                           key={t}
@@ -394,7 +394,7 @@ export default function ProjectsSection({
                       </span>
                     </div>
 
-                    <div className="mt-auto flex items-center gap-3 pt-1">
+                    <div className="mt-auto flex items-center gap-2.5">
                       <div className="flex-1">
                         <ProgressBar
                           percent={projectProgress(p.deliverables)}
@@ -402,7 +402,7 @@ export default function ProjectsSection({
                           color={catHex ?? undefined}
                         />
                       </div>
-                      <span className="text-sm font-bold tabular-nums text-ink-soft">
+                      <span className="text-[13px] font-bold tabular-nums text-ink-soft">
                         {projectProgress(p.deliverables)}%
                       </span>
                     </div>
