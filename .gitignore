@@ -37,3 +37,6 @@ next-env.d.ts
 design_handoff_creative_space/
 design_handoff_creative_space_dark/
 design_handoff_app/
+
+# captures d'écran de travail (feedback mobile, temporaires)
+screenshot_mobile/

@@ -1,6 +1,31 @@
 # CREATIVE SPACE — CONTEXT.MD
 ## Document de référence complet pour Claude Code
-## Dernière mise à jour : 3 juillet 2026
+## Dernière mise à jour : 16 juillet 2026
+
+---
+
+## 0bis. MISE À JOUR (session 16/07/2026) — À LIRE EN PREMIER
+
+Tout ci-dessous est **livré et en ligne sur `main`** (Vercel auto-déploie).
+Branche de secours de l'avant-refonte design : **`backup/pre-design-v2`**.
+Migrations Supabase exécutées manuellement par Adrien **jusqu'à 022 incluse**.
+
+**Nouvelles fonctionnalités (Bank/Work/Freelance) :**
+- **Acompte demandé** sur un projet freelance : `%` ou `€` (colonnes `projects.deposit_value` + `deposit_is_percent`, **migration 021**). Le formulaire projet met le **prix du devis en 1er**, puis « + de détail » = prix réellement gagné + **raison de l'écart** (`projects.net_gap_reason`) + dépenses + acompte. Sur Bank/Revenus, un projet en cours avec acompte s'affiche grisé « acompte X / total Y » + bouton **« Encaisser »** (crée un demi-paiement `deposit_paid=true` ; le solde reste à valider = total − acompte).
+- **Commission auto** = écart entre CA devis (`gross_amount`) et CA encaissé (`net_amount`) des paiements `paid`. Apparaît automatiquement dans **« Dépense & commission »** (catégorie distincte des dépenses de mission ; libellé « Commission Malt » si source Malt, sinon la `net_gap_reason`, sinon générique). Helper `paymentCommission()` dans lib/finance.ts. Montants en rouge, préfixe « − ».
+- **URSSAF déclarable** : mois de départ = 1er mois encaissé non déclaré ; bouton **rouge « À déclarer »** dès le 1er du mois suivant → **vert grisé** au clic + fondu vers le mois suivant ; **montant ajustable** avant déclaration (colonne `urssaf_declarations.paid_amount`, **migration 022**).
+- **Dashboard Bank** : 1re bulle = **CA brut** (facturé) ; bulle « Dépenses & commission » inclut la commission ; **Bénéfice net** reste juste (CA brut − dépenses − commission − URSSAF). Vue **Année navigable** (flèches 2026→2027…). Diagramme mensuel = 3 barres (Facturé / Net gagné / **Après URSSAF** bleu).
+- **Accueil** : hero monétaire **rotatif** (CA brut / net / URSSAF, SVG sparkline) ; **recherche globale ⌘K** (`GlobalSearch`, indexe projets/clients/notes/revenus, ouvre via `/work?project=`/`?client=`).
+- **Freelance** : **simulateur de devis** (`DevisSimulator` : prix → net après commission + URSSAF → « il te reste »).
+
+**Refonte design (« design v2 » validée par Claude Design) :**
+- Système : tokens inchangés + utilitaires **`.lbl`** (sur-titre) et **`.cs-hero`** (halo des cartes hero) dans globals.css ; motif **hero card** (dégradé + ring + sheen + halo, 1/écran). Animation `sheet` passée en **`backwards`** (corrige le piège du transform résiduel qui cassait les overlays `fixed` imbriqués — NotePanel plein écran).
+- Desktop : titres plus gras, Bank (hero Bénéfice + CA sparkline + colonne Dépenses/URSSAF), listes Revenus/Dépenses « posées », semainier vue liste (jour du jour en hero), cartes projet à **contour + glow de couleur de catégorie**.
+- **Mobile (`< md`)** = vraie app : **tab bar glass** pleine largeur, gros titres, `overflow-x: clip` (page non décalable). Accueil (widgets d'abord, « + » note noir/blanc, KPI 2-col, « À faire » condensé). Work (titre « Work », FAB « + » projet, segmented **Tous/Clients inline** sans popup, projets en pile 3 + « Voir plus », semainier toujours en liste). Bank (titre « Bank », textes desktop masqués, toggle Mois/Année stable, seuils sur une ligne). Freelance (profil en hero). Marges augmentées (px-5, safe-area top).
+
+**Correctifs notables :** Ctrl/Cmd+Z n'agit plus sur le calendrier quand on tape dans un champ ; barrer un bloc du semainier (double-clic) est indépendant de la complétion/du % du livrable (aucune répercussion croisée) ; popup « as-tu été payé ? » seulement pour le freelance ; vue Liste du semainier alignée sur la page (le débordement large ne concerne que la vue Semaine).
+
+**Doc pour Claude Design** : dossier **`claude-design/`** (produit, design-system, pages, composants, prompt). `docs/design-brief.md` = ancienne version (superseded, conservée).
 
 ---
 
