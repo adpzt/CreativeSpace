@@ -23,12 +23,19 @@ export default async function FinancePage() {
       getClients(),
     ]);
 
+  // Les acomptes (deposit_paid) sont de simples repères de progression : ils ne
+  // comptent JAMAIS comme revenu (le total, acompte inclus, est validé en une
+  // fois à la clôture). On les retire donc de tout ce qui calcule un montant
+  // (CA, dépenses/commission, URSSAF, seuils, impôt, diagrammes). Seule la
+  // section Revenus reçoit la liste complète (elle gère l'affichage "acompte").
+  const countablePayments = payments.filter((p) => !p.deposit_paid);
+
   // Données de l'année en cours
   const year = new Date().getFullYear();
   const y = String(year);
   // CA freelance = le montant FACTURÉ (brut, le prix du devis), pas le net encaissé
   // après commission de plateforme. Cohérent avec les seuils et l'URSSAF.
-  const caYear = payments
+  const caYear = countablePayments
     .filter((p) => p.status === "paid" && p.received_date?.startsWith(y))
     .reduce((s, p) => s + (p.gross_amount ?? p.net_amount ?? 0), 0);
   // Base fiscale du salaire = cumul annuel du NET IMPOSABLE (lu sur le bulletin),
@@ -55,17 +62,17 @@ export default async function FinancePage() {
             Ton activité de micro-entrepreneur : revenus, dépenses, cotisations.
           </p>
         </header>
-        <DashboardSection payments={payments} expenses={expenses} />
+        <DashboardSection payments={countablePayments} expenses={expenses} />
         <RevenusSection payments={payments} projects={projects} clients={clients} />
         <DepensesSection
           expenses={expenses}
           projects={projects}
-          payments={payments}
+          payments={countablePayments}
           clients={clients}
         />
-        <DiagrammesSection payments={payments} projects={projects} />
-        <UrssafSection rows={urssaf} payments={payments} />
-        <SeuilsSection payments={payments} />
+        <DiagrammesSection payments={countablePayments} projects={projects} />
+        <UrssafSection rows={urssaf} payments={countablePayments} />
+        <SeuilsSection payments={countablePayments} />
       </div>
 
       {/* ============== SALAIRE & IMPÔT ============== */}
@@ -81,7 +88,7 @@ export default async function FinancePage() {
           </p>
         </header>
         <SalaireSection salaires={salaires} caYear={caYear} />
-        <ImpotSection payments={payments} salaryTaxable={salaryTaxable} />
+        <ImpotSection payments={countablePayments} salaryTaxable={salaryTaxable} />
       </div>
     </div>
   );

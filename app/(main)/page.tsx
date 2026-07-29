@@ -61,6 +61,11 @@ export default async function HomePage() {
   const todayStr = format(now, "yyyy-MM-dd");
   const today = format(now, "EEEE d MMMM yyyy", { locale: fr });
 
+  // Les acomptes (deposit_paid) sont de simples repères de progression : ils ne
+  // comptent pas comme revenu (le total est validé en une fois à la clôture).
+  // On les retire de tout ce qui calcule un montant ou liste des revenus.
+  const countablePayments = payments.filter((p) => !p.deposit_paid);
+
   const clientName = (id: string | null) => {
     const c = clients.find((x) => x.id === id);
     return c ? c.company || c.name : null;
@@ -100,7 +105,7 @@ export default async function HomePage() {
           href: "/work",
         };
       }),
-    ...payments.map((pay) => {
+    ...countablePayments.map((pay) => {
       const amt = pay.net_amount ?? pay.gross_amount;
       return {
         id: `payment-${pay.id}`,
@@ -165,7 +170,7 @@ export default async function HomePage() {
   const prev = new Date(now.getFullYear(), now.getMonth() - 1, 1);
   const prevY = prev.getFullYear();
   const prevM = prev.getMonth() + 1;
-  const prevEncaisse = payments
+  const prevEncaisse = countablePayments
     .filter(
       (p) =>
         p.status === "paid" &&
@@ -199,13 +204,13 @@ export default async function HomePage() {
   // --- Objectif mensuel (widget) : CA freelance encaissé ce mois vs le CA/mois
   // à ne pas dépasser pour rester non imposable (= seuil / 0,66 / 12). ---
   const ym = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
-  const caMonthNet = payments
+  const caMonthNet = countablePayments
     .filter((p) => p.status === "paid" && p.received_date?.startsWith(ym))
     .reduce((s, p) => s + (p.net_amount ?? 0), 0);
 
   // --- URSSAF : jours avant la prochaine déclaration + montant à déclarer ---
   const daysUntilDecl = differenceInCalendarDays(endOfMonth(now), now);
-  const grossMonth = payments
+  const grossMonth = countablePayments
     .filter((p) => p.status === "paid" && p.received_date?.startsWith(ym))
     .reduce((s, p) => s + (p.gross_amount ?? p.net_amount ?? 0), 0);
   // URSSAF que prélèvera la fin de mois (sur le CA facturé du mois)
@@ -233,7 +238,7 @@ export default async function HomePage() {
   ];
   // Mini-tendance : CA brut des 6 derniers mois (pour la sparkline du hero).
   const grossMonthOf = (yy: number, mm: number) =>
-    payments
+    countablePayments
       .filter(
         (p) =>
           p.status === "paid" &&
@@ -248,7 +253,7 @@ export default async function HomePage() {
   // --- Bénéfice net de l'année (bento) : CA net encaissé - dépenses - URSSAF ---
   // (même logique que la carte "Bénéfice net" en haut de la page Bank)
   const yStr = String(now.getFullYear());
-  const caYearNet = payments
+  const caYearNet = countablePayments
     .filter((p) => p.status === "paid" && p.received_date?.startsWith(yStr))
     .reduce((s, p) => s + (p.net_amount ?? 0), 0);
   const depYear = expenses
@@ -257,7 +262,7 @@ export default async function HomePage() {
   let urssafYear = 0;
   for (let m = 1; m <= 12; m++) {
     const mp = `${yStr}-${String(m).padStart(2, "0")}`;
-    const grossM = payments
+    const grossM = countablePayments
       .filter((p) => p.status === "paid" && p.received_date?.startsWith(mp))
       .reduce((s, p) => s + (p.gross_amount ?? p.net_amount ?? 0), 0);
     urssafYear += grossM * urssafRate(now.getFullYear(), m);

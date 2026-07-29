@@ -73,12 +73,16 @@ export default function RevenusSection({
   const projectBudget = (p: ProjectWithDeliverables) =>
     p.net_amount ?? p.gross_amount ?? null;
 
-  // Liste des revenus : les lignes "en attente" sont toujours visibles ; on ne
-  // plafonne QUE les encaissés à 5 (le reste derrière "Voir plus").
+  // Liste des revenus : on n'affiche JAMAIS les acomptes (deposit_paid) — ce sont
+  // de simples repères de progression, pas des revenus autonomes. Ils sont gérés
+  // dans la section "En cours" (affichage "acompte / total"), pas ici.
+  const listPayments = payments.filter((p) => !p.deposit_paid);
+  // Les lignes "en attente" sont toujours visibles ; on ne plafonne QUE les
+  // encaissés à 5 (le reste derrière "Voir plus").
   let paidShown = 0;
   const shownPayments = expanded
-    ? payments
-    : payments.filter((p) => {
+    ? listPayments
+    : listPayments.filter((p) => {
         if (p.status !== "paid") return true;
         if (paidShown < 5) {
           paidShown++;
@@ -86,7 +90,7 @@ export default function RevenusSection({
         }
         return false;
       });
-  const paidCount = payments.filter((p) => p.status === "paid").length;
+  const paidCount = listPayments.filter((p) => p.status === "paid").length;
   const hasMorePaid = paidCount > 5;
 
   function close() {
@@ -97,21 +101,24 @@ export default function RevenusSection({
   }
 
   function openFromProject(p: ProjectWithDeliverables) {
-    // Si un acompte a déjà été encaissé, on pré-remplit le SOLDE (total - acompte)
-    // pour ne pas compter deux fois.
-    const acompte = acompteByProject.get(p.id)?.net_amount ?? 0;
+    // On valide TOUJOURS le montant TOTAL du projet en une fois. Un acompte
+    // déjà reçu n'est qu'un repère de progression (il ne compte pas comme revenu
+    // à part), donc on ne le soustrait pas du montant à valider.
     setPrefill({
       project_id: p.id,
       client_id: p.client_id,
       source: p.source,
-      net_amount: p.net_amount != null ? p.net_amount - acompte : null,
-      gross_amount: p.gross_amount != null ? p.gross_amount - acompte : null,
+      net_amount: p.net_amount,
+      gross_amount: p.gross_amount,
       status: p.paid ? "paid" : "pending",
     });
   }
 
-  // Encaisser l'acompte demandé : crée un vrai demi-paiement (encaissé
-  // aujourd'hui) marqué comme acompte. Le solde reste à valider ensuite.
+  // Encaisser l'acompte demandé : crée un simple REPÈRE de progression (demi-
+  // paiement marqué "acompte", statut "en attente" et sans date d'encaissement)
+  // qui n'est JAMAIS compté comme revenu (ni CA, ni URSSAF, ni liste). Il sert
+  // uniquement à afficher "acompte / total" en cours. Le total (acompte inclus)
+  // est validé en une fois quand la mission est finie.
   function encaisserAcompte(p: ProjectWithDeliverables) {
     const amt = depositAmount(p);
     if (amt == null) return;
@@ -122,8 +129,7 @@ export default function RevenusSection({
         source: p.source,
         gross_amount: amt,
         net_amount: amt,
-        status: "paid",
-        received_date: format(new Date(), "yyyy-MM-dd"),
+        status: "pending",
         deposit_paid: true,
         deposit_amount: amt,
         notes: "Acompte",
@@ -229,11 +235,16 @@ export default function RevenusSection({
                 </div>
                 {acompte ? (
                   <div className="shrink-0 text-right">
-                    <p className="text-sm font-semibold text-success">
-                      Acompte encaissé
+                    <p className="text-sm font-medium text-gray-500 dark:text-muted">
+                      {formatEuro(acompte.net_amount ?? acompte.deposit_amount ?? 0)}
+                      <span className="text-gray-300 dark:text-white/40">
+                        {" / "}
+                        {total != null ? formatEuro(total) : "—"}
+                      </span>
                     </p>
-                    <p className="text-[11px] text-muted">
-                      reste {formatEuro((total ?? 0) - (acompte.net_amount ?? 0))}
+                    <p className="inline-flex items-center gap-1 text-[10px] font-medium uppercase tracking-wide text-success">
+                      <Check className="h-3 w-3" />
+                      acompte encaissé
                     </p>
                   </div>
                 ) : deposit != null ? (
@@ -279,7 +290,7 @@ export default function RevenusSection({
       )}
 
       {/* Liste des revenus */}
-      {payments.length === 0 ? (
+      {listPayments.length === 0 ? (
         <EmptyState
           icon={Wallet}
           title="Aucun revenu pour l'instant"
