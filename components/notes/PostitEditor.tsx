@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Trash2 } from "lucide-react";
-import RichText from "@/components/notes/RichText";
+import { RichTextScope, RichToolbar, RichArea } from "@/components/notes/RichText";
 import { EmojiPicker, ThemePicker } from "@/components/notes/pickers";
 import DeliverablesEditor from "@/components/work/DeliverablesEditor";
 import NotePanel from "@/components/ui/NotePanel";
@@ -15,9 +15,11 @@ import {
 import type { Note } from "@/app/(main)/notes/actions";
 import type { Deliverable } from "@/lib/types";
 
-// Éditeur de post-it : titre, texte enrichi (gras…), thème, emoji (épingle),
-// date, couleur et livrables (comme un projet). Sauvegarde chaque champ à la
-// volée via `save` ; les livrables sont persistés directement (actions serveur).
+// Éditeur de post-it : titre + texte enrichis qui PARTAGENT la même barre
+// d'outils (elle apparaît sous le titre dès qu'on édite l'un ou l'autre, et
+// s'applique à la zone où se trouve la sélection). Emoji en popover compact.
+// Sauvegarde chaque champ à la volée via `save` ; les livrables sont persistés
+// directement (actions serveur).
 export default function PostitEditor({
   note,
   save,
@@ -31,8 +33,6 @@ export default function PostitEditor({
   // ne soit pas considéré comme "vide" et supprimé à la fermeture).
   onDeliverablesChange?: (dels: Deliverable[]) => void;
 }) {
-  const [title, setTitle] = useState(note.title ?? "");
-  const [content, setContent] = useState(note.content ?? "");
   const [theme, setTheme] = useState(note.theme ?? "");
   const [emoji, setEmoji] = useState(note.emoji ?? "");
   const [due, setDue] = useState(note.due_date ?? "");
@@ -96,53 +96,28 @@ export default function PostitEditor({
   return (
     <>
       <div className={`-m-7 space-y-5 rounded-3xl p-7 pr-12 ${postitBg(color || null)}`}>
-        {/* Titre (grand, mots coloriables : sélectionne puis choisis une couleur) */}
-        <div>
-          <p className="mb-1 text-xs font-medium uppercase tracking-wide text-muted">
-            Titre
-          </p>
-          <RichText
-            compact
-            value={title}
-            onChange={(html) => {
-              setTitle(html);
-              save({ title: html || null });
-            }}
+        {/* Titre + contenu : une SEULE barre d'outils partagée, qui apparaît
+            quand on édite (et s'applique au titre comme au texte). */}
+        <RichTextScope>
+          <RichArea
+            value={note.title ?? ""}
+            onChange={(html) => save({ title: html || null })}
             placeholder="Titre"
+            inlineOnly
             className="text-[26px] font-extrabold leading-tight tracking-tight text-ink"
           />
-        </div>
-
-        {/* Emoji (épingle) */}
-        <div>
-          <p className="mb-2 text-xs font-medium uppercase tracking-wide text-muted">
-            Emoji (épingle)
-          </p>
-          <EmojiPicker
-            value={emoji}
-            onChange={(v) => {
-              setEmoji(v);
-              save({ emoji: v.trim() || null });
-            }}
-          />
-        </div>
-
-        {/* Contenu enrichi */}
-        <div>
-          <p className="mb-2 text-xs font-medium uppercase tracking-wide text-muted">
-            Note
-          </p>
-          <div className="rounded-2xl bg-white/70 p-4">
-            <RichText
-              value={content}
-              onChange={(html) => {
-                setContent(html);
-                save({ content: html });
-              }}
-              placeholder="Une idée, un rappel… (sélectionne du texte pour le mettre en gras)"
-            />
+          <div className="mt-4">
+            <RichToolbar />
+            <div className="rounded-2xl bg-white/70 p-4">
+              <RichArea
+                value={note.content ?? ""}
+                onChange={(html) => save({ content: html })}
+                placeholder="Une idée, un rappel… (sélectionne du texte pour le mettre en forme)"
+                className="min-h-[22vh] text-[15px] leading-relaxed"
+              />
+            </div>
           </div>
-        </div>
+        </RichTextScope>
 
         {/* Livrables (comme un projet) : planifiables ensuite dans le calendrier
             (catégorie Perso). */}
@@ -164,36 +139,46 @@ export default function PostitEditor({
           </div>
         </div>
 
-        {/* Couleur du post-it */}
-        <div>
-          <p className="mb-2 text-xs font-medium uppercase tracking-wide text-muted">
-            Couleur
-          </p>
-          <div className="flex flex-wrap items-center gap-2">
-            {POSTIT_COLORS.map((c) => (
-              <button
-                key={c.key}
-                type="button"
-                onClick={() => {
-                  setColor(c.key);
-                  save({ color: c.key });
-                }}
-                aria-label={`Couleur ${c.key}`}
-                className={`h-8 w-8 rounded-full border transition ${
-                  color === c.key
-                    ? "border-ink ring-2 ring-ink ring-offset-1"
-                    : "border-black/10 hover:border-black/30"
-                }`}
-                style={{ backgroundColor: c.swatch }}
-              />
-            ))}
-          </div>
-        </div>
-
-        {/* Thème + Date */}
+        {/* Propriétés : emoji (épingle), couleur, thème, date */}
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div>
-            <p className="mb-1.5 text-xs font-medium uppercase tracking-wide text-muted">
+            <p className="mb-2 text-xs font-medium uppercase tracking-wide text-muted">
+              Emoji (épingle)
+            </p>
+            <EmojiPicker
+              value={emoji}
+              onChange={(v) => {
+                setEmoji(v);
+                save({ emoji: v.trim() || null });
+              }}
+            />
+          </div>
+          <div>
+            <p className="mb-2 text-xs font-medium uppercase tracking-wide text-muted">
+              Couleur
+            </p>
+            <div className="flex flex-wrap items-center gap-2">
+              {POSTIT_COLORS.map((c) => (
+                <button
+                  key={c.key}
+                  type="button"
+                  onClick={() => {
+                    setColor(c.key);
+                    save({ color: c.key });
+                  }}
+                  aria-label={`Couleur ${c.key}`}
+                  className={`h-8 w-8 rounded-full border transition ${
+                    color === c.key
+                      ? "border-ink ring-2 ring-ink ring-offset-1"
+                      : "border-black/10 hover:border-black/30"
+                  }`}
+                  style={{ backgroundColor: c.swatch }}
+                />
+              ))}
+            </div>
+          </div>
+          <div>
+            <p className="mb-2 text-xs font-medium uppercase tracking-wide text-muted">
               Thème (optionnel)
             </p>
             <ThemePicker
@@ -205,7 +190,7 @@ export default function PostitEditor({
             />
           </div>
           <div>
-            <p className="mb-1.5 text-xs font-medium uppercase tracking-wide text-muted">
+            <p className="mb-2 text-xs font-medium uppercase tracking-wide text-muted">
               Date (optionnel)
             </p>
             <input

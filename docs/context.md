@@ -1,17 +1,37 @@
 # CREATIVE SPACE — CONTEXT.MD
 ## Document de référence complet pour Claude Code
-## Dernière mise à jour : 16 juillet 2026
+## Dernière mise à jour : 29 juillet 2026
 
 ---
 
-## 0bis. MISE À JOUR (session 16/07/2026) — À LIRE EN PREMIER
+## 0a. MISE À JOUR (session 29/07/2026) — À LIRE EN PREMIER
+
+**1) Acompte (Bank/Revenus) — comportement CHANGÉ (décision Adrien 16/07 après-midi, commité ce 29/07) :**
+un acompte « Encaissé » n'est PLUS un demi-paiement compté dans le CA. C'est un simple **repère de progression** :
+- « Encaisser l'acompte » crée un paiement `deposit_paid=true` en statut **pending SANS date** (jamais compté : ni CA, ni URSSAF, ni seuils, ni impôt, ni liste des revenus).
+- Le projet en cours affiche « 70,00 € / 300,00 € · ✓ acompte encaissé » grisé.
+- À la clôture, « À valider » propose le **montant TOTAL** (acompte inclus) et le formulaire pré-remplit le total. On valide UN SEUL paiement.
+- Conséquence fiscale assumée : l'acompte compte pour le CA/URSSAF au mois de la **validation finale**, pas au mois de réception.
+- Implémentation : `countablePayments = payments.filter(p => !p.deposit_paid)` posé À LA SOURCE dans `app/(main)/finance/page.tsx` et `app/(main)/page.tsx` (Home), passé à Dashboard/Depenses/Diagrammes/Urssaf/Seuils/Impot. RevenusSection reçoit la liste complète (gère l'affichage acompte) mais exclut les acomptes de sa liste.
+
+**2) REFONTE ÉDITION DE TEXTE (les 5 retours d'Adrien du 29/07) — tout vérifié par tests navigateur (Playwright) :**
+- **RichText v2** (`components/notes/RichText.tsx`, réécrit) : exporte `RichTextScope` + `RichToolbar` + `RichArea` (+ assemblage rétro-compatible par défaut). La barre d'outils n'apparaît **qu'au focus** (aperçu propre ≠ édition, édition à un clic). Boutons : B, I, liste, **3 tailles S/M/L segmentées** (M = RETOUR RÉEL à la taille de base : balisage retiré, plus le bug « la taille ne revient jamais »), **couleur derrière UN bouton → popover** (plus de pastilles étalées). Les tailles s'appliquent en DOM custom (`span[data-fs]` + px absolus) — plus d'execCommand fontSize. Les ANCIENS contenus (`<font size>`, `span font-size:x-large…`) sont normalisés au chargement + mappés en CSS (`.rich-content` dans globals.css). Base du corps de texte : 15px.
+- **Toolbar PARTAGÉE titre+corps** (post-it) : le titre n'a PLUS de barre au-dessus (retour #5) ; une seule barre sous le titre s'applique à la zone qui porte la sélection (titre = `inlineOnly` : tailles/listes désactivées dessus, B/I/couleur OK).
+- **EmojiPicker v2** (`components/notes/pickers.tsx`, réécrit) : bouton discret → **popover compact** (recherche + navigation par catégories, s'ouvre vers le haut si pas de place). **Catalogue COMPLET : 1906 emojis** (Unicode ≤ 16, tous les emojis Apple) avec mots-clés **français ET anglais**, généré par `scripts/generate-emoji-catalog.mjs` (emojibase-data en devDependency) → `lib/emoji-catalog.json` (176 Ko, dynamic import, ne pèse rien au premier chargement). Mots-clés FR « faits main » bonus éditables dans `scripts/emoji-keywords-fr.json` (relancer le script après édition). `lib/emoji-data.ts` SUPPRIMÉ.
+- **Calendrier : champ « Date »** dans la page d'un bloc (NotePanel footer, TOUS les blocs même liés à un projet) → change le jour du bloc (réutilise `move`).
+- NotePanel : aperçu en 15px + `.rich-content`, un clic sur le texte en mode lecture passe en édition.
+- **Playwright ajouté en devDependency** (tests navigateur : `npx playwright install chromium` déjà fait sur la machine d'Adrien). NB session : 4 notes de test sont parties à la **corbeille** de To do (« Mon titre », 2× « Crée un compte Fiverr » de test, « Tâche de test ») — ne PAS vider la corbeille sans regarder, les vraies notes supprimées d'avant y sont aussi.
+
+---
+
+## 0bis. MISE À JOUR (session 16/07/2026)
 
 Tout ci-dessous est **livré et en ligne sur `main`** (Vercel auto-déploie).
 Branche de secours de l'avant-refonte design : **`backup/pre-design-v2`**.
 Migrations Supabase exécutées manuellement par Adrien **jusqu'à 022 incluse**.
 
 **Nouvelles fonctionnalités (Bank/Work/Freelance) :**
-- **Acompte demandé** sur un projet freelance : `%` ou `€` (colonnes `projects.deposit_value` + `deposit_is_percent`, **migration 021**). Le formulaire projet met le **prix du devis en 1er**, puis « + de détail » = prix réellement gagné + **raison de l'écart** (`projects.net_gap_reason`) + dépenses + acompte. Sur Bank/Revenus, un projet en cours avec acompte s'affiche grisé « acompte X / total Y » + bouton **« Encaisser »** (crée un demi-paiement `deposit_paid=true` ; le solde reste à valider = total − acompte).
+- **Acompte demandé** sur un projet freelance : `%` ou `€` (colonnes `projects.deposit_value` + `deposit_is_percent`, **migration 021**). Le formulaire projet met le **prix du devis en 1er**, puis « + de détail » = prix réellement gagné + **raison de l'écart** (`projects.net_gap_reason`) + dépenses + acompte. Sur Bank/Revenus, un projet en cours avec acompte s'affiche grisé « acompte X / total Y » + bouton **« Encaisser »**. ⚠️ COMPORTEMENT CHANGÉ le 29/07 (voir §0a) : l'acompte encaissé est un simple repère, JAMAIS compté ; on valide le TOTAL en une fois à la clôture.
 - **Commission auto** = écart entre CA devis (`gross_amount`) et CA encaissé (`net_amount`) des paiements `paid`. Apparaît automatiquement dans **« Dépense & commission »** (catégorie distincte des dépenses de mission ; libellé « Commission Malt » si source Malt, sinon la `net_gap_reason`, sinon générique). Helper `paymentCommission()` dans lib/finance.ts. Montants en rouge, préfixe « − ».
 - **URSSAF déclarable** : mois de départ = 1er mois encaissé non déclaré ; bouton **rouge « À déclarer »** dès le 1er du mois suivant → **vert grisé** au clic + fondu vers le mois suivant ; **montant ajustable** avant déclaration (colonne `urssaf_declarations.paid_amount`, **migration 022**).
 - **Dashboard Bank** : 1re bulle = **CA brut** (facturé) ; bulle « Dépenses & commission » inclut la commission ; **Bénéfice net** reste juste (CA brut − dépenses − commission − URSSAF). Vue **Année navigable** (flèches 2026→2027…). Diagramme mensuel = 3 barres (Facturé / Net gagné / **Après URSSAF** bleu).

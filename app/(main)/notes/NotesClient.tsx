@@ -265,7 +265,7 @@ export default function NotesClient({
                     {/* Corps : plus petit que le titre */}
                     {(bodyHtml || !hasTitle) && (
                       <div
-                        className={`whitespace-pre-wrap break-words leading-snug text-ink/70 [&_b]:font-semibold [&_strong]:font-semibold ${
+                        className={`rich-content whitespace-pre-wrap break-words leading-snug text-ink/70 ${
                           featured ? "text-[15px]" : "text-[12px]"
                         }`}
                         dangerouslySetInnerHTML={{ __html: bodyHtml || "Note" }}
@@ -356,7 +356,7 @@ export default function NotesClient({
                     {titleTxt || "Bloc sans titre"}
                   </p>
                   <div
-                    className="flex-1 overflow-hidden whitespace-pre-wrap break-words text-[14px] leading-relaxed text-ink-soft [&_b]:font-semibold [&_strong]:font-semibold [&_ul]:list-disc [&_ul]:pl-5"
+                    className="rich-content flex-1 overflow-hidden whitespace-pre-wrap break-words text-[14px] leading-relaxed text-ink-soft"
                     dangerouslySetInnerHTML={{
                       __html: n.content?.trim() || "<span>Vide…</span>",
                     }}

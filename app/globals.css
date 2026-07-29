@@ -134,6 +134,37 @@ select {
       transparent 55%
     );
   }
+
+  /* ---- Texte riche (RichText / RichArea + tout HTML de note affiché) ----
+     3 tailles : S (13px) / M = taille de base / L (19px). Les règles font[size]
+     mappent les ANCIENS contenus (execCommand fontSize) sur les mêmes tailles. */
+  .rich-content ul {
+    list-style: disc;
+    padding-left: 1.25rem;
+  }
+  .rich-content b,
+  .rich-content strong {
+    font-weight: 600;
+  }
+  .rich-content [data-fs="s"] {
+    font-size: 13px;
+  }
+  .rich-content [data-fs="l"] {
+    font-size: 19px;
+  }
+  .rich-content font[size="1"],
+  .rich-content font[size="2"] {
+    font-size: 13px;
+  }
+  .rich-content font[size="3"] {
+    font-size: inherit;
+  }
+  .rich-content font[size="4"],
+  .rich-content font[size="5"],
+  .rich-content font[size="6"],
+  .rich-content font[size="7"] {
+    font-size: 19px;
+  }
 }
 
 /* Panneau latéral façon Notion : glisse depuis la droite */

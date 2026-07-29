@@ -194,12 +194,19 @@ export default function NotePanel({
               placeholder="Écris ici… (sélectionne du texte pour le mettre en gras, italique ou en couleur)"
             />
           ) : value.trim() ? (
+            // Aperçu : un clic sur le texte passe directement en édition
             <div
-              className="whitespace-pre-wrap text-[15.5px] leading-relaxed text-[#3F3F46] dark:text-[#C7C9CE] [&_b]:font-semibold [&_ul]:list-disc [&_ul]:pl-5"
+              onClick={() => setMode("edit")}
+              className="rich-content cursor-text whitespace-pre-wrap text-[15px] leading-relaxed text-[#3F3F46] dark:text-[#C7C9CE]"
               dangerouslySetInnerHTML={{ __html: value }}
             />
           ) : (
-            <p className="text-[15.5px] text-muted">Aucun détail.</p>
+            <p
+              onClick={() => setMode("edit")}
+              className="cursor-text text-[15px] text-muted"
+            >
+              Aucun détail.
+            </p>
           )}
         </div>
 

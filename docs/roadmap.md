@@ -1,7 +1,7 @@
 # CREATIVE SPACE — ROADMAP.MD
 ## Plan de développement par phases
 
-> **État au 16/07/2026 :** Phases 1–6 livrées + **refonte design complète (desktop « v2 » + version mobile « app native »)** en ligne. Ajouts récents (voir `docs/context.md` §0bis) : acompte projet, commission auto, déclaration URSSAF, simulateur de devis, **recherche globale ⌘K** (Phase 7 ✅), diagrammes affinés. Migrations Supabase à jour **jusqu'à 022**.
+> **État au 29/07/2026 :** Phases 1–6 livrées + refonte design (desktop « v2 » + mobile « app native ») en ligne. Session 29/07 (voir `docs/context.md` §0a) : **acompte = repère non compté** (validation du total en une fois), **refonte complète de l'édition de texte** (toolbar au focus, 3 tailles S/M/L avec vrai retour à la base, couleur en popover, toolbar partagée titre+corps du post-it), **picker emoji complet** (1906 emojis, recherche FR+EN, popover compact), **date d'un bloc calendrier modifiable** depuis sa page. Migrations Supabase à jour **jusqu'à 022** (rien de nouveau à exécuter).
 > **Reste (Phase 7 bonus, à prioriser) :** PWA / installable iOS, dark mode (abandonné pour l'instant), export comptable (CSV/PDF), portail client, templates de projet. Idées en attente : objectif de CA avec jauge, relance client, compte à rebours fin d'ACRE.
 
 ---

@@ -930,6 +930,22 @@ export default function CalendarSection({
           side
           footer={
             <div className="space-y-3">
+              {/* Date du bloc : modifiable pour TOUS les blocs (libres ou liés
+                  à un projet) — change le jour dans le semainier. */}
+              <div className="flex items-center gap-3">
+                <span className="text-xs font-medium uppercase tracking-wide text-muted">
+                  Date
+                </span>
+                <input
+                  type="date"
+                  value={noteBlock.date_start}
+                  onChange={(e) => {
+                    if (e.target.value)
+                      move(noteBlock, e.target.value, noteBlock.category);
+                  }}
+                  className="rounded-lg border border-gray-200 dark:border-hairline px-2.5 py-1 text-sm outline-none focus:border-active focus:ring-4 focus:ring-active/12"
+                />
+              </div>
               {!noteBlock.project_id && (
                 <>
                   {/* Couleur de la pastille du bloc (blocs libres seulement) */}
