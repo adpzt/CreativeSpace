@@ -1,9 +1,12 @@
 "use client";
 
-import { useState } from "react";
-import type { ReactNode } from "react";
+import { useEffect, useState } from "react";
+import type { MutableRefObject, ReactNode } from "react";
 import { Trash2, Flag, Tag, CalendarClock, Smile } from "lucide-react";
 import RichText from "@/components/notes/RichText";
+import SaveIndicator from "@/components/notes/SaveIndicator";
+import { useFieldAutosave } from "@/components/notes/autosave";
+import type { EditorFlush } from "@/components/notes/BlocEditor";
 import { EmojiPicker, ThemePicker } from "@/components/notes/pickers";
 import { PRIORITIES, PRIORITY_ORDER } from "@/lib/notes";
 import type { Note, NotePriority } from "@/app/(main)/notes/actions";
@@ -30,22 +33,47 @@ function Row({
 }
 
 // Éditeur de tâche : affichage propre et TOUT est modifiable en cliquant
-// directement dessus (pas de bouton crayon, pas de mode). Autosave via `save`.
+// directement dessus (pas de bouton crayon, pas de mode). Titre et détails
+// enregistrés automatiquement (600 ms après la frappe + à la fermeture) : plus
+// de titre perdu quand on ferme avec Échap ou la croix.
 export default function NoteEditor({
   note,
   save,
   onDelete,
+  flushRef,
 }: {
   note: Note;
-  save: (fields: Partial<Note>) => void;
+  save: (fields: Partial<Note>) => void | Promise<void>;
   onDelete: () => void;
+  flushRef?: MutableRefObject<EditorFlush | null>;
 }) {
   const [title, setTitle] = useState(note.title ?? "");
-  const [content, setContent] = useState(note.content ?? "");
   const [priority, setPriority] = useState<NotePriority>(note.priority);
   const [theme, setTheme] = useState(note.theme ?? "");
   const [due, setDue] = useState(note.due_date ?? "");
   const [emoji, setEmoji] = useState(note.emoji ?? "");
+
+  const { set, flush, status } = useFieldAutosave(
+    { title: note.title ?? "", content: note.content ?? "" },
+    (fields) => {
+      const patch: Partial<Note> = {};
+      if ("title" in fields) patch.title = fields.title?.trim() ? fields.title : null;
+      if ("content" in fields) patch.content = fields.content ?? "";
+      return save(patch);
+    }
+  );
+
+  // Le parent force l'enregistrement avant de fermer (et relit la saisie).
+  useEffect(() => {
+    if (!flushRef) return;
+    flushRef.current = async () => {
+      const fields = await flush();
+      return { title: fields.title ?? "", content: fields.content ?? "" };
+    };
+    return () => {
+      flushRef.current = null;
+    };
+  }, [flushRef, flush]);
 
   return (
     <div className="space-y-4 pr-8">
@@ -54,11 +82,15 @@ export default function NoteEditor({
         {emoji && <span className="text-[30px] leading-tight">{emoji}</span>}
         <input
           value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          onBlur={() => save({ title: title.trim() || null })}
+          onChange={(e) => {
+            setTitle(e.target.value);
+            set({ title: e.target.value });
+          }}
+          onBlur={() => void flush()}
           placeholder="Titre de la tâche"
           className="w-full bg-transparent text-[30px] font-bold leading-tight tracking-tight outline-none placeholder:text-muted"
         />
+        <SaveIndicator status={status} className="mt-3 shrink-0" />
       </div>
 
       <div className="space-y-0.5">
@@ -121,12 +153,9 @@ export default function NoteEditor({
 
       <div className="border-t border-black/[0.06] pt-4">
         <RichText
-          value={content}
-          onChange={(html) => {
-            setContent(html);
-            save({ content: html });
-          }}
-          placeholder="Détails… (gras, listes, tailles, couleurs)"
+          value={note.content ?? ""}
+          onChange={(html) => set({ content: html })}
+          placeholder="Détails… (gras, barré, listes, tailles, couleurs)"
         />
       </div>
 

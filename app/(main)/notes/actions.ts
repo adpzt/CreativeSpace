@@ -76,13 +76,19 @@ export async function createNote(
 }
 
 // Met à jour une note (titre, contenu, priorité, thème, échéance, faite…)
+// opts.silent = pas de revalidatePath : réservé à l'AUTOSAVE d'un éditeur ouvert.
+// Sans ça, chaque frappe re-rendait toute la page côté serveur (8 requêtes
+// Supabase sur l'accueil) et les écritures se bousculaient. L'affichage reste
+// juste grâce à l'état optimiste, et l'éditeur rafraîchit à la fermeture.
 export async function updateNote(
   id: string,
-  patch: Partial<Omit<Note, "id" | "created_at">>
+  patch: Partial<Omit<Note, "id" | "created_at">>,
+  opts: { silent?: boolean } = {}
 ): Promise<void> {
   const supabase = createServerSupabase();
   const { error } = await supabase.from("notes").update(patch).eq("id", id);
   if (error) throw new Error(error.message);
+  if (opts.silent) return;
   revalidatePath("/notes");
   revalidatePath("/work");
 }

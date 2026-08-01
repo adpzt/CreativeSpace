@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Check } from "lucide-react";
+import Link from "next/link";
+import { Check, ChevronRight } from "lucide-react";
 import { CATEGORY_COLOR } from "@/lib/work";
 import { updateCalendarBlock } from "@/app/(main)/work/actions";
 import type {
@@ -10,6 +11,17 @@ import type {
   Client,
   Project,
 } from "@/lib/types";
+
+// Échéance qui n'est pas un bloc du calendrier mais qui DOIT se voir dans les
+// tâches du jour (aujourd'hui : le jour du paiement URSSAF).
+export type TodayReminder = {
+  id: string;
+  title: string;
+  detail?: string;
+  href: string;
+  cta: string;
+  urgent?: boolean;
+};
 
 const CAT: Record<
   CalendarCategory,
@@ -22,14 +34,17 @@ const CAT: Record<
 };
 
 // Tâches du jour (blocs du calendrier), cochables directement depuis le Home.
+// `reminders` = échéances calculées (URSSAF…), affichées en tête de liste.
 export default function TodayTasks({
   blocks,
   projects = [],
   clients = [],
+  reminders = [],
 }: {
   blocks: CalendarBlock[];
   projects?: Project[];
   clients?: Client[];
+  reminders?: TodayReminder[];
 }) {
   // Tri : par catégorie (Freelance -> Entreprise -> Perso), puis par heure (les
   // blocs avec heure d'abord). Regroupe les mêmes catégories ensemble.
@@ -67,7 +82,7 @@ export default function TodayTasks({
     await updateCalendarBlock(b.id, { completed });
   }
 
-  if (items.length === 0) {
+  if (items.length === 0 && reminders.length === 0) {
     return (
       <p className="rounded-2xl border border-dashed border-black/[0.12] px-4 py-6 text-center text-sm text-muted">
         Rien de prévu aujourd&apos;hui.
@@ -77,6 +92,41 @@ export default function TodayTasks({
 
   return (
     <ul className="divide-y divide-black/[0.05] overflow-hidden rounded-2xl border border-black/[0.06] bg-white shadow-card">
+      {/* Échéances du jour (URSSAF…) : en tête, cliquables vers la bonne page */}
+      {reminders.map((r) => (
+        <li key={r.id}>
+          <Link
+            href={r.href}
+            className={`flex items-center gap-3 px-4 py-3 transition-colors ${
+              r.urgent ? "bg-red-50/70 hover:bg-red-50" : "hover:bg-black/[0.015]"
+            }`}
+          >
+            <span
+              className={`h-2 w-2 shrink-0 rounded-full ${
+                r.urgent ? "bg-urgent" : "bg-active"
+              }`}
+            />
+            <span className="min-w-0 flex-1">
+              <span className="block truncate text-sm font-semibold">
+                {r.title}
+              </span>
+              {r.detail && (
+                <span className="block truncate text-[12px] text-ink-soft">
+                  {r.detail}
+                </span>
+              )}
+            </span>
+            <span
+              className={`shrink-0 text-[12px] font-semibold ${
+                r.urgent ? "text-urgent" : "text-active"
+              }`}
+            >
+              {r.cta}
+            </span>
+            <ChevronRight className="h-4 w-4 shrink-0 text-muted" />
+          </Link>
+        </li>
+      ))}
       {items.map((b) => {
         const cat = CAT[b.category];
         const client = clientOf(b);

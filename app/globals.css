@@ -167,6 +167,16 @@ select {
   }
 }
 
+/* Texte BARRÉ (bouton "Barré" de l'éditeur : sert à rayer une tâche finie sans
+   la supprimer). execCommand produit <strike> (ou <s>/<del> selon le contenu) ;
+   on force la décoration pour que ce soit identique PARTOUT où le HTML d'une
+   note est affiché : éditeur, aperçu de post-it, carte de bloc, semainier. */
+s,
+strike,
+del {
+  text-decoration: line-through;
+}
+
 /* Panneau latéral façon Notion : glisse depuis la droite */
 @keyframes slideRight {
   from {

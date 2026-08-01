@@ -9,7 +9,7 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import { Bold, Italic, List } from "lucide-react";
+import { Bold, Italic, List, Strikethrough } from "lucide-react";
 import { PROJECT_COLORS } from "@/lib/work";
 
 // ============================================================================
@@ -225,6 +225,7 @@ export function RichTextScope({
 type ToolbarState = {
   bold: boolean;
   italic: boolean;
+  strike: boolean;
   list: boolean;
   size: Size;
   color: string | null;
@@ -234,6 +235,7 @@ type ToolbarState = {
 const IDLE_STATE: ToolbarState = {
   bold: false,
   italic: false,
+  strike: false,
   list: false,
   size: "m",
   color: null,
@@ -270,17 +272,27 @@ export function RichToolbar({ compact = false }: { compact?: boolean }) {
       const size = (sized?.getAttribute("data-fs") as Size | null) ?? "m";
       let bold = false,
         italic = false,
+        strike = false,
         list = false,
         color: string | null = null;
       try {
         bold = document.queryCommandState("bold");
         italic = document.queryCommandState("italic");
+        strike = document.queryCommandState("strikeThrough");
         list = document.queryCommandState("insertUnorderedList");
         color = rgbToHex(String(document.queryCommandValue("foreColor")));
       } catch {
         // queryCommand* peut jeter selon le navigateur : on garde les défauts
       }
-      setState({ bold, italic, list, size, color, allowBlocks: area.allowBlocks });
+      setState({
+        bold,
+        italic,
+        strike,
+        list,
+        size,
+        color,
+        allowBlocks: area.allowBlocks,
+      });
     }
     read();
     document.addEventListener("selectionchange", read);
@@ -388,6 +400,16 @@ export function RichToolbar({ compact = false }: { compact?: boolean }) {
           className={btn(state.italic)}
         >
           <Italic className="h-4 w-4" />
+        </button>
+        {/* Barré : pour rayer une tâche finie au lieu de la supprimer */}
+        <button
+          type="button"
+          onMouseDown={onCommand("strikeThrough")}
+          aria-label="Barré"
+          title="Barré (tâche faite)"
+          className={btn(state.strike)}
+        >
+          <Strikethrough className="h-4 w-4" />
         </button>
         {!compact && (
           <button

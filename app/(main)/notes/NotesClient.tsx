@@ -21,7 +21,7 @@ import {
 import Overlay from "@/components/ui/Overlay";
 import NoteEditor from "@/components/notes/NoteEditor";
 import PostitEditor from "@/components/notes/PostitEditor";
-import BlocEditor from "@/components/notes/BlocEditor";
+import BlocEditor, { type EditorFlush } from "@/components/notes/BlocEditor";
 import {
   createNote,
   updateNote,
@@ -130,12 +130,17 @@ export default function NotesClient({
   // la resync (setNotes(initialNotes)) peut réécraser un champ tout juste saisi
   // (typiquement l'emoji tapé juste avant de fermer) avec des données périmées.
   const pendingSaves = useRef<Promise<unknown>[]>([]);
+  // Enregistrement forcé de l'éditeur ouvert (bloc notes / tâche) avant fermeture.
+  const editorFlush = useRef<EditorFlush | null>(null);
 
   // Sauvegarde d'un champ de note (optimiste, sans refresh à chaque frappe).
+  // silent : la revalidation serveur est faite UNE fois, à la fermeture.
   function savePostit(id: string, fields: Partial<Note>) {
     setNotes((list) => list.map((n) => (n.id === id ? { ...n, ...fields } : n)));
     setEditing((e) => (e && e.id === id ? { ...e, ...fields } : e));
-    pendingSaves.current.push(updateNote(id, fields));
+    const p = updateNote(id, fields, { silent: true });
+    pendingSaves.current.push(p);
+    return p;
   }
 
   // Synchronise les livrables d'un post-it dans l'état (persistés à part par
@@ -173,7 +178,15 @@ export default function NotesClient({
   // On relit la note depuis la liste (à jour après enregistrement) et non depuis
   // `editing` (qui pouvait rester périmé -> une tâche remplie était supprimée).
   async function closeEditing() {
-    const cur = editing ? notes.find((n) => n.id === editing.id) ?? editing : null;
+    // On force d'abord l'enregistrement de ce qui est en train d'être écrit, et
+    // on relit la saisie : c'est elle qui dit si la note est vide, pas l'état
+    // (qui pouvait être en retard d'une frappe -> note remplie supprimée).
+    const typed = editorFlush.current ? await editorFlush.current() : null;
+    const base = editing ? notes.find((n) => n.id === editing.id) ?? editing : null;
+    const cur =
+      base && typed
+        ? { ...base, title: typed.title.trim() ? typed.title : null, content: typed.content }
+        : base;
     setEditing(null);
     if (cur && isEmptyNote(cur)) {
       setNotes((list) => list.filter((n) => n.id !== cur.id));
@@ -399,6 +412,7 @@ export default function NotesClient({
               key={editing.id}
               note={editing}
               save={(fields) => savePostit(editing.id, fields)}
+              flushRef={editorFlush}
               onDelete={() => removeNote(editing.id)}
             />
           </Overlay>
@@ -418,6 +432,7 @@ export default function NotesClient({
               key={editing.id}
               note={editing}
               save={(fields) => savePostit(editing.id, fields)}
+              flushRef={editorFlush}
               onDelete={() => removeNote(editing.id)}
             />
           </Overlay>

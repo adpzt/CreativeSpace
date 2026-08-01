@@ -1,8 +1,29 @@
 # CREATIVE SPACE — CONTEXT.MD
 ## Document de référence complet pour Claude Code
-## Dernière mise à jour : 29 juillet 2026
+## Dernière mise à jour : 1er août 2026
 
 ---
+
+## 0z. MISE À JOUR (session 01/08/2026) — 3 retours d'Adrien, tous vérifiés au navigateur
+
+**1) Le jour du paiement URSSAF apparaît dans « Aujourd'hui »** (`app/(main)/page.tsx` + `components/home/TodayTasks.tsx`) :
+- Règle posée : le CA d'un mois se déclare à partir du **1er du mois suivant** et doit être **déclaré ET payé au plus tard le dernier jour de ce mois suivant** (CA de juillet -> à payer avant le 31 août). On cible le **mois le plus ancien encore à déclarer**, exactement comme `UrssafSection` (les deux écrans disent la même chose).
+- TodayTasks accepte des `reminders` (type `TodayReminder`) : échéances qui ne sont PAS des blocs de calendrier, affichées en tête de la liste du jour, cliquables vers /finance. Le KPI « Tâches du jour » les compte (cohérence liste / compteur).
+- Le jour de l'échéance (et après, tant que ce n'est pas déclaré) : ligne rouge « Payer l'URSSAF de <mois> · <montant> » dans Aujourd'hui. Les autres jours, la même échéance reste dans « À faire » avec son J-X.
+- **URSSAF de « À faire » consolidée en UNE ligne** : l'ancienne alerte « URSSAF de <mois> non déclarée » se déclenchait dès le 1er du mois avec `days: -3`, donc affichée **« En retard 🚨 » tout le mois alors qu'il restait jusqu'à la fin du mois** (+ popup de retard). Elle est remplacée par une seule ligne datée sur la vraie échéance. Pas de doublon : quand la ligne passe dans Aujourd'hui, elle sort de « À faire ».
+- Mois précédent sans encaissement : rappel « déclaration à 0 € obligatoire » le jour de l'échéance uniquement (jamais avant le 1er mois d'activité).
+
+**2) Texte BARRÉ** (`components/notes/RichText.tsx` + `app/globals.css`) : bouton **S** dans la barre d'outils (à côté de B/I, dispo aussi en mode `compact` = titre de post-it), état actif remonté par `queryCommandState("strikeThrough")`. `execCommand` produit `<strike>` ; règle CSS globale `s, strike, del { text-decoration: line-through }` pour que ce soit rendu **partout** (éditeur, aperçu post-it, carte de bloc, semainier), même là où la classe `.rich-content` n'est pas posée. Usage voulu par Adrien : rayer une tâche faite au lieu de la supprimer.
+
+**3) AUTOSAVE des notes réparé (« 1 fois sur 2 ça n'enregistrait pas »)** — causes réelles trouvées :
+- le **titre** (bloc notes ET tâche) n'était enregistré qu'au `onBlur` : fermer avec **Échap** (ou une croix qui ne blur pas) ne l'enregistrait jamais, et pire, `closeEditing`/`close` relisait un état sans titre -> la note était jugée **vide et SUPPRIMÉE** ;
+- le **contenu** partait à **chaque frappe**, avec `revalidatePath` à chaque fois (sur l'accueil = 8 requêtes Supabase par lettre) : écritures concurrentes, refresh permanent.
+- Correctif : hook **`components/notes/autosave.ts` (`useFieldAutosave`)** = valeurs dans une ref (aucun re-render ne les perd), **une** écriture 600 ms après la dernière frappe, **`flush()`** appelé par le parent AVANT de fermer (et qui renvoie la saisie réelle, c'est elle qui décide si la note est vide), flush aussi au démontage, et réessai si l'écriture échoue. Utilisé par `BlocEditor` et `NoteEditor` (type `EditorFlush`, prop `flushRef`).
+- `updateNote(id, patch, { silent: true })` : l'autosave ne revalide plus les routes (l'état optimiste suffit) ; la revalidation se fait une fois à la fermeture (`router.refresh()` / `router.push`).
+- Repère visuel **`SaveIndicator`** dans les deux éditeurs : « Modifié » -> « Enregistrement » -> « Enregistré ». Adrien doit pouvoir vérifier d'un coup d'oeil.
+- Vérifié au navigateur (Playwright) : titre + contenu + barré fermés par **Échap immédiat** = tout est en base après rechargement complet ; tâche « titre seul » fermée par Échap = conservée (plus supprimée).
+
+**Aucune migration SQL** dans cette session (toujours **022** incluse).
 
 ## 0a. MISE À JOUR (session 29/07/2026) — À LIRE EN PREMIER
 

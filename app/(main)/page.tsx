@@ -17,7 +17,7 @@ import { getCalendarBlocks, getProjects, getClients } from "./work/actions";
 import { getPayments, getUrssaf, getExpenses } from "./finance/actions";
 import { getNotes } from "./notes/actions";
 import { getMeSettings } from "./me/actions";
-import TodayTasks from "@/components/home/TodayTasks";
+import TodayTasks, { type TodayReminder } from "@/components/home/TodayTasks";
 import OverdueAlert from "@/components/home/OverdueAlert";
 import RotatingKpi, { type KpiSlide } from "@/components/home/RotatingKpi";
 import GlobalSearch, { type SearchItem } from "@/components/home/GlobalSearch";
@@ -166,21 +166,93 @@ export default async function HomePage() {
       days: differenceInCalendarDays(parseISO(p.end_date as string), now),
     }));
 
-  // URSSAF : le mois précédent est-il déclaré ?
+  // --- URSSAF : quelle déclaration est en cours, et pour quand ? -----------
+  // Règle micro-entrepreneur (déclaration mensuelle) : le CA d'un mois se
+  // déclare À PARTIR du 1er du mois suivant et doit être déclaré ET PAYÉ au
+  // plus tard le DERNIER JOUR de ce mois suivant (ex : CA de juillet -> à payer
+  // avant le 31 août). On cible le mois le plus ancien encore à déclarer, comme
+  // la page Bank (UrssafSection), pour que les deux écrans disent la même chose.
   const prev = new Date(now.getFullYear(), now.getMonth() - 1, 1);
   const prevY = prev.getFullYear();
   const prevM = prev.getMonth() + 1;
-  const prevEncaisse = countablePayments
-    .filter(
-      (p) =>
-        p.status === "paid" &&
-        p.received_date?.startsWith(`${prevY}-${String(prevM).padStart(2, "0")}`)
-    )
-    .reduce((s, p) => s + (p.gross_amount ?? p.net_amount ?? 0), 0);
   const prevDeclared = urssaf.find(
     (r) => r.year === prevY && r.month === prevM && r.completed
   );
-  const urssafAlert = prevEncaisse > 0 && !prevDeclared;
+
+  // CA facturé (brut) encaissé par mois
+  const grossByMonth = new Map<string, { y: number; m: number; gross: number }>();
+  for (const p of countablePayments) {
+    if (p.status !== "paid" || !p.received_date) continue;
+    const y = Number(p.received_date.slice(0, 4));
+    const m = Number(p.received_date.slice(5, 7));
+    const key = `${y}-${m}`;
+    const cur = grossByMonth.get(key) ?? { y, m, gross: 0 };
+    cur.gross += p.gross_amount ?? p.net_amount ?? 0;
+    grossByMonth.set(key, cur);
+  }
+  const isMonthDeclared = (y: number, m: number) =>
+    urssaf.some((r) => r.year === y && r.month === m && r.completed);
+  // Mois le plus ancien : encaissé, déclarable (1er du mois suivant passé) et
+  // pas encore déclaré.
+  const pendingUrssaf =
+    Array.from(grossByMonth.values())
+      .filter(
+        (x) =>
+          x.gross > 0 &&
+          new Date(x.y, x.m, 1).getTime() <= now.getTime() &&
+          !isMonthDeclared(x.y, x.m)
+      )
+      .sort((a, b) => a.y - b.y || a.m - b.m)[0] ?? null;
+  // Échéance = dernier jour du mois SUIVANT le mois déclaré (négatif = en retard)
+  const urssafDueDays = pendingUrssaf
+    ? differenceInCalendarDays(
+        endOfMonth(new Date(pendingUrssaf.y, pendingUrssaf.m, 1)),
+        now
+      )
+    : null;
+  const urssafAmount = pendingUrssaf
+    ? pendingUrssaf.gross * urssafRate(pendingUrssaf.y, pendingUrssaf.m)
+    : 0;
+  // Jour du paiement (ou dépassé) -> ça devient une TÂCHE DU JOUR.
+  const urssafToday = urssafDueDays !== null && urssafDueDays <= 0;
+  // Mois précédent sans aucun encaissement : la déclaration à 0 € reste
+  // obligatoire (oubli = pénalité), on la rappelle le jour de l'échéance. On ne
+  // remonte jamais avant le 1er mois d'activité (rien à déclarer avant).
+  const firstActivity = Array.from(grossByMonth.values()).sort(
+    (a, b) => a.y - b.y || a.m - b.m
+  )[0];
+  const urssafZeroToday =
+    !pendingUrssaf &&
+    !prevDeclared &&
+    !!firstActivity &&
+    prevY * 12 + prevM >= firstActivity.y * 12 + firstActivity.m &&
+    todayStr === format(endOfMonth(now), "yyyy-MM-dd");
+
+  // Échéances non-calendaires affichées dans "Aujourd'hui"
+  const todayReminders: TodayReminder[] = [];
+  if (pendingUrssaf && urssafToday) {
+    const late = (urssafDueDays as number) < 0;
+    todayReminders.push({
+      id: "urssaf",
+      title: `Payer l'URSSAF de ${MONTHS[pendingUrssaf.m - 1]} · ${formatEuro(
+        urssafAmount
+      )}`,
+      detail: late
+        ? "échéance dépassée : à déclarer et payer au plus vite"
+        : "dernier jour pour déclarer et payer sur autoentrepreneur.urssaf.fr",
+      href: "/finance",
+      cta: "Déclarer",
+      urgent: true,
+    });
+  } else if (urssafZeroToday) {
+    todayReminders.push({
+      id: "urssaf-zero",
+      title: `Déclarer l'URSSAF de ${MONTHS[prevM - 1]}`,
+      detail: "rien encaissé ce mois-là, mais la déclaration à 0 € est obligatoire",
+      href: "/finance",
+      cta: "Déclarer",
+    });
+  }
 
   // --- KPI ---
   const nextDeadline = activeProjects
@@ -189,7 +261,9 @@ export default async function HomePage() {
     .filter((d) => differenceInCalendarDays(d, now) >= 0)
     .sort((a, b) => a.getTime() - b.getTime())[0];
 
-  const todayTotal = todayBlocks.length;
+  // Les échéances du jour (URSSAF) comptent dans les tâches du jour : le KPI
+  // reste cohérent avec la liste affichée juste en dessous.
+  const todayTotal = todayBlocks.length + todayReminders.length;
   const todayDone = todayBlocks.filter((b) => b.completed).length;
 
   // Projet lié à la prochaine échéance (pour réunir date + nom)
@@ -208,8 +282,7 @@ export default async function HomePage() {
     .filter((p) => p.status === "paid" && p.received_date?.startsWith(ym))
     .reduce((s, p) => s + (p.net_amount ?? 0), 0);
 
-  // --- URSSAF : jours avant la prochaine déclaration + montant à déclarer ---
-  const daysUntilDecl = differenceInCalendarDays(endOfMonth(now), now);
+  // --- CA facturé du mois en cours (hero + URSSAF à provisionner) ---
   const grossMonth = countablePayments
     .filter((p) => p.status === "paid" && p.received_date?.startsWith(ym))
     .reduce((s, p) => s + (p.gross_amount ?? p.net_amount ?? 0), 0);
@@ -297,27 +370,22 @@ export default async function HomePage() {
       cta: "Ouvrir",
       days,
     })),
-    ...(urssafAlert
+    // URSSAF : UNE seule ligne, datée sur la vraie échéance (dernier jour du
+    // mois suivant le CA). Le jour du paiement, elle passe dans "Aujourd'hui"
+    // (todayReminders) : pas de doublon.
+    ...(pendingUrssaf && !urssafToday
       ? [
           {
             key: "urssaf",
-            level: "urgent" as const,
-            text: `URSSAF de ${MONTHS[prevM - 1]} non déclarée`,
+            level: ((urssafDueDays as number) <= 3 ? "urgent" : "info") as
+              | "urgent"
+              | "info",
+            text: `URSSAF de ${MONTHS[pendingUrssaf.m - 1]} à déclarer · ${formatEuro(
+              urssafAmount
+            )}`,
             href: "/finance",
             cta: "Déclarer",
-            days: -3,
-          },
-        ]
-      : []),
-    ...(grossMonth > 0
-      ? [
-          {
-            key: "urssaf-decl",
-            level: "info" as const,
-            text: `URSSAF à déclarer · ${formatEuro(grossMonth)}`,
-            href: "/finance",
-            cta: "Voir",
-            days: daysUntilDecl,
+            days: urssafDueDays as number,
           },
         ]
       : []),
@@ -466,7 +534,12 @@ export default async function HomePage() {
       {/* Aujourd'hui */}
       <section className="order-2 md:order-none">
         <p className="lbl mb-3">Aujourd&apos;hui</p>
-        <TodayTasks blocks={todayBlocks} projects={projects} clients={clients} />
+        <TodayTasks
+          blocks={todayBlocks}
+          projects={projects}
+          clients={clients}
+          reminders={todayReminders}
+        />
       </section>
 
       {/* Objectifs & raccourcis (bento) */}

@@ -1,6 +1,8 @@
 # CREATIVE SPACE — ROADMAP.MD
 ## Plan de développement par phases
 
+> **État au 01/08/2026 :** 3 retours d'Adrien livrés (détail : `docs/context.md` §0z) : (1) **le jour du paiement URSSAF apparaît dans « Aujourd'hui »** (échéance = dernier jour du mois suivant le CA, mois le plus ancien non déclaré, ligne unique dans « À faire » le reste du temps — l'ancienne alerte « en retard » dès le 1er du mois est corrigée) ; (2) **texte barré** dans l'éditeur (rayer une tâche faite au lieu de la supprimer) ; (3) **autosave des notes réparé** (le titre n'était enregistré qu'au blur -> perdu avec Échap et note supprimée comme « vide » ; contenu envoyé à chaque frappe) : hook `useFieldAutosave` + `flush()` avant fermeture + indicateur « Enregistré ». Aucune migration SQL.
+>
 > **État au 29/07/2026 :** Phases 1–6 livrées + refonte design (desktop « v2 » + mobile « app native ») en ligne. Session 29/07 (voir `docs/context.md` §0a) : **acompte = repère non compté** (validation du total en une fois), **refonte complète de l'édition de texte** (toolbar au focus, 3 tailles S/M/L avec vrai retour à la base, couleur en popover, toolbar partagée titre+corps du post-it), **picker emoji complet** (1906 emojis, recherche FR+EN, popover compact), **date d'un bloc calendrier modifiable** depuis sa page. Migrations Supabase à jour **jusqu'à 022** (rien de nouveau à exécuter).
 > **Reste (Phase 7 bonus, à prioriser) :** PWA / installable iOS, dark mode (abandonné pour l'instant), export comptable (CSV/PDF), portail client, templates de projet. Idées en attente : objectif de CA avec jauge, relance client, compte à rebours fin d'ACRE.
 

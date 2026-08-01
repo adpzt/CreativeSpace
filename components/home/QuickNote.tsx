@@ -1,11 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Plus } from "lucide-react";
 import Overlay from "@/components/ui/Overlay";
 import { Button } from "@/components/ui/Button";
-import BlocEditor from "@/components/notes/BlocEditor";
+import BlocEditor, { type EditorFlush } from "@/components/notes/BlocEditor";
 import { createNote, updateNote, deleteNote, type Note } from "@/app/(main)/notes/actions";
 import { stripHtml } from "@/lib/notes";
 
@@ -16,6 +16,12 @@ export default function QuickNote({ iconOnly = false }: { iconOnly?: boolean }) 
   const router = useRouter();
   const [note, setNote] = useState<Note | null>(null);
   const [busy, setBusy] = useState(false);
+  // Miroir de `note` : l'autosave peut être déclenché depuis un rendu antérieur,
+  // on veut TOUJOURS écrire sur la note ouverte (jamais un id périmé).
+  const noteRef = useRef<Note | null>(null);
+  noteRef.current = note;
+  // Enregistrement forcé de l'éditeur avant fermeture (branché par BlocEditor).
+  const flushRef = useRef<EditorFlush | null>(null);
 
   async function open() {
     if (busy) return;
@@ -27,15 +33,22 @@ export default function QuickNote({ iconOnly = false }: { iconOnly?: boolean }) 
 
   function save(fields: Partial<Note>) {
     setNote((n) => (n ? { ...n, ...fields } : n));
-    if (note) updateNote(note.id, fields);
+    const cur = noteRef.current;
+    // silent : pas de revalidation à chaque frappe (la page se recharge à la
+    // fermeture). L'erreur est avalée pour ne pas casser l'autosave suivant.
+    if (cur) return updateNote(cur.id, fields, { silent: true });
   }
 
-  function close() {
+  async function close() {
     const cur = note;
+    // On enregistre AVANT de fermer, et on relit ce qui a été réellement tapé :
+    // c'est ce qui décide si la note est vide (donc supprimée) ou non.
+    const typed = flushRef.current ? await flushRef.current() : null;
     setNote(null);
     if (!cur) return;
-    const empty =
-      !stripHtml(cur.title || "").trim() && !stripHtml(cur.content || "").trim();
+    const title = typed ? typed.title : cur.title ?? "";
+    const content = typed ? typed.content : cur.content ?? "";
+    const empty = !stripHtml(title).trim() && !stripHtml(content).trim();
     if (empty) {
       deleteNote(cur.id);
     } else {
@@ -67,6 +80,7 @@ export default function QuickNote({ iconOnly = false }: { iconOnly?: boolean }) 
             key={note.id}
             note={note}
             save={save}
+            flushRef={flushRef}
             onDelete={() => {
               deleteNote(note.id);
               setNote(null);
