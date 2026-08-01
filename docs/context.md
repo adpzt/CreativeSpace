@@ -23,6 +23,13 @@
 - Repère visuel **`SaveIndicator`** dans les deux éditeurs : « Modifié » -> « Enregistrement » -> « Enregistré ». Adrien doit pouvoir vérifier d'un coup d'oeil.
 - Vérifié au navigateur (Playwright) : titre + contenu + barré fermés par **Échap immédiat** = tout est en base après rechargement complet ; tâche « titre seul » fermée par Échap = conservée (plus supprimée).
 
+**Suite du même jour — retour d'Adrien « l'autosave bloc note ne marche pas, chaque fois que j'écris ça se supprime auto » :**
+- **Non reproductible sur la version déployée** : 6 scénarios testés sur la PROD (accueil « + » avec contenu seul / clic dehors / croix / 2 salves de frappe, To do « nouveau bloc » + Échap, **mobile 390px + tap dehors**, réouverture d'un bloc existant) -> dans TOUS les cas la note reste active et le contenu est en base.
+- **Enquête en base** : la seule note perdue du 01/08 est le bloc **« Amélioration Plateforme »** (10 610 caractères, retours MASSUP), créé à 16h22 et mis à la corbeille à **18h05** — soit ~20 min AVANT que le correctif ne soit en ligne (18h28). Aucune note créée ni supprimée après le déploiement : le retour décrit donc l'ancien comportement. **Note restaurée** (deleted_at remis à null).
+- **Cause réelle de la suppression identifiée** : `isEmptyNote` ne peut PAS avoir supprimé cette note (elle avait un titre), et le seul autre chemin est le bouton **« Supprimer »** de l'éditeur — placé juste sous la zone de texte, sans confirmation, sans annulation visible. Au doigt sur iPhone il est très facile à toucher en écrivant : la note part à la corbeille et on croit qu'elle « se supprime toute seule ».
+- **Correctif** : `components/notes/DeleteNoteButton.tsx` = **suppression en 2 temps** (« Supprimer » -> « Mettre à la corbeille ? Annuler / Oui, supprimer », la demande retombe seule au bout de 6 s), appliquée aux 3 éditeurs (bloc, tâche, post-it) avec un libellé explicite. Vérifié : 1 clic ne supprime rien, Annuler annule, la confirmation supprime.
+- **Durcissement mobile de l'autosave** : `useFieldAutosave` enregistre aussi sur `visibilitychange`/`pagehide` (verrouillage de l'écran ou changement d'app pendant les 600 ms de délai).
+
 **Aucune migration SQL** dans cette session (toujours **022** incluse).
 
 ## 0a. MISE À JOUR (session 29/07/2026) — À LIRE EN PREMIER

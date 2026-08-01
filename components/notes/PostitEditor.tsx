@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Trash2 } from "lucide-react";
+import DeleteNoteButton from "@/components/notes/DeleteNoteButton";
 import { RichTextScope, RichToolbar, RichArea } from "@/components/notes/RichText";
 import { EmojiPicker, ThemePicker } from "@/components/notes/pickers";
 import DeliverablesEditor from "@/components/work/DeliverablesEditor";
@@ -206,13 +206,7 @@ export default function PostitEditor({
         </div>
 
         <div className="flex justify-end border-t border-black/[0.06] pt-4">
-          <button
-            onClick={onDelete}
-            className="inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-sm font-medium text-muted transition-colors hover:bg-red-50 hover:text-urgent"
-          >
-            <Trash2 className="h-4 w-4" />
-            Supprimer
-          </button>
+          <DeleteNoteButton onDelete={onDelete} label="Supprimer le post-it" />
         </div>
       </div>
 

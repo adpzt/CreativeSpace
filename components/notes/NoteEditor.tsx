@@ -2,8 +2,9 @@
 
 import { useEffect, useState } from "react";
 import type { MutableRefObject, ReactNode } from "react";
-import { Trash2, Flag, Tag, CalendarClock, Smile } from "lucide-react";
+import { Flag, Tag, CalendarClock, Smile } from "lucide-react";
 import RichText from "@/components/notes/RichText";
+import DeleteNoteButton from "@/components/notes/DeleteNoteButton";
 import SaveIndicator from "@/components/notes/SaveIndicator";
 import { useFieldAutosave } from "@/components/notes/autosave";
 import type { EditorFlush } from "@/components/notes/BlocEditor";
@@ -160,13 +161,7 @@ export default function NoteEditor({
       </div>
 
       <div className="flex justify-end border-t border-black/[0.06] pt-4">
-        <button
-          onClick={onDelete}
-          className="inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-sm font-medium text-muted transition-colors hover:bg-red-50 hover:text-urgent"
-        >
-          <Trash2 className="h-4 w-4" />
-          Supprimer
-        </button>
+        <DeleteNoteButton onDelete={onDelete} label="Supprimer la tâche" />
       </div>
     </div>
   );

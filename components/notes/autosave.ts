@@ -87,5 +87,23 @@ export function useFieldAutosave(
     [flush]
   );
 
+  // Filet MOBILE : sur iPhone, verrouiller l'écran ou changer d'app peut geler
+  // (puis tuer) la page avant la fin du délai de 600 ms. On enregistre dès que
+  // la page passe en arrière-plan.
+  useEffect(() => {
+    const onHide = () => {
+      if (document.visibilityState === "hidden") void flush();
+    };
+    const onPageHide = () => {
+      void flush();
+    };
+    document.addEventListener("visibilitychange", onHide);
+    window.addEventListener("pagehide", onPageHide);
+    return () => {
+      document.removeEventListener("visibilitychange", onHide);
+      window.removeEventListener("pagehide", onPageHide);
+    };
+  }, [flush]);
+
   return { set, flush, status };
 }
