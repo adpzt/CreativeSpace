@@ -1,6 +1,6 @@
 # CREATIVE SPACE — CONTEXT.MD
 ## Document de référence complet pour Claude Code
-## Dernière mise à jour : 1er août 2026
+## Dernière mise à jour : 2 août 2026
 
 ---
 
@@ -30,7 +30,12 @@
 - **Correctif** : `components/notes/DeleteNoteButton.tsx` = **suppression en 2 temps** (« Supprimer » -> « Mettre à la corbeille ? Annuler / Oui, supprimer », la demande retombe seule au bout de 6 s), appliquée aux 3 éditeurs (bloc, tâche, post-it) avec un libellé explicite. Vérifié : 1 clic ne supprime rien, Annuler annule, la confirmation supprime.
 - **Durcissement mobile de l'autosave** : `useFieldAutosave` enregistre aussi sur `visibilitychange`/`pagehide` (verrouillage de l'écran ou changement d'app pendant les 600 ms de délai).
 
-**Aucune migration SQL** dans cette session (toujours **022** incluse).
+**Session 02/08/2026 — RÉGRESSION du 01/08 corrigée (commit 90e2d43) :**
+- Retour d'Adrien : « je change la date d'un à faire, ça ne se modifie plus ; j'écris du texte, ça ne s'enregistre plus ». **Reproduit sur la PROD** avec son geste réel (titre de test unique, sans pollution) : changer la date d'une tâche puis naviguer par la nav ; écrire du texte puis rouvrir. Résultat : **la base était TOUJOURS juste** (date + texte bien écrits), mais les écrans montraient l'ancienne liste — éditeur rouvert vide, ancienne date — y compris après un rechargement complet.
+- **Cause : le mode `silent` de `updateNote`** (ajouté le 01/08 pour alléger l'autosave). `revalidatePath` était la seule chose qui purgeait les caches de Next (cache client de navigation + cache de données côté serveur en prod) ; sans lui, plus rien n'invalidait. Correctif = **`updateNote` revalide À CHAQUE écriture**, comme avant. On GARDE le reste du 01/08 (débounce 600 ms, `flush()` à la fermeture/arrière-plan, `SaveIndicator`, suppression en 2 temps) : c'est le couple silent+revalidation qui était faux, pas l'autosave.
+- ⚠️ **Leçon de méthode (grosse)** : ma « preuve » initiale était contaminée par un **fantôme de test** — une exécution Playwright avait planté avant son nettoyage, laissant en base une tâche du même titre que celle des tests suivants ; les locators `.first()` lisaient/écrivaient le fantôme, d'où des échecs « déterministes » qui n'étaient PAS le bug. Règles : titres de test UNIQUES (suffixe aléatoire), nettoyage en `try/finally`, et vérifier qu'il n'existe pas déjà une note du même nom avant de conclure.
+
+**Aucune migration SQL** dans ces sessions (toujours **022** incluse).
 
 ## 0a. MISE À JOUR (session 29/07/2026) — À LIRE EN PREMIER
 
