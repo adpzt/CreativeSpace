@@ -133,12 +133,13 @@ export default function NotesClient({
   // Enregistrement forcé de l'éditeur ouvert (bloc notes / tâche) avant fermeture.
   const editorFlush = useRef<EditorFlush | null>(null);
 
-  // Sauvegarde d'un champ de note (optimiste, sans refresh à chaque frappe).
-  // silent : la revalidation serveur est faite UNE fois, à la fermeture.
+  // Sauvegarde d'un champ de note (optimiste : l'état local est mis à jour tout
+  // de suite ; l'écriture serveur revalide les pages, l'éditeur ouvert garde sa
+  // saisie car titre/contenu vivent dans un état/refs local).
   function savePostit(id: string, fields: Partial<Note>) {
     setNotes((list) => list.map((n) => (n.id === id ? { ...n, ...fields } : n)));
     setEditing((e) => (e && e.id === id ? { ...e, ...fields } : e));
-    const p = updateNote(id, fields, { silent: true });
+    const p = updateNote(id, fields);
     pendingSaves.current.push(p);
     return p;
   }

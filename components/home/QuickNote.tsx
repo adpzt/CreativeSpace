@@ -34,9 +34,7 @@ export default function QuickNote({ iconOnly = false }: { iconOnly?: boolean }) 
   function save(fields: Partial<Note>) {
     setNote((n) => (n ? { ...n, ...fields } : n));
     const cur = noteRef.current;
-    // silent : pas de revalidation à chaque frappe (la page se recharge à la
-    // fermeture). L'erreur est avalée pour ne pas casser l'autosave suivant.
-    if (cur) return updateNote(cur.id, fields, { silent: true });
+    if (cur) return updateNote(cur.id, fields);
   }
 
   async function close() {
