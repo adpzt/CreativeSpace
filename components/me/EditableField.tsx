@@ -70,6 +70,9 @@ export default function EditableField({
       ) : (
         <div className="flex min-w-0 items-center gap-2">
           <span
+            // title : la valeur entière au survol (un IBAN est tronqué quand la
+            // grille passe à 3 colonnes ; le bouton copier donne toujours tout).
+            title={value || undefined}
             className={`min-w-0 flex-1 truncate text-sm font-medium ${
               value ? "" : "text-muted"
             }`}

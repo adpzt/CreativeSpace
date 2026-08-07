@@ -1077,3 +1077,27 @@ Une rangée de liens directs vers les pages d'accueil des plateformes créa. C'e
 - Mot de passe d'entrée ("Denis250") stocké en variable d'environnement, jamais en clair dans le code ni commité sur GitHub
 - Sécuriser particulièrement les espaces sensibles (Moi, Finance) : aucune exposition publique des données (IBAN, SIRET, CA)
 - Drag and drop et resize : utiliser dnd-kit (compatible tactile mobile)
+
+---
+
+## 0y. Bouton caché du profil Freelance (02/08/2026)
+
+`components/freelance/ProfileHero.tsx` (le hero profil de /freelance a été extrait
+de la page en composant client) : **un appui sur la PHOTO DE PROFIL (le logo)
+bascule les lignes IBAN et BIC sur un 2e compte** (perso <-> pro). Demandé par
+Adrien comme un « bouton caché rien que pour lui » : rien ne l'annonce dans l'UI.
+- Repère silencieux : le contour + l'étoile du logo passent du bleu #3704F0 au
+  noir, et les libellés deviennent « IBAN · compte 2 » / « BIC · compte 2 ».
+- Mécanique : `PRO_FIELDS` (lib/me.ts) accepte `altKey`/`altDef` ; le champ IBAN
+  a `me_iban_alt` (défaut `FR76 1732 8844 0089 7568 2657 452`) et le BIC
+  `me_bic_alt` (défaut `SWNBFR22`). Les clés alt sont ajoutées à `ME_KEYS`
+  (app/(main)/me/actions.ts) : **le 2e compte est éditable et persistant** comme
+  les autres champs (vérifié : édition -> ligne `profile.me_iban_alt` créée).
+- `key={settingKey}` sur EditableField : force le remontage à la bascule (sinon
+  le champ garderait la valeur de l'autre compte à l'écran).
+- **L'état n'est pas mémorisé** : au rechargement on revient toujours au compte
+  principal (c'est le but : le 2e compte n'est jamais affiché par défaut).
+- Nuance dite à Adrien : c'est de la **discrétion à l'écran**, pas du chiffrement
+  (les 2 valeurs sont dans la page, comme toutes ses infos pro, derrière le mdp).
+- EditableField : ajout de `title={value}` (un IBAN est tronqué en grille 3
+  colonnes ; le survol donne la valeur entière, le bouton copier la copie déjà).

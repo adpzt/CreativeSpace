@@ -1,12 +1,10 @@
-import EditableField from "@/components/me/EditableField";
-import Logo from "@/components/ui/Logo";
+import ProfileHero from "@/components/freelance/ProfileHero";
 import CommunicationView from "@/components/freelance/CommunicationView";
 import ProductionView from "@/components/freelance/ProductionView";
 import ProspectsBoard from "@/components/freelance/ProspectsBoard";
 import DevisSimulator from "@/components/freelance/DevisSimulator";
 import { getMeSettings } from "../me/actions";
 import { getProspects } from "./actions";
-import { PRO_FIELDS, TJM_KEY, TJM_DEFAULT } from "@/lib/me";
 import { urssafRate } from "@/lib/finance";
 
 export const dynamic = "force-dynamic";
@@ -16,7 +14,6 @@ export default async function FreelancePage() {
     getMeSettings(),
     getProspects(),
   ]);
-  const tjm = settings[TJM_KEY] ?? TJM_DEFAULT;
   // Taux URSSAF du mois courant (ACRE-aware), pour le simulateur de devis.
   const nowDate = new Date();
   const urssafNow = urssafRate(nowDate.getFullYear(), nowDate.getMonth() + 1);
@@ -32,44 +29,9 @@ export default async function FreelancePage() {
         </p>
       </header>
 
-      {/* Profil pro = hero widget (logo + nom + TJM) puis infos éditables */}
-      <section className="cs-hero rounded-3xl border border-active/[0.16] bg-gradient-to-br from-active/[0.08] via-[#7c3aed]/[0.10] to-[#0d9488]/[0.05] p-5 shadow-[inset_0_1px_0_rgba(255,255,255,.9),0_1px_2px_rgba(0,0,0,.03),0_22px_50px_-24px_rgba(37,99,235,.4)] sm:p-6">
-        <div className="relative flex items-center gap-4">
-          {/* PP = logo pztdesign : étoile bleue sur fond blanc, contour bleu */}
-          <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl border-2 border-[#3704F0] bg-white">
-            <Logo className="h-7 w-7" color="#3704F0" />
-          </span>
-          <div className="min-w-0 flex-1">
-            <h2 className="text-[22px] font-extrabold tracking-[-0.02em]">Adrien Poizat</h2>
-            <p className="truncate text-sm text-muted">pztdesign · Auto-entrepreneur</p>
-          </div>
-          <div className="shrink-0 text-right">
-            <p className="lbl">TJM</p>
-            <p className="text-[20px] font-black tabular-nums tracking-[-0.02em] text-[#141b4d]">
-              {tjm} €
-            </p>
-          </div>
-        </div>
-
-        <div className="relative mt-5 grid gap-x-8 gap-y-1 sm:grid-cols-2 lg:grid-cols-3">
-          <EditableField
-            flat
-            label="TJM"
-            settingKey={TJM_KEY}
-            initial={settings[TJM_KEY] ?? TJM_DEFAULT}
-            suffix=" €/j"
-          />
-          {PRO_FIELDS.map((f) => (
-            <EditableField
-              key={f.key}
-              flat
-              label={f.label}
-              settingKey={f.key}
-              initial={settings[f.key] ?? f.def}
-            />
-          ))}
-        </div>
-      </section>
+      {/* Profil pro = hero widget (logo + nom + TJM) puis infos éditables.
+          La PP est un bouton discret : elle bascule IBAN/BIC sur le 2e compte. */}
+      <ProfileHero settings={settings} />
 
       {/* Simulateur de devis : ce qui reste vraiment après commission + URSSAF */}
       <Section title="Simulateur de devis">

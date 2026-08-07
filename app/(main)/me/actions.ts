@@ -8,6 +8,8 @@ import { PRO_FIELDS, TJM_KEY } from "@/lib/me";
 // d'abonnés affichés sur l'accueil (saisis à la main).
 const ME_KEYS = [
   ...PRO_FIELDS.map((f) => f.key),
+  // 2e compte bancaire (IBAN/BIC de secours, bascule via la photo de profil)
+  ...PRO_FIELDS.map((f) => f.altKey).filter((k): k is string => !!k),
   TJM_KEY,
   // Widgets Accueil (saisis à la main)
   "me_ig_followers",

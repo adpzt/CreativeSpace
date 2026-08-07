@@ -1,11 +1,32 @@
 // Données de la page "Moi" (profil). Les valeurs par défaut sont les vraies
 // infos d'Adrien ; elles sont éditables et stockées dans la table profile.
 
-export const PRO_FIELDS: { key: string; label: string; def: string }[] = [
+// `altKey`/`altDef` = 2e valeur du champ, affichée en appuyant sur la photo de
+// profil (bouton discret sur /freelance) : sert à basculer le compte bancaire
+// perso <-> pro sans afficher les deux en permanence. Voir ProfileHero.
+export const PRO_FIELDS: {
+  key: string;
+  label: string;
+  def: string;
+  altKey?: string;
+  altDef?: string;
+}[] = [
   { key: "me_siret", label: "SIRET", def: "1059 720 790 0013" },
   { key: "me_ape", label: "APE", def: "7410Z" },
-  { key: "me_iban", label: "IBAN", def: "FR76 1820 6001 2765 0856 8100 650" },
-  { key: "me_bic", label: "BIC", def: "AGRIFRPP882" },
+  {
+    key: "me_iban",
+    label: "IBAN",
+    def: "FR76 1820 6001 2765 0856 8100 650",
+    altKey: "me_iban_alt",
+    altDef: "FR76 1732 8844 0089 7568 2657 452",
+  },
+  {
+    key: "me_bic",
+    label: "BIC",
+    def: "AGRIFRPP882",
+    altKey: "me_bic_alt",
+    altDef: "SWNBFR22",
+  },
   { key: "me_email", label: "Email pro", def: "pztcontactpro@gmail.com" },
   { key: "me_phone", label: "Téléphone", def: "06 79 72 68 18" },
   { key: "me_secu", label: "Numéro de sécu", def: "" },
