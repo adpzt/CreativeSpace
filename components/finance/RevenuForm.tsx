@@ -129,6 +129,10 @@ export default function RevenuForm({
       ? [payment.mission_type]
       : project?.mission_types ?? [];
     const fmtDate = (d: string) => format(parseISO(d), "d MMM yyyy", { locale: fr });
+    // Références du projet lié (saisies dans la fiche projet) : le n° de devis
+    // est ce qu'on cherche quand on ouvre un revenu pour la compta.
+    const devisRef = project?.devis_number?.trim() || null;
+    const factureRef = project?.invoice_number?.trim() || null;
 
     return (
       <div className="pr-2">
@@ -163,6 +167,31 @@ export default function RevenuForm({
             <InfoRow icon={Tag}>
               <span className="text-muted">Projet </span>
               {project.name}
+            </InfoRow>
+          )}
+          {/* N° de devis (et de facture) du projet lié */}
+          {(devisRef || factureRef) && (
+            <InfoRow icon={FileText}>
+              {devisRef && (
+                <>
+                  <span className="text-muted">Devis n° </span>
+                  <span className="font-medium">{devisRef}</span>
+                </>
+              )}
+              {devisRef && factureRef && <span className="text-muted">{"  ·  "}</span>}
+              {factureRef && (
+                <>
+                  <span className="text-muted">Facture n° </span>
+                  <span className="font-medium">{factureRef}</span>
+                </>
+              )}
+            </InfoRow>
+          )}
+          {/* Projet freelance sans n° de devis : on le signale (à remplir dans la
+              fiche projet) plutôt que d'afficher une fiche muette. */}
+          {project && project.category === "freelance" && !devisRef && (
+            <InfoRow icon={FileText}>
+              <span className="text-muted">Devis n° non renseigné</span>
             </InfoRow>
           )}
           {payment.source && (
